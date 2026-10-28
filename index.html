@@ -294,7 +294,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(24px, 7vw, 40px);
+    font-size: clamp(26px, 6vw, 56px);
     font-weight: 900;
     color: #fff;
     cursor: pointer;
@@ -777,7 +777,10 @@ function taquinNeighbors(i) {
 function buildTaquinBoard() {
   const b = $("taquin-board");
   b.style.gridTemplateColumns = `repeat(${tqSize}, 1fr)`;
-  b.style.width = `min(78vw, 380px)`;
+  // plateau adapté à l'écran : ni trop petit sur iPad, ni débordant sur téléphone
+  // (double déclaration : la 2e avec svh est ignorée proprement par les vieux navigateurs)
+  b.style.width = `min(88vw, 600px)`;
+  b.style.width = `min(92vw, calc(100svh - 250px), 640px)`;
   b.innerHTML = "";
   for (let i = 0; i < tqGrid.length; i++) {
     const v = tqGrid[i];
@@ -831,8 +834,11 @@ function initMemoire() {
   memFirst = null; memLock = false; memFound = 0; memMoves = 0;
   const items = [...TQ_EMOJIS.slice(0, memPairs), ...TQ_EMOJIS.slice(0, memPairs)].sort(() => Math.random() - .5);
   const b = $("mem-board");
-  // grille équilibrée : 8 paires -> 8×2, 10 paires -> 5×4
-  memCols = memPairs === 8 ? 8 : 5;
+  // grille équilibrée et adaptée à l'écran :
+  //  8 paires -> 4×4 sur écran large (grosses cases), 8×2 sur téléphone
+  // 10 paires -> 5×4 partout
+  const wide = window.matchMedia("(min-width: 700px)").matches;
+  memCols = memPairs === 8 ? (wide ? 4 : 8) : 5;
   b.style.gridTemplateColumns = `repeat(${memCols}, 1fr)`;
   $("mem-found").textContent = "0";
   $("mem-total").textContent = memPairs;
