@@ -1,6 +1,6 @@
 /* Service Worker LogiqueQuest — cache-first : une fois la 1re visite faite, le jeu
    fonctionne 100 % hors-ligne (avion, vacances, coupe du Wi-Fi…). */
-const CACHE = "logiquequest-v4";
+const CACHE = "logiquequest-v5";
 const ASSETS = [
   "./",
   "./index.html",
@@ -26,6 +26,8 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
+  // ne jamais intercepter le service worker lui-même (sinon les mises à jour ne passent plus)
+  if (new URL(e.request.url).pathname.endsWith("sw.js")) return;
   e.respondWith(
     caches.match(e.request).then((hit) =>
       hit ||
