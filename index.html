@@ -490,7 +490,7 @@
     <p style="text-align:center; color:var(--muted); font-size:12.5px; margin-top:22px; line-height:1.5;">
       💡 Sur iPad : bouton <b>Partager</b> → <b>« Sur l’écran d’accueil »</b><br>pour jouer en plein écran comme une vraie app.
     </p>
-    <p style="text-align:center; color:var(--muted); font-size:11px; margin-top:10px; opacity:.7;">LogiqueQuest <span id="verBadge" onclick="forceUpdate()" style="cursor:pointer; text-decoration:underline dotted;">v2.4</span> — touche le badge pour forcer la mise à jour</p>
+    <p style="text-align:center; color:var(--muted); font-size:11px; margin-top:10px; opacity:.7;">LogiqueQuest <span id="verBadge" onclick="forceUpdate()" style="cursor:pointer; text-decoration:underline dotted;">v2.5</span> — touche le badge pour forcer la mise à jour</p>
   </section>
 
   <!-- ================= ÉNIGMES ================= -->
@@ -783,7 +783,8 @@ function renderEnigme() {
   $("enig-hint").classList.remove("show");
   $("enig-feedback").className = "feedback";
   enigHintUsed = false;
-  setTimeout(() => $("enig-input").focus(), 50);
+  // pas de focus() programmatique ici : sur iOS en mode plein écran (standalone PWA),
+  // il provoque un crash visuel (clignotement/figeage) — le champ reste tapable normalement
 }
 function normalize(s) {
   return s.toLowerCase().trim()
@@ -813,7 +814,6 @@ function submitEnigme() {
     fb.className = "feedback show ko";
     fb.innerHTML = `❌ Ce n’est pas <b>« ${raw} »</b>. Essaie encore — ou prends un indice 💡`;
     $("enig-input").value = "";
-    $("enig-input").focus();
   }
 }
 function showEnigmeHint() {
@@ -1552,16 +1552,25 @@ document.addEventListener("dblclick", e => e.preventDefault());
 // 1) compare la version servie en ligne à la version locale (ping sans cache)
 // 2) purge service worker + caches puis recharge → l'app passe à la nouvelle version
 //    toute seule dès qu'elle a le réseau (plus de rituel "fermer/rouvrir")
-const LOCAL_VERSION = "v2.4";
-async function forceUpdate() {
+const LOCAL_VERSION = "v2.5";
+// Garde anti-boucle : jamais plus d'un rechargement automatique toutes les 20 s
+function canReloadNow() {
   try {
+    const last = Number(localStorage.getItem("lq_last_reload") || 0);
+    return Date.now() - last > 20000;
+  } catch (e) { return true; }
+}
+async function forceUpdate(silent) {
+  try {
+    if (!canReloadNow()) { if (silent !== true) toast("Mise à jour déjà vérifiée à l'instant 🙂"); return; }
     if (navigator.onLine === false) { toast("Pas de réseau : réessaie plus tard 📴"); return; }
-    toast("Mise à jour en cours… ⏳");
+    if (silent !== true) toast("Mise à jour en cours… ⏳");
     if (navigator.serviceWorker) {
       await navigator.serviceWorker.getRegistrations().then(rs => Promise.all(rs.map(r => r.unregister())));
     }
     const keys = await caches.keys();
     await Promise.all(keys.map(k => caches.delete(k)));
+    try { localStorage.setItem("lq_last_reload", String(Date.now())); } catch (e) {}
     location.reload();
   } catch (e) { /* on réessaiera au prochain lancement */ }
 }
@@ -1571,35 +1580,31 @@ async function autoUpdateCheck() {
     const res = await fetch(location.pathname + "?ping=" + Date.now(), { cache: "no-store" });
     if (!res.ok) return;
     const html = await res.text();
-    const m = html.match(/verBadge">([^<]+)</);
-    if (m && m[1] && m[1] !== LOCAL_VERSION) forceUpdate();
+    // le badge a des attributs (onclick, style) → on matche sur l'id, pas sur la fin de balise
+    const m = html.match(/id="verBadge"[^>]*>([^<]+)</);
+    if (m && m[1] && m[1] !== LOCAL_VERSION) forceUpdate(true);
   } catch (e) { /* hors-ligne : rien à faire */ }
 }
 window.addEventListener("load", () => setTimeout(autoUpdateCheck, 2500));
 
 // Service Worker : rend le jeu disponible hors-ligne une fois visité (HTTPS uniquement)
-// + auto-rechargement propre quand une nouvelle version arrive
+// + rechargement unique (gardé anti-boucle) quand une nouvelle version arrive
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   window.addEventListener("load", async () => {
     try {
       const reg = await navigator.serviceWorker.register("sw.js");
-      // nouvelle version détectée → on recharge une seule fois pour l'appliquer
+      // nouvelle version détectée → purge + recharge via la garde (une seule fois max / 20 s)
       reg.addEventListener("updatefound", () => {
         const nw = reg.installing;
         nw && nw.addEventListener("statechange", () => {
-          if (nw.state === "installed" && navigator.serviceWorker.controller && !sessionStorage.getItem("lq_reload")) {
-            sessionStorage.setItem("lq_reload", "1");
-            location.reload();
-          }
+          if (nw.state === "installed" && navigator.serviceWorker.controller) forceUpdate(true);
         });
       });
+      let hadController = false;
       navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (sessionStorage.getItem("lq_reload")) {
-          sessionStorage.removeItem("lq_reload");
-        } else if (!sessionStorage.getItem("lq_ctl")) {
-          sessionStorage.setItem("lq_ctl", "1");
-          location.reload();
-        }
+        // premier SW qui prend la main = installation normale, pas besoin de recharger
+        if (navigator.serviceWorker.controller && hadController) forceUpdate(true);
+        if (navigator.serviceWorker.controller) hadController = true;
       });
     } catch (e) { /* hors-ligne ou refuse : le jeu marche quand même */ }
   });
