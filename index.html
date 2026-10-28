@@ -421,7 +421,7 @@
     <p style="text-align:center; color:var(--muted); font-size:12.5px; margin-top:22px; line-height:1.5;">
       💡 Sur iPad : bouton <b>Partager</b> → <b>« Sur l’écran d’accueil »</b><br>pour jouer en plein écran comme une vraie app.
     </p>
-    <p style="text-align:center; color:var(--muted); font-size:11px; margin-top:10px; opacity:.7;">LogiqueQuest <span id="verBadge">v1.5</span></p>
+    <p style="text-align:center; color:var(--muted); font-size:11px; margin-top:10px; opacity:.7;">LogiqueQuest <span id="verBadge">v1.6</span></p>
   </section>
 
   <!-- ================= ÉNIGMES ================= -->
@@ -835,11 +835,9 @@ function initMemoire() {
   memFirst = null; memLock = false; memFound = 0; memMoves = 0;
   const items = [...TQ_EMOJIS.slice(0, memPairs), ...TQ_EMOJIS.slice(0, memPairs)].sort(() => Math.random() - .5);
   const b = $("mem-board");
-  // grille équilibrée et adaptée à l'écran :
-  //  8 paires -> 4×4 sur écran large (grosses cases), 8×2 sur téléphone
-  // 10 paires -> 5×4 partout
-  const wide = window.matchMedia("(min-width: 700px)").matches;
-  memCols = memPairs === 8 ? (wide ? 4 : 8) : 5;
+  // grille équilibrée : 8 paires -> 4×4 (grosses cases sur tout appareil),
+  // 10 paires -> 5×4. Plus de mode 8 colonnes : trop petit sur iPhone.
+  memCols = memPairs === 8 ? 4 : 5;
   b.style.gridTemplateColumns = `repeat(${memCols}, 1fr)`;
   $("mem-found").textContent = "0";
   $("mem-total").textContent = memPairs;
