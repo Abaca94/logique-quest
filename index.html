@@ -473,8 +473,8 @@
   <section class="screen" id="screen-memoire">
     <div class="taquin-wrap">
       <div style="display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap;">
-        <button class="btn ghost small" onclick="setMemLevel(4)">6 paires</button>
-        <button class="btn ghost small" onclick="setMemLevel(5)">10 paires</button>
+        <button class="btn ghost small" onclick="setMemLevel(8)">8 paires</button>
+        <button class="btn ghost small" onclick="setMemLevel(10)">10 paires</button>
         <button class="btn ghost small" onclick="startGame('memoire')">🔁 Nouvelle</button>
       </div>
       <div class="hud" style="justify-content:center;">
@@ -825,13 +825,15 @@ function shuffleTaquin(toastIt) { initTaquin(); if (toastIt) toast("Nouveau mél
 /* ============================================================
    4. MÉMOIRE (paires)
    ============================================================ */
-let memPairs = 4, memFirst = null, memLock = false, memFound = 0, memMoves = 0;
+let memPairs = 8, memFirst = null, memLock = false, memFound = 0, memMoves = 0;
 function initMemoire() {
-  memPairs = memPairs || 4;
+  memPairs = memPairs || 8;
   memFirst = null; memLock = false; memFound = 0; memMoves = 0;
   const items = [...TQ_EMOJIS.slice(0, memPairs), ...TQ_EMOJIS.slice(0, memPairs)].sort(() => Math.random() - .5);
   const b = $("mem-board");
-  b.style.gridTemplateColumns = `repeat(${Math.min(memPairs * 2, 5)}, 1fr)`;
+  // grille équilibrée : 8 paires -> 8×2, 10 paires -> 5×4
+  const cols = memPairs === 8 ? 8 : 5;
+  b.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   $("mem-found").textContent = "0";
   $("mem-total").textContent = memPairs;
   $("mem-moves").textContent = "0";
@@ -859,8 +861,8 @@ function clickMemCard(card) {
     if (memFound === memPairs) {
       state.solved++; save();
       state.best.memoire = Math.max(state.best.memoire, memPairs * 5 - Math.min(memMoves, 30));
-      const pts = memPairs * 8;
-      setTimeout(() => winGame("🃏", "Mémoire en acier !", `${memPairs * 2} cartes · ${memMoves} essais · +${pts} pts cumulés`, pts), 450);
+      const pts = memPairs * 6;
+      setTimeout(() => winGame("🃏", "Mémoire en acier !", `${memPairs * 2} cartes · ${memMoves} essais · +${pts} pts cumulés`, pts + 20), 450);
     }
   } else {
     memLock = true;
