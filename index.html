@@ -329,6 +329,50 @@
   .mem-card.open { background: rgba(255,255,255,.1); transform: scale(1.03); }
   .mem-card.matched { background: rgba(46,230,168,.15); border-color: var(--good); opacity: .8; animation: pop .3s; cursor: default;}
 
+  /* ===== Chips de difficulté ===== */
+  .chips { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:14px; }
+  .chip { background:var(--card); border:2px solid rgba(255,255,255,.12); color:var(--text); border-radius:999px; padding:11px 18px; font-size:14px; font-weight:800; cursor:pointer; }
+  .chip.active { background:linear-gradient(120deg,var(--accent),#9d7bff); border-color:transparent; box-shadow:0 6px 16px rgba(124,93,255,.4); }
+  .chip:active { transform:scale(.94); }
+  #soundBtn { cursor:pointer; border-style:none; font-size:19px; }
+
+  /* ===== Sudoku ===== */
+  .sudoku-board { display:grid; gap:2px; background:#4c5294; padding:4px; border-radius:14px; margin:14px auto; box-shadow:0 12px 34px rgba(0,0,0,.45); }
+  .sudoku-cell { background:#20265c; display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--text); cursor:pointer; width:var(--csz,44px); height:var(--csz,44px); border-radius:5px; font-size:calc(var(--csz,44px)*.55); user-select:none; }
+  .sudoku-cell.given { background:#39408a; cursor:default; color:#ccd1ff; }
+  .sudoku-cell.sel { background:var(--accent); color:#fff; }
+  .sudoku-cell.bad { background:rgba(255,93,115,.85); }
+  .keypad { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:10px; }
+  .key { background:var(--card2); border:2px solid rgba(255,255,255,.14); color:var(--text); width:50px; height:50px; border-radius:14px; font-size:20px; font-weight:900; cursor:pointer; }
+  .key:active { transform:scale(.92); }
+
+  /* ===== Mots mêlés ===== */
+  .ws-board { display:grid; gap:3px; width:100%; max-width:640px; margin:14px auto; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .ws-cell { background:#20265c; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:var(--wsf,20px); cursor:pointer; box-shadow:inset 0 0 0 1px rgba(255,255,255,.07); }
+  .ws-cell.sel { background:var(--accent); color:#fff; }
+  .ws-cell.found { background:rgba(46,230,168,.32); color:#e4fff6; cursor:default; }
+  .ws-words { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:12px; }
+  .ws-word { background:var(--card); border-radius:999px; padding:8px 14px; font-size:13.5px; font-weight:800; letter-spacing:1px; }
+  .ws-word.found { color:var(--good); text-decoration:line-through; opacity:.75; }
+
+  /* ===== Cross-Logic ===== */
+  .lg { border-spacing:4px; margin:10px auto; }
+  .lg th { color:var(--muted); font-size:12px; max-width:64px; padding:5px 2px; font-weight:700; }
+  .lg td.lgc { width:46px; height:46px; min-width:46px; background:#20265c; border-radius:10px; text-align:center; font-size:19px; font-weight:900; cursor:pointer; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); }
+  .lg td.a { color:var(--accent2); font-weight:800; font-size:12.5px; padding-right:8px; }
+  .clues { text-align:left; margin:12px auto 0; max-width:620px; font-size:15px; line-height:1.55; }
+  .clues ul { list-style:none; padding-left:0; }
+  .clues li { margin:7px 0; display:flex; gap:8px; align-items:flex-start; }
+  .clues .n { color:var(--gold); font-weight:900; }
+
+  /* ===== Vrai / Faux ===== */
+  .vf-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px; }
+  .vf-btn { border:none; border-radius:18px; padding:20px 10px; font-size:19px; font-weight:900; cursor:pointer; color:#fff; min-height:86px; }
+  .vf-btn.v { background:linear-gradient(140deg,#22b573,#0f8a55); box-shadow:0 8px 20px rgba(34,181,115,.3); }
+  .vf-btn.f { background:linear-gradient(140deg,#e0475c,#b32a40); box-shadow:0 8px 20px rgba(224,71,92,.3); }
+  .vf-btn:active { transform:scale(.96); }
+  .vf-btn:disabled { filter:grayscale(.7); opacity:.55; }
+
   /* ===== Victoire ===== */
   .win-banner {
     text-align: center;
@@ -370,6 +414,7 @@
   <button class="btn-back" id="btnBack" onclick="goHome()">←</button>
   <div class="screen-title" id="screenTitle">LogiqueQuest</div>
   <div class="hud">
+    <button class="pill" id="soundBtn" onclick="toggleSound()" style="cursor:pointer;border-style:none;">🔊</button>
     <div class="pill">🧠 <span id="hudScore">0</span></div>
     <div class="pill">🔥 <span id="hudStreak">0</span></div>
   </div>
@@ -409,6 +454,30 @@
         <p>Retrouve les paires</p>
         <div class="streak" id="s-memoire"></div>
       </div>
+      <div class="menu-card" onclick="startGame('sudoku')">
+        <span class="icon">🧮</span>
+        <h3>Sudoku</h3>
+        <p>4×4 · 6×6 · 9×9</p>
+        <div class="streak" id="s-sudoku"></div>
+      </div>
+      <div class="menu-card" onclick="startGame('mots')">
+        <span class="icon">🔤</span>
+        <h3>Mots mêlés</h3>
+        <p>Trouve les mots cachés</p>
+        <div class="streak" id="s-mots"></div>
+      </div>
+      <div class="menu-card" onclick="startGame('logique')">
+        <span class="icon">🧠</span>
+        <h3>Cross-Logic</h3>
+        <p>Déduis qui fait quoi</p>
+        <div class="streak" id="s-logique"></div>
+      </div>
+      <div class="menu-card" onclick="startGame('vf')">
+        <span class="icon">⚖️</span>
+        <h3>Vrai / Faux</h3>
+        <p>Instinct ou science ?</p>
+        <div class="streak" id="s-vf"></div>
+      </div>
     </div>
     <div class="stats-row">
       <div class="stat-box"><div class="v" id="stat-score">0</div><div class="l">Points 🧠</div></div>
@@ -421,7 +490,7 @@
     <p style="text-align:center; color:var(--muted); font-size:12.5px; margin-top:22px; line-height:1.5;">
       💡 Sur iPad : bouton <b>Partager</b> → <b>« Sur l’écran d’accueil »</b><br>pour jouer en plein écran comme une vraie app.
     </p>
-    <p style="text-align:center; color:var(--muted); font-size:11px; margin-top:10px; opacity:.7;">LogiqueQuest <span id="verBadge">v1.6</span></p>
+    <p style="text-align:center; color:var(--muted); font-size:11px; margin-top:10px; opacity:.7;">LogiqueQuest <span id="verBadge">v2.0</span></p>
   </section>
 
   <!-- ================= ÉNIGMES ================= -->
@@ -444,6 +513,11 @@
 
   <!-- ================= SÉQUENCES ================= -->
   <section class="screen" id="screen-sequences">
+    <div class="chips">
+      <button class="chip" data-b="0" onclick="setSeqDiff(0)">Facile</button>
+      <button class="chip" data-b="1" onclick="setSeqDiff(1)">Moyen</button>
+      <button class="chip" data-b="2" onclick="setSeqDiff(2)">Difficile</button>
+    </div>
     <div class="quiz-card">
       <div class="quiz-progress" id="seq-progress">Séquence 1</div>
       <div class="progress-track"><div class="progress-fill" id="seq-fill"></div></div>
@@ -486,6 +560,68 @@
     </div>
   </section>
 
+  <!-- ================= SUDOKU ================= -->
+  <section class="screen" id="screen-sudoku">
+    <div class="chips">
+      <button class="chip" data-b="4" onclick="setSudoku(4)">Facile · 4×4</button>
+      <button class="chip" data-b="6" onclick="setSudoku(6)">Moyen · 6×6</button>
+      <button class="chip" data-b="9" onclick="setSudoku(9)">Difficile · 9×9</button>
+    </div>
+    <div class="taquin-wrap">
+      <div class="sudoku-board" id="sudoku-board"></div>
+      <div class="keypad" id="sudoku-keys"></div>
+      <div class="actions-row" style="justify-content:center; margin-top:14px;">
+        <button class="btn small" onclick="checkSudoku()">✔ Vérifier</button>
+        <button class="btn ghost small" onclick="initSudoku()">↻ Autre grille</button>
+        <button class="btn ghost small" onclick="putSudoku(0)">⌫ Effacer</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MOTS MÊLÉS ================= -->
+  <section class="screen" id="screen-mots">
+    <div class="chips">
+      <button class="chip" data-b="8" onclick="setMots(8)">Facile · 8×8</button>
+      <button class="chip" data-b="10" onclick="setMots(10)">Moyen · 10×10</button>
+      <button class="chip" data-b="12" onclick="setMots(12)">Difficile · 12×12</button>
+    </div>
+    <div class="hud" style="justify-content:center; margin-top:10px;">
+      <div class="pill">🔎 <span id="ws-found-n">0</span>/<span id="ws-total">5</span> mots</div>
+    </div>
+    <div class="ws-words" id="ws-words"></div>
+    <div class="ws-board" id="ws-board"></div>
+    <p style="text-align:center; color:var(--muted); font-size:13px;">👉 Glisse ton doigt d’une lettre à l’autre, dans n’importe quelle direction</p>
+  </section>
+
+  <!-- ================= CROSS-LOGIC ================= -->
+  <section class="screen" id="screen-logique">
+    <div class="chips" id="lg-chips"></div>
+    <div class="quiz-card">
+      <div class="question-txt" id="lg-story"></div>
+      <div class="clues" id="lg-clues"></div>
+      <div id="lg-grids"></div>
+      <div class="feedback" id="lg-feedback"></div>
+      <div class="actions-row">
+        <button class="btn small" onclick="checkLogic()">✔ Vérifier</button>
+      </div>
+    </div>
+    <p style="text-align:center; color:var(--muted); font-size:13px; margin-top:10px;">Toucher une case : 1× = ✘ · 2× = ✔ · 3× = vide</p>
+  </section>
+
+  <!-- ================= VRAI / FAUX ================= -->
+  <section class="screen" id="screen-vf">
+    <div class="quiz-card">
+      <div class="quiz-progress" id="vf-progress">Question 1</div>
+      <div class="progress-track"><div class="progress-fill" id="vf-fill"></div></div>
+      <div class="question-txt" id="vf-question" style="text-align:center;"></div>
+      <div class="vf-row">
+        <button class="vf-btn v" onclick="answerVF(true)">✅ VRAI</button>
+        <button class="vf-btn f" onclick="answerVF(false)">❌ FAUX</button>
+      </div>
+      <div class="feedback" id="vf-feedback"></div>
+    </div>
+  </section>
+
   <!-- ================= VICTOIRE ================= -->
   <section class="screen" id="screen-win">
     <div class="win-banner">
@@ -517,7 +653,7 @@ const TITLES = { enigmes: "🕵️ Énigmes", sequences: "🔢 Séquences logiqu
 const SAVE_KEY = "logiquequest_v1";
 let state = loadState();
 function defaultState() {
-  return { score: 0, solved: 0, bestStreak: 0, streak: 0, best: { enigmes: 0, sequences: 0, taquin: 0, memoire: 0 } };
+  return { score: 0, solved: 0, bestStreak: 0, streak: 0, sound: true, best: { enigmes: 0, sequences: 0, taquin: 0, memoire: 0, sudoku: 0, mots: 0, logique: 0, vf: 0 } };
 }
 function loadState() {
   try { return { ...defaultState(), ...JSON.parse(localStorage.getItem(SAVE_KEY) || "{}") }; }
@@ -533,7 +669,8 @@ function refreshHUD() {
   $("stat-score").textContent = state.score;
   $("stat-solved").textContent = state.solved;
   $("stat-best").textContent = state.bestStreak;
-  for (const g of ["enigmes", "sequences", "taquin", "memoire"]) {
+  $("soundBtn").textContent = state.sound === false ? "🔇" : "🔊";
+  for (const g of ["enigmes", "sequences", "taquin", "memoire", "sudoku", "mots", "logique", "vf"]) {
     $("s-" + g).textContent = state.best[g] ? "★ " + state.best[g] : "";
   }
 }
@@ -572,16 +709,22 @@ function goHome() {
 }
 function startGame(g) {
   stopTimers();
+  sfx("tick");
   currentGame = g;
   showScreen(g);
   if (g === "enigmes") initEnigmes();
   if (g === "sequences") initSequences();
   if (g === "taquin") initTaquin();
   if (g === "memoire") initMemoire();
+  if (g === "sudoku") initSudoku();
+  if (g === "mots") initMots();
+  if (g === "logique") initLogic();
+  if (g === "vf") initVF();
 }
 function replay() { startGame(currentGame); }
 function winGame(emoji, title, sub, pts) {
   stopTimers();
+  sfx("win");
   $("win-emoji").textContent = emoji;
   $("win-title").textContent = title;
   $("win-sub").textContent = sub;
@@ -647,7 +790,7 @@ function submitEnigme() {
   const fb = $("enig-feedback");
   if (ok) {
     const pts = enigHintUsed ? 5 : 10;
-    addPoints(pts);
+    addPoints(pts); sfx("good");
     state.solved++; save();
     fb.className = "feedback show ok";
     fb.innerHTML = `✅ <b>Exact !</b> La réponse était bien <b>« ${e.a} »</b>.<br>+${pts} pts 🧠`;
@@ -658,7 +801,7 @@ function submitEnigme() {
       else winGame("🕵️", "Enquête résolue !", `Tu as résolu les ${ENIGMES.length} énigmes ! +${pts} derniers points.`, state.score);
     }, 1400);
   } else {
-    addPoints(-3);
+    addPoints(-3); sfx("bad");
     fb.className = "feedback show ko";
     fb.innerHTML = `❌ Ce n’est pas <b>« ${raw} »</b>. Essaie encore — ou prends un indice 💡`;
     $("enig-input").value = "";
@@ -678,26 +821,32 @@ $("enig-input").addEventListener("keydown", e => { if (e.key === "Enter") submit
    2. SÉQUENCES LOGIQUES
    ============================================================ */
 const SEQUENCES = [
-  { seq: "2, 3, 5, 8, 13, ?", options: ["18", "20", "21", "26"], answer: "21", explain: "Chaque nombre = somme des deux précédents (suite de Fibonacci)." },
-  { seq: "2, 4, 8, 16, ?", options: ["20", "24", "32", "18"], answer: "32", explain: "On double à chaque étape (×2)." },
-  { seq: "1, 4, 9, 16, 25, ?", options: ["30", "36", "35", "49"], answer: "36", explain: "Ce sont les carrés : 1², 2², 3²… → 6² = 36." },
-  { seq: "3, 6, 11, 18, 27, ?", options: ["36", "38", "41", "40"], answer: "38", explain: "Écarts : +3, +5, +7, +9 puis +11 → 27+11 = 38." },
-  { seq: "1, 1, 2, 3, 5, 8, ?", options: ["11", "12", "13", "14"], answer: "13", explain: "Suite de Fibonacci : chaque terme est la somme des deux précédents." },
-  { seq: "81, 27, 9, 3, ?", options: ["0", "1", "2", "1,5"], answer: "1", explain: "On divise par 3 à chaque fois : 3÷3 = 1." },
-  { seq: "1, 8, 27, 64, ?", options: ["100", "125", "128", "216"], answer: "125", explain: "Cubes : 1³, 2³, 3³, 4³… → 5³ = 125." },
-  { seq: "5, 10, 20, 40, ?", options: ["50", "60", "80", "100"], answer: "80", explain: "On double à chaque étape (×2)." },
-  { seq: "2, 6, 12, 20, 30, ?", options: ["36", "40", "42", "44"], answer: "42", explain: "Écarts : +4, +6, +8, +10 puis +12 → 30+12 = 42." },
-  { seq: "100, 50, 52, 26, 28, ?", options: ["14", "30", "16", "12"], answer: "14", explain: "On divise par 2, puis on ajoute 2, alternativement : 28÷2 = 14." },
-  { seq: "1, 3, 7, 15, 31, ?", options: ["47", "63", "62", "51"], answer: "63", explain: "×2 puis +1 à chaque étape : 31×2+1 = 63." },
-  { seq: "4, 7, 10, 13, ?", options: ["14", "15", "16", "17"], answer: "16", explain: "Arithmétique : +3 à chaque fois." },
-  { seq: "1, 2, 6, 24, ?", options: ["96", "120", "144", "48"], answer: "120", explain: "Factorielles : ×2, ×3, ×4 puis ×5 → 24×5 = 120." },
-  { seq: "96, 48, 24, 12, ?", options: ["8", "10", "6", "4"], answer: "6", explain: "On divise par 2 à chaque étape." },
-  { seq: "2, 5, 11, 23, ?", options: ["35", "43", "47", "45"], answer: "47", explain: "×2 puis +1 : 23×2+1 = 47." },
+  { seq: "2, 3, 5, 8, 13, ?", options: ["18", "20", "21", "26"], answer: "21", explain: "Chaque nombre = somme des deux précédents (suite de Fibonacci).", d: 2 },
+  { seq: "2, 4, 8, 16, ?", options: ["20", "24", "32", "18"], answer: "32", explain: "On double à chaque étape (×2).", d: 1 },
+  { seq: "1, 4, 9, 16, 25, ?", options: ["30", "36", "35", "49"], answer: "36", explain: "Ce sont les carrés : 1², 2², 3²… → 6² = 36.", d: 2 },
+  { seq: "3, 6, 11, 18, 27, ?", options: ["36", "38", "41", "40"], answer: "38", explain: "Écarts : +3, +5, +7, +9 puis +11 → 27+11 = 38.", d: 3 },
+  { seq: "1, 1, 2, 3, 5, 8, ?", options: ["11", "12", "13", "14"], answer: "13", explain: "Suite de Fibonacci : chaque terme est la somme des deux précédents.", d: 2 },
+  { seq: "81, 27, 9, 3, ?", options: ["0", "1", "2", "1,5"], answer: "1", explain: "On divise par 3 à chaque fois : 3÷3 = 1.", d: 1 },
+  { seq: "1, 8, 27, 64, ?", options: ["100", "125", "128", "216"], answer: "125", explain: "Cubes : 1³, 2³, 3³, 4³… → 5³ = 125.", d: 2 },
+  { seq: "5, 10, 20, 40, ?", options: ["50", "60", "80", "100"], answer: "80", explain: "On double à chaque étape (×2).", d: 1 },
+  { seq: "2, 6, 12, 20, 30, ?", options: ["36", "40", "42", "44"], answer: "42", explain: "Écarts : +4, +6, +8, +10 puis +12 → 30+12 = 42.", d: 3 },
+  { seq: "100, 50, 52, 26, 28, ?", options: ["14", "30", "16", "12"], answer: "14", explain: "On divise par 2, puis on ajoute 2, alternativement : 28÷2 = 14.", d: 3 },
+  { seq: "1, 3, 7, 15, 31, ?", options: ["47", "63", "62", "51"], answer: "63", explain: "×2 puis +1 à chaque étape : 31×2+1 = 63.", d: 2 },
+  { seq: "4, 7, 10, 13, ?", options: ["14", "15", "16", "17"], answer: "16", explain: "Arithmétique : +3 à chaque fois.", d: 1 },
+  { seq: "1, 2, 6, 24, ?", options: ["96", "120", "144", "48"], answer: "120", explain: "Factorielles : ×2, ×3, ×4 puis ×5 → 24×5 = 120.", d: 3 },
+  { seq: "96, 48, 24, 12, ?", options: ["8", "10", "6", "4"], answer: "6", explain: "On divise par 2 à chaque étape.", d: 1 },
+  { seq: "2, 5, 11, 23, ?", options: ["35", "43", "47", "45"], answer: "47", explain: "×2 puis +1 : 23×2+1 = 47.", d: 3 },
 ];
-let seqShuffled = [], seqIndex = 0;
+let seqShuffled = [], seqIndex = 0, seqDiff = 1;
 
+function setSeqDiff(i) {
+  seqDiff = i;
+  setActiveChips("sequences", i);
+  initSequences();
+}
 function initSequences() {
-  seqShuffled = [...SEQUENCES].sort(() => Math.random() - .5);
+  setActiveChips("sequences", seqDiff);
+  seqShuffled = SEQUENCES.filter(s => s.d === seqDiff + 1).sort(() => Math.random() - .5);
   seqIndex = 0;
   renderSequence();
 }
@@ -716,6 +865,7 @@ function answerSequence(btn, val) {
   document.querySelectorAll("#seq-answers .answer-btn").forEach(b => b.disabled = true);
   if (val === s.answer) {
     btn.classList.add("correct");
+    sfx("good");
     addPoints(10); state.solved++; save();
     $("seq-feedback").className = "feedback show ok";
     $("seq-feedback").innerHTML = `✅ <b>Bravo !</b> +10 pts — ${s.explain}`;
@@ -727,6 +877,7 @@ function answerSequence(btn, val) {
   } else {
     btn.classList.add("wrong");
     addPoints(-3);
+    sfx("bad");
     const good = [...document.querySelectorAll("#seq-answers .answer-btn")].find(b => b.textContent === s.answer);
     good && good.classList.add("correct");
     $("seq-feedback").className = "feedback show ko";
@@ -805,12 +956,14 @@ function clickTaquin(i) {
   }
   [tqGrid[empty], tqGrid[i]] = [tqGrid[i], tqGrid[empty]];
   tqMoves++;
+  sfx("tick");
   $("taquin-moves").textContent = tqMoves;
   buildTaquinBoard();
   $("taquin-wheel").textContent = ["😵", "🤔", "🙂", "😎", "🥳"][Math.min(4, Math.floor(tqMoves / 15))];
   if (isTaquinSolved()) {
     tqSolvedFlag = true;
     stopTaquinTimerOnly();
+    sfx("win");
     const pts = Math.max(20, Math.round(tqSize * 60 - Math.min(tqMoves, tqSize * tqSize * 10) * .5 - tqSeconds * .4));
     addPoints(pts); state.solved++; save();
     state.best.taquin = Math.max(state.best.taquin, pts);
@@ -869,6 +1022,7 @@ function clickMemCard(card) {
   if (memLock || card.classList.contains("open") || card.classList.contains("matched")) return;
   card.textContent = card.dataset.e;
   card.classList.add("open");
+  sfx("flip");
   if (!memFirst) { memFirst = card; return; }
   memMoves++;
   $("mem-moves").textContent = memMoves;
@@ -877,7 +1031,7 @@ function clickMemCard(card) {
     $("mem-found").textContent = memFound;
     memFirst.classList.add("matched"); card.classList.add("matched");
     memFirst = null;
-    addPoints(6);
+    addPoints(6); sfx("good");
     if (memFound === memPairs) {
       state.solved++; save();
       state.best.memoire = Math.max(state.best.memoire, memPairs * 5 - Math.min(memMoves, 30));
@@ -888,7 +1042,7 @@ function clickMemCard(card) {
     memLock = true;
     const first = memFirst;
     memFirst = null;
-    addPoints(-1);
+    addPoints(-1); sfx("bad");
     setTimeout(() => {
       first.textContent = ""; card.textContent = "";
       first.classList.remove("open"); card.classList.remove("open");
@@ -897,6 +1051,487 @@ function clickMemCard(card) {
   }
 }
 function setMemLevel(n) { memPairs = n; startGame("memoire"); toast(`${n} paires — c’est parti !`); }
+
+/* ============================================================
+   EFFETS SONORES (Web Audio, aucun fichier)
+   ============================================================ */
+let audioCtx = null;
+function sfx(kind) {
+  if (state.sound === false) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const t0 = audioCtx.currentTime;
+    const tone = (f, at, dur = .12, type = "sine", vol = .15) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(0, at);
+      g.gain.linearRampToValueAtTime(vol, at + .015);
+      g.gain.exponentialRampToValueAtTime(.001, at + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(at); o.stop(at + dur + .05);
+    };
+    if (kind === "tick") tone(620, t0, .05, "triangle", .07);
+    else if (kind === "flip") tone(320, t0, .07, "triangle", .1);
+    else if (kind === "good") { tone(523, t0, .1); tone(784, t0 + .09, .16); }
+    else if (kind === "bad") tone(150, t0, .26, "sawtooth", .1);
+    else if (kind === "win") [523, 659, 784, 1046].forEach((f, i) => tone(f, t0 + i * .11, .18));
+  } catch (e) { /* pas grave */ }
+}
+function toggleSound() {
+  state.sound = state.sound === false ? true : false;
+  save();
+  sfx("tick");
+  toast(state.sound ? "🔊 Sons activés" : "🔇 Sons coupés");
+}
+function setActiveChips(screenName, val) {
+  document.querySelectorAll("#screen-" + screenName + " .chip").forEach(c =>
+    c.classList.toggle("active", c.dataset.b == val));
+}
+
+/* ============================================================
+   5. SUDOKU
+   ============================================================ */
+const SUD_BOX = { 4: [2, 2], 6: [2, 3], 9: [3, 3] };
+let sN = 4, sBr = 2, sBc = 2, sSol = [], sGrid = [], sGiven = [], sSelIdx = -1, sBad = [];
+
+function setSudoku(n) { sN = n; [sBr, sBc] = SUD_BOX[n]; setActiveChips("sudoku", n); initSudoku(); }
+function sIdx(i, j) { return Math.floor(i / sBr) * sBc + Math.floor(j / sBc); }
+
+function sudokuFull() {
+  const g = new Array(sN * sN).fill(0);
+  const R = Array.from({ length: sN }, () => 0), C = Array.from({ length: sN }, () => 0), B = Array.from({ length: sN }, () => 0);
+  function dfs(p) {
+    if (p === g.length) return true;
+    const i = Math.floor(p / sN), j = p % sN, b = sIdx(i, j);
+    const used = R[i] | C[j] | B[b];
+    const vals = Array.from({ length: sN }, (_, v) => v).sort(() => Math.random() - .5);
+    for (const v of vals) {
+      const bit = 1 << v;
+      if (used & bit) continue;
+      g[p] = v + 1; R[i] |= bit; C[j] |= bit; B[b] |= bit;
+      if (dfs(p + 1)) return true;
+      g[p] = 0; R[i] ^= bit; C[j] ^= bit; B[b] ^= bit;
+    }
+    return false;
+  }
+  dfs(0);
+  return g;
+}
+function countSols(g, cap = 2) {
+  const n = sN;
+  const R = Array.from({ length: n }, () => 0), C = Array.from({ length: n }, () => 0), B = Array.from({ length: n }, () => 0);
+  for (let p = 0; p < n * n; p++) {
+    if (!g[p]) continue;
+    const i = Math.floor(p / n), j = p % n, bit = 1 << (g[p] - 1);
+    if ((R[i] | C[j] | B[sIdx(i, j)]) & bit) return 0;
+    R[i] |= bit; C[j] |= bit; B[sIdx(i, j)] |= bit;
+  }
+  let count = 0;
+  function dfs() {
+    let best = -1, bestC = null, bestL = n + 1;
+    for (let p = 0; p < n * n; p++) {
+      if (g[p]) continue;
+      const i = Math.floor(p / n), j = p % n;
+      const used = R[i] | C[j] | B[sIdx(i, j)];
+      const cands = [];
+      for (let v = 0; v < n; v++) if (!((used >> v) & 1)) cands.push(v);
+      if (cands.length < bestL) {
+        bestL = cands.length; best = p; bestC = cands;
+        if (!cands.length) return false;
+        if (cands.length === 1) break;
+      }
+    }
+    if (best < 0) { count++; return count < cap; }
+    for (const v of bestC) {
+      const i = Math.floor(best / n), j = best % n, bit = 1 << v, b = sIdx(i, j);
+      g[best] = v + 1; R[i] |= bit; C[j] |= bit; B[b] |= bit;
+      dfs();
+      g[best] = 0; R[i] ^= bit; C[j] ^= bit; B[b] ^= bit;
+      if (count >= cap) return false;
+    }
+    return true;
+  }
+  dfs();
+  return count;
+}
+function initSudoku() {
+  sSelIdx = -1;
+  sSol = sudokuFull();
+  sGrid = [...sSol];
+  sBad = [];
+  const targetClues = { 4: 8, 6: 20, 9: 42 }[sN];
+  const pos = Array.from({ length: sN * sN }, (_, k) => k).sort(() => Math.random() - .5);
+  for (const p of pos) {
+    if (sGrid.filter(v => v).length <= targetClues) break;
+    const keep = sGrid[p];
+    sGrid[p] = 0;
+    if (countSols([...sGrid]) !== 1) sGrid[p] = keep;
+  }
+  sGiven = sGrid.map(v => v ? 1 : 0);
+  renderSudoku();
+  renderSudokuKeys();
+}
+function renderSudoku() {
+  const b = $("sudoku-board");
+  b.style.gridTemplateColumns = `repeat(${sN}, auto)`;
+  const csz = Math.max(28, Math.min(46, Math.floor((Math.min(innerWidth, 640) - 60) / sN)));
+  b.style.setProperty("--csz", csz + "px");
+  b.innerHTML = "";
+  for (let p = 0; p < sN * sN; p++) {
+    const i = Math.floor(p / sN), j = p % sN;
+    const d = document.createElement("div");
+    d.className = "sudoku-cell"
+      + (sGiven[p] ? " given" : "")
+      + (p === sSelIdx ? " sel" : "")
+      + (sBad[p] ? " bad" : "");
+    if (j % sBc === sBc - 1 && j !== sN - 1) d.style.marginRight = "6px";
+    if (i % sBr === sBr - 1 && i !== sN - 1) d.style.marginBottom = "6px";
+    d.textContent = sGrid[p] || "";
+    d.onclick = () => { if (sGiven[p]) { sfx("bad"); return; } sSelIdx = p; sfx("tick"); renderSudoku(); };
+    b.appendChild(d);
+  }
+}
+function renderSudokuKeys() {
+  const k = $("sudoku-keys");
+  k.innerHTML = "";
+  for (let v = 1; v <= sN; v++) {
+    const d = document.createElement("button");
+    d.className = "key"; d.textContent = v;
+    d.onclick = () => putSudoku(v);
+    k.appendChild(d);
+  }
+  const e = document.createElement("button");
+  e.className = "key"; e.textContent = "⌫";
+  e.onclick = () => putSudoku(0);
+  k.appendChild(e);
+}
+function putSudoku(v) {
+  if (sSelIdx < 0) { toast("Choisis d’abord une case 👆"); return; }
+  if (sGiven[sSelIdx]) { sfx("bad"); return; }
+  sGrid[sSelIdx] = v;
+  sBad[sSelIdx] = 0;
+  sfx("tick");
+  renderSudoku();
+  if (sGrid.every(x => x)) checkSudoku();
+}
+function checkSudoku() {
+  const empties = sGrid.reduce((a, v) => a + (!v), 0);
+  if (empties) { toast(`Il reste ${empties} case${empties > 1 ? "s" : ""} à remplir`); return; }
+  sBad = sGrid.map((v, p) => v !== sSol[p] ? 1 : 0);
+  if (sBad.some(Boolean)) {
+    sfx("bad"); addPoints(-3);
+    renderSudoku();
+    toast("Des cases sont fausses 😬");
+  } else {
+    const pts = { 4: 40, 6: 100, 9: 200 }[sN];
+    addPoints(pts); state.solved++;
+    state.best.sudoku = Math.max(state.best.sudoku || 0, pts);
+    save();
+    winGame("🧮", "Sudoku réussi !", `${sN}×${sN} terminé sans faute · +${pts} pts`, pts);
+  }
+}
+
+/* ============================================================
+   6. MOTS MÊLÉS
+   ============================================================ */
+const WS_WORDS = ["CHAT", "SOLEIL", "POMME", "NEIGE", "PLAGE", "LIVRE", "FLEUR", "AVION", "PYJAMA", "REQUIN", "TARTINE", "MONTAGNE", "CHOCOLAT", "BICYCLETTE", "ORBITE", "GOUTTE"];
+const WS_DIRS = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]];
+let wsS = 8, wsG = [], wsList = [], wsFound = new Set(), wsStart = null;
+
+function setMots(s) { wsS = s; setActiveChips("mots", s); initMots(); }
+function initMots() {
+  wsFound = new Set(); wsStart = null;
+  const nWords = { 8: 5, 10: 8, 12: 10 }[wsS];
+  const chosen = [...WS_WORDS].sort(() => Math.random() - .5).slice(0, nWords);
+  let placed = false, guard = 0;
+  while (!placed && guard++ < 40) {
+    wsG = Array.from({ length: wsS }, () => Array.from({ length: wsS }, () => ""));
+    wsList = [...chosen];
+    placed = wsList.every(w => wsPlace(w));
+  }
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  for (let r = 0; r < wsS; r++) for (let c = 0; c < wsS; c++) if (!wsG[r][c]) wsG[r][c] = letters[Math.floor(Math.random() * 26)];
+  renderWsBoard();
+  renderWsWords();
+  refreshWsHud();
+}
+function wsPlace(w) {
+  for (let tries = 0; tries < 500; tries++) {
+    const dir = WS_DIRS[Math.floor(Math.random() * 8)];
+    const r0 = Math.floor(Math.random() * wsS), c0 = Math.floor(Math.random() * wsS);
+    const rE = r0 + dir[0] * (w.length - 1), cE = c0 + dir[1] * (w.length - 1);
+    if (rE < 0 || cE < 0 || rE >= wsS || cE >= wsS) continue;
+    let ok = true;
+    for (let k = 0; k < w.length; k++) if (wsG[r0 + dir[0] * k][c0 + dir[1] * k]) { ok = false; break; }
+    if (!ok) continue;
+    for (let k = 0; k < w.length; k++) wsG[r0 + dir[0] * k][c0 + dir[1] * k] = w[k];
+    return true;
+  }
+  return false;
+}
+function renderWsBoard() {
+  const b = $("ws-board");
+  b.style.gridTemplateColumns = `repeat(${wsS}, 1fr)`;
+  b.innerHTML = "";
+  for (let r = 0; r < wsS; r++) for (let c = 0; c < wsS; c++) {
+    const d = document.createElement("div");
+    d.className = "ws-cell";
+    d.dataset.r = r; d.dataset.c = c;
+    d.textContent = wsG[r][c];
+    d.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      wsStart = { r, c };
+      if (!d.classList.contains("found")) drawWsSel(r, c, r, c);
+    });
+    b.appendChild(d);
+  }
+  b.onpointermove = e => {
+    if (!wsStart) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const cell = el && el.closest ? el.closest(".ws-cell") : null;
+    if (!cell) return;
+    drawWsSel(wsStart.r, wsStart.c, +cell.dataset.r, +cell.dataset.c);
+  };
+  b.onpointerup = b.onpointerleave = () => { if (wsStart) wsCheck(); };
+  sizeWs();
+}
+function sizeWs() {
+  const b = $("ws-board");
+  requestAnimationFrame(() => {
+    const w = b.clientWidth;
+    if (!w) return;
+    const cw = Math.floor((w - 3 * (wsS - 1)) / wsS);
+    b.style.gridAutoRows = cw + "px";
+    b.style.setProperty("--wsf", Math.max(11, Math.floor(cw * .52)) + "px");
+  });
+}
+window.addEventListener("resize", sizeWs);
+function drawWsSel(r0, c0, r1, c1) {
+  const cells = [...document.querySelectorAll("#ws-board .ws-cell:not(.found)")];
+  cells.forEach(c => c.classList.remove("sel"));
+  const dr = r1 - r0, dc = c1 - c0;
+  const straight = dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc);
+  if (!straight) return;
+  const steps = Math.max(Math.abs(dr), Math.abs(dc));
+  const sr = steps ? dr / steps : 0, sc = steps ? dc / steps : 0;
+  for (let k = 0; k <= steps; k++) {
+    const el = document.querySelector(`#ws-board .ws-cell[data-r="${r0 + sr * k}"][data-c="${c0 + sc * k}"]`);
+    el && el.classList.add("sel");
+  }
+}
+function wsLetters(r0, c0, r1, c1) {
+  const steps = Math.max(Math.abs(r1 - r0), Math.abs(c1 - c0));
+  const sr = steps ? (r1 - r0) / steps : 0, sc = steps ? (c1 - c0) / steps : 0;
+  let s = "";
+  for (let k = 0; k <= steps; k++) s += wsG[r0 + sr * k][c0 + sc * k];
+  return s;
+}
+function wsCheck() {
+  const cells = document.querySelectorAll("#ws-board .ws-cell.sel");
+  if (!cells.length || !wsStart) { wsStart = null; return; }
+  const first = cells[0], last = cells[cells.length - 1];
+  const word = wsLetters(+first.dataset.r, +first.dataset.c, +last.dataset.r, +last.dataset.c);
+  const rev = [...word].reverse().join("");
+  const hit = wsList.findIndex(w => !wsFound.has(w) && (w === word || w === rev));
+  if (hit >= 0) {
+    const w = wsList[hit];
+    wsFound.add(w);
+    cells.forEach(c => { c.classList.remove("sel"); c.classList.add("found"); });
+    renderWsWords();
+    refreshWsHud();
+    addPoints(8);
+    state.best.mots = Math.max(state.best.mots || 0, wsFound.size);
+    sfx("good");
+    if (wsFound.size === wsList.length) {
+      state.solved++;
+      addPoints(30);
+      save();
+      toast("+30 pts bonus ! 🎉");
+      setTimeout(() => winGame("🔤", "Tous trouvés !", `${wsList.length} mots débusqués sur une grille ${wsS}×${wsS}`, 80 + wsFound.size * 8), 700);
+    }
+  } else {
+    sfx("flip");
+  }
+  document.querySelectorAll("#ws-board .ws-cell.sel").forEach(c => c.classList.remove("sel"));
+  wsStart = null;
+}
+function renderWsWords() {
+  $("ws-words").innerHTML = wsList.map(w =>
+    `<span class="ws-word ${wsFound.has(w) ? "found" : ""}">${w}</span>`).join("");
+}
+function refreshWsHud() {
+  $("ws-found-n").textContent = wsFound.size;
+  $("ws-total").textContent = wsList.length;
+}
+
+/* ============================================================
+   7. CROSS-LOGIC (grilles de déduction)
+   ============================================================ */
+const LOGIC_PL = [
+  {
+    story: "🎸 <b>Le groupe</b> — 4 musiciens, 4 instruments, 4 pulls.",
+    labelA: ["Léa", "Marc", "Nina", "Tom"], labelB: ["Piano", "Violon", "Batterie", "Guitare"], labelC: ["Rouge", "Bleu", "Vert", "Jaune"],
+    qA: "Les musiciens", qB: "Les instruments", qC: "Les pulls",
+    clues: ["Nina joue de la batterie.", "Marc ne touche à aucune corde (ni violon ni guitare).", "Léa joue du violon.", "Nina a un pull rouge.", "Léa a un pull vert.", "Marc a un pull bleu."],
+    solB: [1, 0, 2, 3], solC: [2, 1, 0, 3],
+  },
+  {
+    story: "🏢 <b>L’immeuble</b> — 4 voisins, 4 étages, 4 animaux.",
+    labelA: ["Sacha", "Ana", "Hugo", "Mia"], labelB: ["Étage 1", "Étage 2", "Étage 3", "Étage 4"], labelC: ["Chat", "Chien", "Lapin", "Poisson"],
+    qA: "Les voisins", qB: "Les étages", qC: "Les animaux",
+    clues: ["Ana vit au 2ᵉ étage.", "Mia vit juste au-dessus de Sacha.", "Ana n’a pas d’animal à quatre pattes.", "Mia a un lapin.", "Sacha n’a pas de chien."],
+    solB: [2, 1, 0, 3], solC: [0, 3, 1, 2],
+  },
+  {
+    story: "🍰 <b>Le goûter</b> — 4 enfants, 4 desserts, 4 boissons.",
+    labelA: ["Noé", "Rose", "Ugo", "Zia"], labelB: ["Tarte", "Brownie", "Glace", "Crêpe"], labelC: ["Jus", "Soda", "Limonade", "Eau"],
+    qA: "Les enfants", qB: "Les desserts", qC: "Les boissons",
+    clues: ["Rose a choisi la glace.", "Noé ne mange ni brownie ni crêpe.", "Ugo n’a pas de crêpe.", "Zia boit de l’eau.", "Rose boit de la limonade.", "Noé boit du jus."],
+    solB: [0, 2, 1, 3], solC: [0, 2, 1, 3],
+  },
+  {
+    story: "🏅 <b>Les sportifs</b> — 4 sportifs, 4 sports, 4 jours d’entraînement.",
+    labelA: ["Ili", "Jo", "Ken", "Lou"], labelB: ["Foot", "Natation", "Tennis", "Vélo"], labelC: ["Lundi", "Mardi", "Mercredi", "Jeudi"],
+    qA: "Les sportifs", qB: "Les sports", qC: "Les jours",
+    clues: ["Lou fait de la natation.", "Jo ne fait ni foot ni tennis.", "Ken ne fait pas de tennis.", "Ken s’entraîne le jeudi.", "Le cycliste s’entraîne le lundi.", "Lou s’entraîne avant Ili."],
+    solB: [2, 3, 0, 1], solC: [2, 0, 3, 1],
+  },
+];
+let lgIdx = 0;
+function initLogic() {
+  lgIdx = lgIdx || 0;
+  renderLogicChips();
+  renderLogic();
+}
+function renderLogicChips() {
+  $("lg-chips").innerHTML = LOGIC_PL.map((_, i) =>
+    `<button class="chip ${i === lgIdx ? "active" : ""}" data-b="${i}" onclick="lgIdx=${i};renderLogicChips();renderLogic();">Énigme ${i + 1}</button>`).join("");
+}
+function renderLogic() {
+  const P = LOGIC_PL[lgIdx];
+  $("lg-story").innerHTML = P.story;
+  $("lg-clues").innerHTML = "<ul>" + P.clues.map((c, i) => `<li><span class="n">${i + 1}.</span><span>${c}</span></li>`).join("") + "</ul>";
+  $("lg-grids").innerHTML =
+    logicTable(P, "B") + logicTable(P, "C");
+  $("lg-feedback").className = "feedback";
+}
+function logicTable(P, side) {
+  const labels = P["label" + side];
+  const title = P["q" + side];
+  let html = `<p style="text-align:center; color:var(--muted); font-weight:700; margin-top:14px; font-size:14px;">${title}</p>
+  <table class="lg"><tr><th></th>${labels.map(l => `<th>${l}</th>`).join("")}</tr>`;
+  for (let a = 0; a < P.labelA.length; a++) {
+    html += `<tr><td class="a">${P.labelA[a]}</td>`;
+    for (let s = 0; s < labels.length; s++) {
+      html += `<td class="lgc" data-a="${a}" data-s="${side}" data-i="${s}"></td>`;
+    }
+    html += "</tr>";
+  }
+  return html + "</table>";
+}
+document.addEventListener("click", e => {
+  const c = e.target.closest && e.target.closest(".lgc");
+  if (!c) return;
+  c.textContent = c.textContent === "" ? "✘" : c.textContent === "✘" ? "✔" : "";
+  sfx("tick");
+});
+function checkLogic() {
+  const P = LOGIC_PL[lgIdx];
+  const marks = { B: [], C: [] };
+  ["B", "C"].forEach(side => {
+    marks[side] = P.labelA.map(() => P["label" + side].map(() => ""));
+    document.querySelectorAll(`.lgc[data-s="${side}"]`).forEach(c => {
+      marks[side][+c.dataset.a][+c.dataset.i] = c.textContent;
+    });
+  });
+  const okSide = side => {
+    const sol = P["sol" + side];
+    return P.labelA.every((_, a) =>
+      sol[a] !== undefined && marks[side][a][sol[a]] === "✔" &&
+      marks[side][a].every((m, i) => m !== "✔" || i === sol[a]));
+  };
+  const hasCheck = ["B", "C"].every(side => marks[side].some(row => row.includes("✔")));
+  if (!hasCheck) {
+    $("lg-feedback").className = "feedback show ko";
+    $("lg-feedback").innerHTML = "Place d’abord tes ✘ et ✔ dans les deux tableaux 🙂";
+    return;
+  }
+  const doneB = okSide("B"), doneC = okSide("C");
+  if (doneB && doneC) {
+    const pts = 40;
+    addPoints(pts); state.solved++;
+    state.best.logique = Math.max(state.best.logique || 0, lgIdx + 1);
+    save(); sfx("win");
+    $("lg-feedback").className = "feedback show ok";
+    $("lg-feedback").innerHTML = `🎉 <b>Déductions exactes !</b> +${pts} pts`;
+    setTimeout(() => {
+      if (lgIdx < LOGIC_PL.length - 1) {
+        lgIdx++; renderLogicChips(); renderLogic();
+      } else {
+        winGame("🧠", "Cerveau de Sherlock !", `Les ${LOGIC_PL.length} grilles de déduction résolues !`, 40 * LOGIC_PL.length);
+      }
+    }, 1600);
+  } else {
+    addPoints(-3); sfx("bad");
+    const missing = !doneB && !doneC ? "les deux tableaux" : doneB ? "le 2ᵉ tableau" : "le 1ᵉʳ tableau";
+    $("lg-feedback").className = "feedback show ko";
+    $("lg-feedback").innerHTML = `❌ Quelque chose cloche dans ${missing}. Chaque ligne doit avoir exactement un ✔ au bon endroit.`;
+  }
+}
+
+/* ============================================================
+   8. VRAI / FAUX
+   ============================================================ */
+const VF_LIST = [
+  { s: "Le plus grand désert du monde est l’Antarctique.", v: true, e: "Un désert est une zone sans précipitations : l’Antarctique est le plus grand désert polaire !" },
+  { s: "Les araignées sont des insectes.", v: false, e: "Elles ont 8 pattes et aucun insecte n’en a 8 : ce sont des arachnides." },
+  { s: "Le miel ne périme jamais.", v: true, e: "Du miel vieux de 3 000 ans retrouvé en Égypte était encore comestible !" },
+  { s: "La Tour Eiffel peut mesurer jusqu’à 15 cm de plus en été.", v: true, e: "Le métal se dilate à la chaleur : la Tour grandit au soleil." },
+  { s: "Les poissons rouges ont une mémoire de 3 secondes.", v: false, e: "Mythe ! Ils se souviennent des choses pendant des mois." },
+  { s: "Les étoiles filantes sont des étoiles.", v: false, e: "Ce sont des poussières et cailloux qui brûlent en entrant dans l’atmosphère." },
+  { s: "On peut voir le Grand Mur de Chine depuis la Lune à l’œil nu.", v: false, e: "Légende cosmique — même depuis l’orbite basse, il est à peine visible." },
+  { s: "Botaniquement, la tomate est un fruit.", v: true, e: "Elle pousse d’une fleur et contient des pépins : c’est un fruit !" },
+  { s: "Un éclair est 5 fois plus chaud que la surface du Soleil.", v: true, e: "Environ 30 000 °C contre 5 500 °C pour la surface du Soleil ⚡" },
+  { s: "Un chewing-gum avalé met 7 ans à traverser le corps.", v: false, e: "Il est digéré comme le reste, en 1 à 3 jours." },
+  { s: "Les pieuvres ont trois cœurs.", v: true, e: "Deux pour envoyer le sang aux branchies, un pour le reste du corps 💙" },
+  { s: "L’autruche enterre sa tête dans le sable quand elle a peur.", v: false, e: "Faux ! Elle blottit sa tête au sol, son plumage se fondant dans le décor." },
+];
+let vfShuffled = [], vfIndex = 0;
+function initVF() {
+  vfShuffled = [...VF_LIST].sort(() => Math.random() - .5);
+  vfIndex = 0;
+  renderVF();
+}
+function renderVF() {
+  const item = vfShuffled[vfIndex];
+  $("vf-progress").textContent = `Affirmation ${vfIndex + 1} / ${vfShuffled.length}`;
+  $("vf-fill").style.width = (vfIndex / vfShuffled.length * 100) + "%";
+  $("vf-question").textContent = "« " + item.s + " »";
+  $("vf-feedback").className = "feedback";
+  document.querySelectorAll(".vf-btn").forEach(b => b.disabled = false);
+}
+function answerVF(v) {
+  document.querySelectorAll(".vf-btn").forEach(b => b.disabled = true);
+  const item = vfShuffled[vfIndex];
+  const ok = v === item.v;
+  if (ok) {
+    addPoints(10); state.solved++; state.best.vf = Math.max(state.best.vf || 0, vfIndex + 1); save();
+    sfx("good");
+    $("vf-feedback").className = "feedback show ok";
+    $("vf-feedback").innerHTML = `✅ <b>VRAI !</b> ${item.e} +10 pts`;
+  } else {
+    addPoints(-3);
+    sfx("bad");
+    $("vf-feedback").className = "feedback show ko";
+    $("vf-feedback").innerHTML = `❌ C’était en fait <b>${item.v ? "VRAI" : "FAUX"}</b> — ${item.e}`;
+  }
+  setTimeout(() => {
+    vfIndex++;
+    if (vfIndex < vfShuffled.length) renderVF();
+    else winGame("⚖️", "Maestro du Véridique !", `${vfShuffled.length} affirmations départagées !`, state.score);
+  }, ok ? 1700 : 2400);
+}
 
 /* ============================================================
    Valor PC — Petits plus
