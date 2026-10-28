@@ -490,7 +490,7 @@
     <p style="text-align:center; color:var(--muted); font-size:12.5px; margin-top:22px; line-height:1.5;">
       💡 Sur iPad : bouton <b>Partager</b> → <b>« Sur l’écran d’accueil »</b><br>pour jouer en plein écran comme une vraie app.
     </p>
-    <p style="text-align:center; color:var(--muted); font-size:11px; margin-top:10px; opacity:.7;">LogiqueQuest <span id="verBadge">v2.2</span></p>
+    <p style="text-align:center; color:var(--muted); font-size:11px; margin-top:10px; opacity:.7;">LogiqueQuest <span id="verBadge">v2.3</span></p>
   </section>
 
   <!-- ================= ÉNIGMES ================= -->
@@ -759,6 +759,14 @@ const ENIGMES = [
   { q: "Je n'ai pas de voix mais je te réponds. Pas de corps mais je m’anime. Qui suis-je ?", a: "echo", accept: ["écho", "echo", "l echo", "l écho", "un écho", "un echo"], hint: "Cris dans la montagne !" },
   { q: "Qu’y a-t-il au bout de tout ?", a: "t", accept: ["t", "la lettre t", "lettre t", "le t"], hint: "C’est une lettre." },
   { q: "Deux pères et deux fils pêchent chacun un poisson, mais seulement 3 poissons sont pêchés. Pourquoi ?", a: "3 personnes", accept: ["3", "trois", "3 personnes", "trois personnes", "grand-pere", "grand père", "grand-père", "il y a 3 personnes"], hint: "Grand-père, père et fils ne font que trois !" },
+  { q: "Quel mot français commence par E, finit par E et ne contient qu’une seule lettre ?", a: "enveloppe", accept: ["enveloppe", "une enveloppe", "l enveloppe", "l'enveloppe"], hint: "Ouvre-la et regarde à l’intérieur… 💌" },
+  { q: "Trois chats attrapent trois souris en trois minutes. Combien de temps mettront cent chats pour attraper cent souris ?", a: "trois minutes", accept: ["trois minutes", "3 minutes", "3", "trois", "3 min", "trois min", "la meme duree", "la même durée"], hint: "Un seul chat attrape déjà une souris en trois minutes…" },
+  { q: "Combien de fois peut-on soustraire 5 à 25 ?", a: "une seule fois", accept: ["une seule fois", "une fois", "1", "1 fois", "une seule", "1 seule fois"], hint: "Après la première soustraction… tu n’as plus 25 !" },
+  { q: "Toutes les fenêtres de ma maison donnent au Sud. Un ours passe devant ma fenêtre. Quelle est sa couleur ?", a: "blanc", accept: ["blanc", "blanche", "un ours blanc", "il est blanc", "ours polaire", "ours blanc", "un ours polaire"], hint: "Si toutes les fenêtres donnent au Sud, ma maison se trouve… au Pôle Nord." },
+  { q: "Qu’est-ce qui t’appartient, mais que les autres utilisent bien plus que toi ?", a: "ton prénom", accept: ["ton prénom", "ton prenom", "son prénom", "son prenom", "mon prénom", "mon prenom", "ton nom", "son nom", "mon nom", "prénom", "prenom"], hint: "On te l’a choisi à la naissance… mais ce sont les autres qui le prononcent le plus souvent." },
+  { q: "Qu’est-ce qui a une tête et une queue mais jamais de corps ?", a: "une pièce", accept: ["une piece", "piece", "la piece", "une pièce de monnaie", "piece de monnaie", "une piece de monnaie", "une pièce", "une monnaie"], hint: "Regarde ses deux côtés : face et pile." },
+  { q: "Quel mot se lit de gauche à droite et de droite à gauche en gardant exactement le même sens ?", a: "palindrome", accept: ["palindrome", "un palindrome", "le palindrome", "kayak", "radar", "ressasser"], hint: "On peut en faire une petite embarcation… un kayak, par exemple !" },
+  { q: "J’ai besoin d’air pour vivre, mais l’eau me tue. Je danse partout où l’oxygène me plaît. Qui suis-je ?", a: "le feu", accept: ["le feu", "un feu", "feu", "la flamme", "une flamme", "l incendie", "l'incendie"], hint: "Il danse partout où l’air lui plaît, mais recule devant un seau d’eau 💧" },
 ];
 let enigIndex = 0, enigHintUsed = false;
 
