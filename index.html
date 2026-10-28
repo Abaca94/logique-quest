@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LogiqueQuest">
+<meta name="theme-color" content="#0f1226">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>LogiqueQuest — Énigmes &amp; Casse-tête</title>
+<style>
+  :root {
+    --bg: #0f1226;
+    --bg2: #171b3a;
+    --card: #1e2450;
+    --card2: #272e63;
+    --accent: #7c5dff;
+    --accent2: #00d4ff;
+    --good: #2ee6a8;
+    --bad: #ff5d73;
+    --gold: #ffc93c;
+    --text: #eef0ff;
+    --muted: #9aa0c9;
+    --radius: 22px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    overscroll-behavior: none;
+  }
+  body {
+    font-family: -apple-system, "SF Pro Rounded", BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(1200px 800px at 20% -10%, #232a5c 0%, var(--bg) 55%),
+                radial-gradient(900px 700px at 110% 110%, #1b1440 0%, transparent 60%);
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* ===== Header ===== */
+  header {
+    padding: calc(var(--safe-top) + 14px) 18px 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .btn-back {
+    background: var(--card);
+    border: none;
+    color: var(--text);
+    width: 46px; height: 46px;
+    border-radius: 16px;
+    font-size: 22px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform .12s;
+  }
+  .btn-back:active { transform: scale(.9); }
+  .btn-back.show { display: flex; }
+  .screen-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: .3px;
+    flex: 1;
+  }
+  .hud {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .pill {
+    background: var(--card);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ===== Main / screens ===== */
+  main {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 18px calc(var(--safe-bottom) + 24px);
+  }
+  .screen { display: none; animation: fadeIn .25s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: none;} }
+
+  /* ===== Home ===== */
+  .hero {
+    text-align: center;
+    padding: 26px 0 10px;
+  }
+  .hero .logo {
+    font-size: 64px;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-8px);} }
+  .hero h1 {
+    font-size: 34px;
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--accent2), var(--accent), #ff7ad9);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: .5px;
+  }
+  .hero p { color: var(--muted); margin-top: 6px; font-size: 15px; }
+
+  .menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 22px;
+  }
+  @media (min-width: 760px) { .menu-grid { grid-template-columns: repeat(4, 1fr); } }
+  .menu-card {
+    background: linear-gradient(160deg, var(--card) 0%, var(--card2) 100%);
+    border-radius: var(--radius);
+    padding: 22px 16px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,.06);
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    transition: transform .15s, box-shadow .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .menu-card:active { transform: scale(.95); }
+  .menu-card .icon { font-size: 44px; display: block; margin-bottom: 10px; }
+  .menu-card h3 { font-size: 17px; font-weight: 800; }
+  .menu-card p { font-size: 12.5px; color: var(--muted); margin-top: 5px; line-height: 1.35;}
+  .menu-card .streak {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .stats-row {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .stat-box {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 14px 8px;
+    text-align: center;
+  }
+  .stat-box .v { font-size: 22px; font-weight: 900; color: var(--accent2); }
+  .stat-box .l { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+
+  /* ===== Buttons ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(120deg, var(--accent), #9d7bff);
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 15px 24px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 22px rgba(124,93,255,.35);
+    transition: transform .12s, filter .12s;
+  }
+  .btn:active { transform: scale(.95); }
+  .btn.ghost {
+    background: var(--card);
+    box-shadow: none;
+    color: var(--text);
+  }
+  .btn.small { padding: 10px 16px; font-size: 14px; border-radius: 13px; }
+  .btn:disabled { filter: grayscale(.6); opacity: .5; }
+
+  /* ===== Quiz (énigmes / séquences) ===== */
+  .quiz-card {
+    background: linear-gradient(165deg, var(--card), var(--card2));
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    margin-top: 12px;
+    box-shadow: 0 12px 34px rgba(0,0,0,.4);
+  }
+  .quiz-progress { color: var(--muted); font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .progress-track {
+    height: 8px; background: rgba(255,255,255,.08);
+    border-radius: 99px; overflow: hidden; margin-bottom: 18px;
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 99px;
+    transition: width .3s ease;
+  }
+  .question-txt { font-size: 21px; line-height: 1.45; font-weight: 700; margin-bottom: 20px; }
+  .question-txt .seq { color: var(--accent2); font-family: ui-monospace, monospace; letter-spacing: 1px; }
+  .answers { display: grid; gap: 12px; }
+  .answer-btn {
+    background: rgba(255,255,255,.06);
+    border: 2px solid rgba(255,255,255,.1);
+    color: var(--text);
+    border-radius: 16px;
+    padding: 17px 18px;
+    font-size: 17px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    transition: transform .12s, background .2s, border-color .2s;
+    min-height: 58px;
+  }
+  .answer-btn:active { transform: scale(.97); }
+  .answer-btn.correct { background: rgba(46,230,168,.18); border-color: var(--good); }
+  .answer-btn.wrong { background: rgba(255,93,115,.18); border-color: var(--bad); }
+  .answer-btn:disabled { cursor: default; }
+
+  .text-input-row { display: flex; gap: 10px; margin-top: 4px; }
+  .text-input {
+    flex: 1;
+    background: rgba(255,255,255,.07);
+    border: 2px solid rgba(255,255,255,.12);
+    border-radius: 16px;
+    color: var(--text);
+    font-size: 18px;
+    padding: 15px 16px;
+    outline: none;
+    min-width: 0;
+  }
+  .text-input:focus { border-color: var(--accent); }
+
+  .hint-box {
+    background: rgba(255,201,60,.1);
+    border: 1px dashed rgba(255,201,60,.5);
+    color: var(--gold);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 14px;
+    margin-top: 14px;
+    display: none;
+    line-height: 1.4;
+  }
+  .hint-box.show { display: block; }
+
+  .feedback {
+    margin-top: 16px;
+    border-radius: 16px;
+    padding: 14px 16px;
+    font-size: 15px;
+    line-height: 1.45;
+    display: none;
+    animation: pop .3s ease;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: rgba(46,230,168,.14); border: 1px solid rgba(46,230,168,.4); }
+  .feedback.ko { background: rgba(255,93,115,.14); border: 1px solid rgba(255,93,115,.4); }
+  @keyframes pop { from { transform: scale(.92); opacity: 0;} to { transform: scale(1); opacity: 1;} }
+
+  .actions-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+  /* ===== Taquin ===== */
+  .taquin-wrap { display: flex; flex-direction: column; align-items: center; }
+  .board {
+    display: grid;
+    gap: 6px;
+    background: var(--card);
+    padding: 10px;
+    border-radius: 22px;
+    box-shadow: 0 14px 40px rgba(0,0,0,.45);
+    margin: 16px 0;
+  }
+  .tile {
+    background: linear-gradient(150deg, var(--accent) 0%, #6446d9 100%);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(24px, 7vw, 40px);
+    font-weight: 900;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,.35);
+    transition: transform .13s ease, opacity .2s;
+  }
+  .tile:active { transform: scale(.93); }
+  .tile.empty { background: transparent; box-shadow: none; cursor: default; opacity: .25; }
+  .wheel { font-size: 30px; text-align: center; margin-top: 18px; }
+
+  /* ===== Mémoire ===== */
+  .mem-grid {
+    display: grid;
+    gap: 10px;
+    margin: 16px auto;
+    max-width: 560px;
+  }
+  .mem-card {
+    aspect-ratio: 1;
+    background: linear-gradient(150deg, var(--card2), var(--card));
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(26px, 6vw, 42px);
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(0,0,0,.35);
+    transition: transform .18s, opacity .3s;
+    border: 2px solid rgba(255,255,255,.07);
+  }
+  .mem-card:active { transform: scale(.94); }
+  .mem-card.open { background: rgba(255,255,255,.1); transform: scale(1.03); }
+  .mem-card.matched { background: rgba(46,230,168,.15); border-color: var(--good); opacity: .8; animation: pop .3s; cursor: default;}
+
+  /* ===== Victoire ===== */
+  .win-banner {
+    text-align: center;
+    padding: 30px 10px;
+    animation: pop .4s ease;
+  }
+  .win-banner .big { font-size: 70px; display: block; animation: float 2.5s infinite; }
+  .win-banner h2 { font-size: 26px; margin-top: 8px; }
+  .win-banner p { color: var(--muted); margin-top: 6px; }
+  .stars { font-size: 40px; letter-spacing: 6px; margin-top: 10px; }
+
+  .center-col { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 10px;}
+
+  /* toast */
+  #toast {
+    position: fixed;
+    left: 50%; bottom: calc(var(--safe-bottom) + 30px);
+    transform: translateX(-50%) translateY(20px);
+    background: var(--card2);
+    color: var(--text);
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 14.5px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all .25s ease;
+    z-index: 50;
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    max-width: 86vw;
+    text-align: center;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="btn-back" id="btnBack" onclick="goHome()">←</button>
+  <div class="screen-title" id="screenTitle">LogiqueQuest</div>
+  <div class="hud">
+    <div class="pill">🧠 <span id="hudScore">0</span></div>
+    <div class="pill">🔥 <span id="hudStreak">0</span></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ================= ACCUEIL ================= -->
+  <section class="screen active" id="screen-home">
+    <div class="hero">
+      <span class="logo">🧩</span>
+      <h1>LogiqueQuest</h1>
+      <p>Énigmes · Logique · Casse-tête — entraîne ton cerveau</p>
+    </div>
+    <div class="menu-grid">
+      <div class="menu-card" onclick="startGame('enigmes')">
+        <span class="icon">🕵️</span>
+        <h3>Énigmes</h3>
+        <p>Résous des mystères du texte</p>
+        <div class="streak" id="s-enigmes"></div>
+      </div>
+      <div class="menu-card" onclick="startGame('sequences')">
+        <span class="icon">🔢</span>
+        <h3>Séquences</h3>
+        <p>Trouve le nombre qui suit</p>
+        <div class="streak" id="s-sequences"></div>
+      </div>
+      <div class="menu-card" onclick="startGame('taquin')">
+        <span class="icon">🀄</span>
+        <h3>Taquin</h3>
+        <p>Remets les tuiles en ordre</p>
+        <div class="streak" id="s-taquin"></div>
+      </div>
+      <div class="menu-card" onclick="startGame('memoire')">
+        <span class="icon">🃏</span>
+        <h3>Mémoire</h3>
+        <p>Retrouve les paires</p>
+        <div class="streak" id="s-memoire"></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="v" id="stat-score">0</div><div class="l">Points 🧠</div></div>
+      <div class="stat-box"><div class="v" id="stat-solved">0</div><div class="l">Défis réussis</div></div>
+      <div class="stat-box"><div class="v" id="stat-best">0</div><div class="l">Meilleure série 🔥</div></div>
+    </div>
+    <div style="text-align:center; margin-top:20px;">
+      <button class="btn ghost small" onclick="resetProgress()">🗑️ Réinitialiser ma progression</button>
+    </div>
+    <p style="text-align:center; color:var(--muted); font-size:12.5px; margin-top:22px; line-height:1.5;">
+      💡 Sur iPad : bouton <b>Partager</b> → <b>« Sur l’écran d’accueil »</b><br>pour jouer en plein écran comme une vraie app.
+    </p>
+  </section>
+
+  <!-- ================= ÉNIGMES ================= -->
+  <section class="screen" id="screen-enigmes">
+    <div class="quiz-card">
+      <div class="quiz-progress" id="enig-progress">Énigme 1</div>
+      <div class="progress-track"><div class="progress-fill" id="enig-fill"></div></div>
+      <div class="question-txt" id="enig-question"></div>
+      <div class="text-input-row">
+        <input class="text-input" id="enig-input" placeholder="Ta réponse…" autocomplete="off" autocapitalize="off">
+        <button class="btn" onclick="submitEnigme()">Valider</button>
+      </div>
+      <div class="hint-box" id="enig-hint"></div>
+      <div class="feedback" id="enig-feedback"></div>
+      <div class="actions-row">
+        <button class="btn ghost small" onclick="showEnigmeHint()">💡 Indice (−5 pts)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SÉQUENCES ================= -->
+  <section class="screen" id="screen-sequences">
+    <div class="quiz-card">
+      <div class="quiz-progress" id="seq-progress">Séquence 1</div>
+      <div class="progress-track"><div class="progress-fill" id="seq-fill"></div></div>
+      <div class="question-txt" id="seq-question"></div>
+      <div class="answers" id="seq-answers"></div>
+      <div class="feedback" id="seq-feedback"></div>
+    </div>
+  </section>
+
+  <!-- ================= TAQUIN ================= -->
+  <section class="screen" id="screen-taquin">
+    <div class="taquin-wrap">
+      <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
+        <button class="btn ghost small" onclick="setTaquinSize(3)">3×3</button>
+        <button class="btn ghost small" onclick="setTaquinSize(4)">4×4</button>
+        <button class="btn ghost small" onclick="shuffleTaquin(true)">🔀 Mélanger</button>
+      </div>
+      <div class="board" id="taquin-board"></div>
+      <div class="hud" style="justify-content:center;">
+        <div class="pill">👆 Coups : <span id="taquin-moves">0</span></div>
+        <div class="pill">⏱️ <span id="taquin-time">0s</span></div>
+      </div>
+      <div class="wheel" id="taquin-wheel">🙂</div>
+    </div>
+  </section>
+
+  <!-- ================= MÉMOIRE ================= -->
+  <section class="screen" id="screen-memoire">
+    <div class="taquin-wrap">
+      <div style="display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap;">
+        <button class="btn ghost small" onclick="setMemLevel(4)">6 paires</button>
+        <button class="btn ghost small" onclick="setMemLevel(5)">10 paires</button>
+        <button class="btn ghost small" onclick="startGame('memoire')">🔁 Nouvelle</button>
+      </div>
+      <div class="hud" style="justify-content:center;">
+        <div class="pill">🎯 Paires : <span id="mem-found">0</span>/<span id="mem-total">8</span></div>
+        <div class="pill">👆 <span id="mem-moves">0</span></div>
+      </div>
+      <div class="mem-grid" id="mem-board"></div>
+    </div>
+  </section>
+
+  <!-- ================= VICTOIRE ================= -->
+  <section class="screen" id="screen-win">
+    <div class="win-banner">
+      <span class="big" id="win-emoji">🏆</span>
+      <h2 id="win-title">Bravo !</h2>
+      <p id="win-sub"></p>
+      <div class="stars" id="win-stars"></div>
+    </div>
+    <div class="center-col">
+      <button class="btn" onclick="replay()">↻ Rejouer</button>
+      <button class="btn ghost" onclick="goHome()">🏠 Menu</button>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   LOGICQUEST — jeu de logique, énigmes et casse-tête
+   100% local, optimisé iPad (tactile, plein écran, sauvegarde)
+   ============================================================ */
+
+const $ = id => document.getElementById(id);
+const TITLES = { enigmes: "🕵️ Énigmes", sequences: "🔢 Séquences logiques", taquin: "🀄 Taquin", memoire: "🃏 Mémoire" };
+
+/* ---------- Progression (localStorage) ---------- */
+const SAVE_KEY = "logiquequest_v1";
+let state = loadState();
+function defaultState() {
+  return { score: 0, solved: 0, bestStreak: 0, streak: 0, best: { enigmes: 0, sequences: 0, taquin: 0, memoire: 0 } };
+}
+function loadState() {
+  try { return { ...defaultState(), ...JSON.parse(localStorage.getItem(SAVE_KEY) || "{}") }; }
+  catch { return defaultState(); }
+}
+function save() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { /* mode hors-ligne strict : on joue sans sauvegarde */ }
+  refreshHUD();
+}
+function refreshHUD() {
+  $("hudScore").textContent = state.score;
+  $("hudStreak").textContent = state.streak;
+  $("stat-score").textContent = state.score;
+  $("stat-solved").textContent = state.solved;
+  $("stat-best").textContent = state.bestStreak;
+  for (const g of ["enigmes", "sequences", "taquin", "memoire"]) {
+    $("s-" + g).textContent = state.best[g] ? "★ " + state.best[g] : "";
+  }
+}
+function addPoints(n) {
+  state.score = Math.max(0, state.score + n);
+  if (n > 0) {
+    state.streak++;
+    if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+  } else {
+    state.streak = 0;
+  }
+  save();
+}
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* ---------- Navigation ---------- */
+let currentGame = "home";
+function showScreen(name) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  $("screen-" + name).classList.add("active");
+  $("btnBack").classList.toggle("show", name !== "home" && name !== "win");
+  $("screenTitle").textContent = name === "home" ? "LogiqueQuest" : name === "win" ? "Victoire !" : TITLES[currentGame];
+  $("main") && 0;
+  document.querySelector("main").scrollTop = 0;
+}
+function goHome() {
+  stopTimers();
+  currentGame = "home";
+  showScreen("home");
+}
+function startGame(g) {
+  stopTimers();
+  currentGame = g;
+  showScreen(g);
+  if (g === "enigmes") initEnigmes();
+  if (g === "sequences") initSequences();
+  if (g === "taquin") initTaquin();
+  if (g === "memoire") initMemoire();
+}
+function replay() { startGame(currentGame); }
+function winGame(emoji, title, sub, pts) {
+  stopTimers();
+  $("win-emoji").textContent = emoji;
+  $("win-title").textContent = title;
+  $("win-sub").textContent = sub;
+  const n = Math.max(1, Math.min(3, Math.round(pts / 80)));
+  $("win-stars").textContent = "⭐".repeat(n) + "☆".repeat(3 - n);
+  currentGame = currentGame || "home";
+  showScreen("win");
+}
+let timers = [];
+function stopTimers() { timers.forEach(clearInterval); timers = []; }
+function resetProgress() {
+  if (confirm("Tout effacer : score, séries et records ?")) {
+    state = defaultState();
+    save();
+    toast("Progression réinitialisée 🗑️");
+  }
+}
+
+/* ============================================================
+   1. ÉNIGMES
+   ============================================================ */
+const ENIGMES = [
+  { q: "Je suis le début de la fin, la fin du temps et de l’espace. Qui suis-je ?", a: "lettre e", accept: ["e", "lettre e", "lettre", "la lettre e", "le e"], hint: "Regarde bien cette phrase… la réponse est dedans." },
+  { q: "Plus j’ai de femmes, moins j’en suis. Que suis-je ?", a: "père", accept: ["pere", "le père", "un père", "père"], hint: "« Les femmes de… » — un lien de famille." },
+  { q: "Qu’est-ce qui peut remplir une pièce entière sans jamais prendre de place ?", a: "lumière", accept: ["lumiere", "la lumière", "la lumiere", "la lumière"], hint: "Elle s’allume dès que tu appuies sur l’interrupteur." },
+  { q: "Qu’est-ce qui a des dents mais ne mord jamais ?", a: "peigne", accept: ["peigne", "un peigne", "le peigne", "cardes"], hint: "Il est dans la salle de bain." },
+  { q: "Un fermier a 17 moutons. Tous meurent sauf 9. Combien en reste-t-il ?", a: "9", accept: ["9", "neuf", "9 moutons", "neuf moutons"], hint: "Relis bien : « tous meurent SAUF 9 »." },
+  { q: "Je peux faire le tour du monde tout en restant dans mon coin. Qui suis-je ?", a: "timbre", accept: ["timbre", "un timbre", "le timbre", "un stamp"], hint: "Il se colle sur une enveloppe." },
+  { q: "Qu’est-ce qui monte et descend sans bouger ?", a: "temperature", accept: ["température", "temperature", "la température", "la temperature", "un escalier", "escalier", "l escalier"], hint: "Pense à ce qu’on relève chaque matin. (Autre réponse acceptée : l’escalier !)" },
+  { q: "Le père de Paul a trois fils : Paul, Léo et… ?", a: "paul", accept: ["paul"], hint: "Relis le début de la phrase." },
+  { q: "Plus tu m’enlèves, plus je grandis. Que suis-je ?", a: "trou", accept: ["trou", "un trou", "le trou", "les trous"], hint: "On en creuse dans le sable." },
+  { q: "Je n'ai pas de voix mais je te réponds. Pas de corps mais je m’anime. Qui suis-je ?", a: "echo", accept: ["écho", "echo", "l echo", "l écho", "un écho", "un echo"], hint: "Cris dans la montagne !" },
+  { q: "Qu’y a-t-il au bout de tout ?", a: "t", accept: ["t", "la lettre t", "lettre t", "le t"], hint: "C’est une lettre." },
+  { q: "Deux pères et deux fils pêchent chacun un poisson, mais seulement 3 poissons sont pêchés. Pourquoi ?", a: "3 personnes", accept: ["3", "trois", "3 personnes", "trois personnes", "grand-pere", "grand père", "grand-père", "il y a 3 personnes"], hint: "Grand-père, père et fils ne font que trois !" },
+];
+let enigIndex = 0, enigHintUsed = false;
+
+function initEnigmes() {
+  enigIndex = 0;
+  renderEnigme();
+}
+function renderEnigme() {
+  const e = ENIGMES[enigIndex];
+  $("enig-progress").textContent = `Énigme ${enigIndex + 1} / ${ENIGMES.length}`;
+  $("enig-fill").style.width = (enigIndex / ENIGMES.length * 100) + "%";
+  $("enig-question").textContent = e.q;
+  $("enig-input").value = "";
+  $("enig-hint").classList.remove("show");
+  $("enig-feedback").className = "feedback";
+  enigHintUsed = false;
+  setTimeout(() => $("enig-input").focus(), 50);
+}
+function normalize(s) {
+  return s.toLowerCase().trim()
+    .replace(/[éèêë]/g, "e").replace(/[àâä]/g, "a").replace(/[ùûü]/g, "u").replace(/[ôö]/g, "o")
+    .replace(/[îï]/g, "i").replace(/ç/g, "c").replace(/'/g, " ").replace(/\s+/g, " ");
+}
+function submitEnigme() {
+  const e = ENIGMES[enigIndex];
+  const raw = $("enig-input").value;
+  if (raw.trim() === "") { toast("Écris d’abord ta réponse ✏️"); return; }
+  const ok = e.accept.some(a => normalize(raw) === normalize(a) || normalize(raw).includes(normalize(a)) && normalize(a).length > 2);
+  const fb = $("enig-feedback");
+  if (ok) {
+    const pts = enigHintUsed ? 5 : 10;
+    addPoints(pts);
+    state.solved++; save();
+    fb.className = "feedback show ok";
+    fb.innerHTML = `✅ <b>Exact !</b> La réponse était bien <b>« ${e.a} »</b>.<br>+${pts} pts 🧠`;
+    state.best.enigmes = Math.max(state.best.enigmes, enigIndex + 1);
+    setTimeout(() => {
+      enigIndex++;
+      if (enigIndex < ENIGMES.length) renderEnigme();
+      else winGame("🕵️", "Enquête résolue !", `Tu as résolu les ${ENIGMES.length} énigmes ! +${pts} derniers points.`, state.score);
+    }, 1400);
+  } else {
+    addPoints(-3);
+    fb.className = "feedback show ko";
+    fb.innerHTML = `❌ Ce n’est pas <b>« ${raw} »</b>. Essaie encore — ou prends un indice 💡`;
+    $("enig-input").value = "";
+    $("enig-input").focus();
+  }
+}
+function showEnigmeHint() {
+  const e = ENIGMES[enigIndex];
+  const h = $("enig-hint");
+  h.textContent = "💡 " + e.hint;
+  h.classList.add("show");
+  if (!enigHintUsed) { addPoints(-5); enigHintUsed = true; toast("Indice débloqué (−5 pts)"); }
+}
+$("enig-input").addEventListener("keydown", e => { if (e.key === "Enter") submitEnigme(); });
+
+/* ============================================================
+   2. SÉQUENCES LOGIQUES
+   ============================================================ */
+const SEQUENCES = [
+  { seq: "2, 3, 5, 8, 13, ?", options: ["18", "20", "21", "26"], answer: "21", explain: "Chaque nombre = somme des deux précédents (suite de Fibonacci)." },
+  { seq: "2, 4, 8, 16, ?", options: ["20", "24", "32", "18"], answer: "32", explain: "On double à chaque étape (×2)." },
+  { seq: "1, 4, 9, 16, 25, ?", options: ["30", "36", "35", "49"], answer: "36", explain: "Ce sont les carrés : 1², 2², 3²… → 6² = 36." },
+  { seq: "3, 6, 11, 18, 27, ?", options: ["36", "38", "41", "40"], answer: "38", explain: "Écarts : +3, +5, +7, +9 puis +11 → 27+11 = 38." },
+  { seq: "1, 1, 2, 3, 5, 8, ?", options: ["11", "12", "13", "14"], answer: "13", explain: "Suite de Fibonacci : chaque terme est la somme des deux précédents." },
+  { seq: "81, 27, 9, 3, ?", options: ["0", "1", "2", "1,5"], answer: "1", explain: "On divise par 3 à chaque fois : 3÷3 = 1." },
+  { seq: "1, 8, 27, 64, ?", options: ["100", "125", "128", "216"], answer: "125", explain: "Cubes : 1³, 2³, 3³, 4³… → 5³ = 125." },
+  { seq: "5, 10, 20, 40, ?", options: ["50", "60", "80", "100"], answer: "80", explain: "On double à chaque étape (×2)." },
+  { seq: "2, 6, 12, 20, 30, ?", options: ["36", "40", "42", "44"], answer: "42", explain: "Écarts : +4, +6, +8, +10 puis +12 → 30+12 = 42." },
+  { seq: "100, 50, 52, 26, 28, ?", options: ["14", "30", "16", "12"], answer: "14", explain: "On divise par 2, puis on ajoute 2, alternativement : 28÷2 = 14." },
+  { seq: "1, 3, 7, 15, 31, ?", options: ["47", "63", "62", "51"], answer: "63", explain: "×2 puis +1 à chaque étape : 31×2+1 = 63." },
+  { seq: "4, 7, 10, 13, ?", options: ["14", "15", "16", "17"], answer: "16", explain: "Arithmétique : +3 à chaque fois." },
+  { seq: "1, 2, 6, 24, ?", options: ["96", "120", "144", "48"], answer: "120", explain: "Factorielles : ×2, ×3, ×4 puis ×5 → 24×5 = 120." },
+  { seq: "96, 48, 24, 12, ?", options: ["8", "10", "6", "4"], answer: "6", explain: "On divise par 2 à chaque étape." },
+  { seq: "2, 5, 11, 23, ?", options: ["35", "43", "47", "45"], answer: "47", explain: "×2 puis +1 : 23×2+1 = 47." },
+];
+let seqShuffled = [], seqIndex = 0;
+
+function initSequences() {
+  seqShuffled = [...SEQUENCES].sort(() => Math.random() - .5);
+  seqIndex = 0;
+  renderSequence();
+}
+function renderSequence() {
+  const s = seqShuffled[seqIndex];
+  $("seq-progress").textContent = `Séquence ${seqIndex + 1} / ${seqShuffled.length}`;
+  $("seq-fill").style.width = (seqIndex / seqShuffled.length * 100) + "%";
+  $("seq-question").innerHTML = `Quel nombre complete la suite ?<br><span class="seq">${s.seq}</span>`;
+  $("seq-feedback").className = "feedback";
+  const opts = [...s.options].sort(() => Math.random() - .5);
+  $("seq-answers").innerHTML = opts.map(o =>
+    `<button class="answer-btn" onclick="answerSequence(this, '${o.replace(/'/g, "\\'")}')">${o}</button>`).join("");
+}
+function answerSequence(btn, val) {
+  const s = seqShuffled[seqIndex];
+  document.querySelectorAll("#seq-answers .answer-btn").forEach(b => b.disabled = true);
+  if (val === s.answer) {
+    btn.classList.add("correct");
+    addPoints(10); state.solved++; save();
+    $("seq-feedback").className = "feedback show ok";
+    $("seq-feedback").innerHTML = `✅ <b>Bravo !</b> +10 pts — ${s.explain}`;
+    setTimeout(() => {
+      seqIndex++;
+      if (seqIndex < seqShuffled.length) renderSequence();
+      else winGame("🔢", "Cerveau en béton !", `Tu as décodé ${seqShuffled.length} séquences d’affilée !`, state.score);
+    }, 1600);
+  } else {
+    btn.classList.add("wrong");
+    addPoints(-3);
+    const good = [...document.querySelectorAll("#seq-answers .answer-btn")].find(b => b.textContent === s.answer);
+    good && good.classList.add("correct");
+    $("seq-feedback").className = "feedback show ko";
+    $("seq-feedback").innerHTML = `❌ La bonne réponse était <b>${s.answer}</b> — ${s.explain}`;
+    setTimeout(() => {
+      seqIndex++;
+      if (seqIndex < seqShuffled.length) renderSequence();
+      else winGame("🔢", "Séquences terminées !", "Tu as parcouru toute la série. Rejoue pour battre ton score !", state.score);
+    }, 2200);
+  }
+}
+
+/* ============================================================
+   3. TAQUIN (sliding puzzle)
+   ============================================================ */
+const TQ_EMOJIS = ["🍎", "🍊", "🍋", "🍏", "🍑", "🍒", "🥝", "🍇", "🍓", "🥕", "🌽", "🌶️", "🥑", "🍉", "🍍", "🥥"];
+let tqSize = 3, tqGrid = [], tqMoves = 0, tqSeconds = 0, tqTimer = null, tqSolvedFlag = false;
+
+function initTaquin(keepShuffle = false) {
+  tqSize = tqSize || 3;
+  tqMoves = 0; tqSeconds = 0; tqSolvedFlag = false;
+  const n = tqSize * tqSize;
+  tqGrid = Array.from({ length: n }, (_, i) => (i === n - 1 ? 0 : i + 1)); // 0 = vide
+  $("taquin-moves").textContent = "0";
+  $("taquin-time").textContent = "0s";
+  $("taquin-wheel").textContent = " 🙂 ";
+  buildTaquinBoard();
+  // mélange garanti solvable : coups aléatoires légaux
+  for (let i = 0; i < n * 20; i++) {
+    const empty = tqGrid.indexOf(0);
+    const cands = taquinNeighbors(empty);
+    const pick = cands[Math.floor(Math.random() * cands.length)];
+    [tqGrid[empty], tqGrid[pick]] = [tqGrid[pick], tqGrid[empty]];
+  }
+  if (isTaquinSolved()) shuffleTaquin(false); // improbable mais sûr
+  buildTaquinBoard();
+  stopTaquinTimerOnly();
+}
+let taquinActiveTimer = null;
+function stopTaquinTimerOnly() { if (taquinActiveTimer) { clearInterval(taquinActiveTimer); taquinActiveTimer = null; } }
+function taquinNeighbors(i) {
+  const r = Math.floor(i / tqSize), c = i % tqSize, out = [];
+  if (r > 0) out.push(i - tqSize);
+  if (r < tqSize - 1) out.push(i + tqSize);
+  if (c > 0) out.push(i - 1);
+  if (c < tqSize - 1) out.push(i + 1);
+  return out;
+}
+function buildTaquinBoard() {
+  const b = $("taquin-board");
+  b.style.gridTemplateColumns = `repeat(${tqSize}, 1fr)`;
+  b.style.width = `min(78vw, 380px)`;
+  b.innerHTML = "";
+  for (let i = 0; i < tqGrid.length; i++) {
+    const v = tqGrid[i];
+    const d = document.createElement("div");
+    d.className = "tile" + (v === 0 ? " empty" : "");
+    d.textContent = v === 0 ? "" : (tqSize === 4 ? String(v).padStart(0) : v);
+    d.onclick = () => clickTaquin(i);
+    b.appendChild(d);
+  }
+}
+function clickTaquin(i) {
+  if (tqSolvedFlag) return;
+  const empty = tqGrid.indexOf(0);
+  if (!taquinNeighbors(empty).includes(i)) return;
+  if (!taquinActiveTimer) {
+    taquinActiveTimer = setInterval(() => {
+      tqSeconds++;
+      $("taquin-time").textContent = tqSeconds + "s";
+    }, 1000);
+    timers.push(taquinActiveTimer);
+  }
+  [tqGrid[empty], tqGrid[i]] = [tqGrid[i], tqGrid[empty]];
+  tqMoves++;
+  $("taquin-moves").textContent = tqMoves;
+  buildTaquinBoard();
+  $("taquin-wheel").textContent = ["😵", "🤔", "🙂", "😎", "🥳"][Math.min(4, Math.floor(tqMoves / 15))];
+  if (isTaquinSolved()) {
+    tqSolvedFlag = true;
+    stopTaquinTimerOnly();
+    const pts = Math.max(20, Math.round(tqSize * 60 - Math.min(tqMoves, tqSize * tqSize * 10) * .5 - tqSeconds * .4));
+    addPoints(pts); state.solved++; save();
+    state.best.taquin = Math.max(state.best.taquin, pts);
+    save();
+    $("taquin-wheel").textContent = "🥳";
+    setTimeout(() => winGame("🀄", "Taquin résolu !", `${tqMoves} coups · ${tqSeconds}s · +${pts} pts`, pts), 500);
+  }
+}
+function isTaquinSolved() {
+  for (let i = 0; i < tqGrid.length - 1; i++) if (tqGrid[i] !== i + 1) return false;
+  return true;
+}
+function setTaquinSize(n) { tqSize = n; initTaquin(); toast(`Grille ${n}×${n} — nouveau mélange !`); }
+function shuffleTaquin(toastIt) { initTaquin(); if (toastIt) toast("Nouveau mélange 🔀"); }
+
+/* ============================================================
+   4. MÉMOIRE (paires)
+   ============================================================ */
+let memPairs = 4, memFirst = null, memLock = false, memFound = 0, memMoves = 0;
+function initMemoire() {
+  memPairs = memPairs || 4;
+  memFirst = null; memLock = false; memFound = 0; memMoves = 0;
+  const items = [...TQ_EMOJIS.slice(0, memPairs), ...TQ_EMOJIS.slice(0, memPairs)].sort(() => Math.random() - .5);
+  const b = $("mem-board");
+  b.style.gridTemplateColumns = `repeat(${Math.min(memPairs * 2, 5)}, 1fr)`;
+  $("mem-found").textContent = "0";
+  $("mem-total").textContent = memPairs;
+  $("mem-moves").textContent = "0";
+  b.innerHTML = "";
+  items.forEach((emoji, idx) => {
+    const c = document.createElement("div");
+    c.className = "mem-card"; c.dataset.e = emoji; c.textContent = "";
+    c.onclick = () => clickMemCard(c);
+    b.appendChild(c);
+  });
+}
+function clickMemCard(card) {
+  if (memLock || card.classList.contains("open") || card.classList.contains("matched")) return;
+  card.textContent = card.dataset.e;
+  card.classList.add("open");
+  if (!memFirst) { memFirst = card; return; }
+  memMoves++;
+  $("mem-moves").textContent = memMoves;
+  if (memFirst.dataset.e === card.dataset.e) {
+    memFound++;
+    $("mem-found").textContent = memFound;
+    memFirst.classList.add("matched"); card.classList.add("matched");
+    memFirst = null;
+    addPoints(6);
+    if (memFound === memPairs) {
+      state.solved++; save();
+      state.best.memoire = Math.max(state.best.memoire, memPairs * 5 - Math.min(memMoves, 30));
+      const pts = memPairs * 8;
+      setTimeout(() => winGame("🃏", "Mémoire en acier !", `${memPairs * 2} cartes · ${memMoves} essais · +${pts} pts cumulés`, pts), 450);
+    }
+  } else {
+    memLock = true;
+    const first = memFirst;
+    memFirst = null;
+    addPoints(-1);
+    setTimeout(() => {
+      first.textContent = ""; card.textContent = "";
+      first.classList.remove("open"); card.classList.remove("open");
+      memLock = false;
+    }, 750);
+  }
+}
+function setMemLevel(n) { memPairs = n; startGame("memoire"); toast(`${n} paires — c’est parti !`); }
+
+/* ============================================================
+   Valor PC — Petits plus
+   ============================================================ */
+// Empêche le zoom pince-doigts gênant sur iPad
+document.addEventListener("gesturestart", e => e.preventDefault());
+document.addEventListener("dblclick", e => e.preventDefault());
+
+// Service Worker : rend le jeu disponible hors-ligne une fois visité (HTTPS uniquement)
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+
+refreshHUD();
+</script>
+</body>
+</html>
