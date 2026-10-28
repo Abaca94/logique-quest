@@ -490,7 +490,7 @@
     <p style="text-align:center; color:var(--muted); font-size:12.5px; margin-top:22px; line-height:1.5;">
       💡 Sur iPad : bouton <b>Partager</b> → <b>« Sur l’écran d’accueil »</b><br>pour jouer en plein écran comme une vraie app.
     </p>
-    <p style="text-align:center; color:var(--muted); font-size:11px; margin-top:10px; opacity:.7;">LogiqueQuest <span id="verBadge">v2.3</span></p>
+    <p style="text-align:center; color:var(--muted); font-size:11px; margin-top:10px; opacity:.7;">LogiqueQuest <span id="verBadge" onclick="forceUpdate()" style="cursor:pointer; text-decoration:underline dotted;">v2.4</span> — touche le badge pour forcer la mise à jour</p>
   </section>
 
   <!-- ================= ÉNIGMES ================= -->
@@ -1547,6 +1547,35 @@ function answerVF(v) {
 // Empêche le zoom pince-doigts gênant sur iPad
 document.addEventListener("gesturestart", e => e.preventDefault());
 document.addEventListener("dblclick", e => e.preventDefault());
+
+// ====== Système de mise à jour ======
+// 1) compare la version servie en ligne à la version locale (ping sans cache)
+// 2) purge service worker + caches puis recharge → l'app passe à la nouvelle version
+//    toute seule dès qu'elle a le réseau (plus de rituel "fermer/rouvrir")
+const LOCAL_VERSION = "v2.4";
+async function forceUpdate() {
+  try {
+    if (navigator.onLine === false) { toast("Pas de réseau : réessaie plus tard 📴"); return; }
+    toast("Mise à jour en cours… ⏳");
+    if (navigator.serviceWorker) {
+      await navigator.serviceWorker.getRegistrations().then(rs => Promise.all(rs.map(r => r.unregister())));
+    }
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    location.reload();
+  } catch (e) { /* on réessaiera au prochain lancement */ }
+}
+async function autoUpdateCheck() {
+  try {
+    if (!navigator.onLine) return;
+    const res = await fetch(location.pathname + "?ping=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) return;
+    const html = await res.text();
+    const m = html.match(/verBadge">([^<]+)</);
+    if (m && m[1] && m[1] !== LOCAL_VERSION) forceUpdate();
+  } catch (e) { /* hors-ligne : rien à faire */ }
+}
+window.addEventListener("load", () => setTimeout(autoUpdateCheck, 2500));
 
 // Service Worker : rend le jeu disponible hors-ligne une fois visité (HTTPS uniquement)
 // + auto-rechargement propre quand une nouvelle version arrive
