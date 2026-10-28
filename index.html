@@ -309,11 +309,11 @@
   .mem-grid {
     display: grid;
     gap: 10px;
+    width: 100%;
     margin: 16px auto;
-    max-width: 560px;
+    max-width: 640px;
   }
   .mem-card {
-    aspect-ratio: 1;
     background: linear-gradient(150deg, var(--card2), var(--card));
     border-radius: 16px;
     display: flex;
@@ -825,15 +825,15 @@ function shuffleTaquin(toastIt) { initTaquin(); if (toastIt) toast("Nouveau mél
 /* ============================================================
    4. MÉMOIRE (paires)
    ============================================================ */
-let memPairs = 8, memFirst = null, memLock = false, memFound = 0, memMoves = 0;
+let memPairs = 8, memCols = 8, memFirst = null, memLock = false, memFound = 0, memMoves = 0;
 function initMemoire() {
   memPairs = memPairs || 8;
   memFirst = null; memLock = false; memFound = 0; memMoves = 0;
   const items = [...TQ_EMOJIS.slice(0, memPairs), ...TQ_EMOJIS.slice(0, memPairs)].sort(() => Math.random() - .5);
   const b = $("mem-board");
   // grille équilibrée : 8 paires -> 8×2, 10 paires -> 5×4
-  const cols = memPairs === 8 ? 8 : 5;
-  b.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  memCols = memPairs === 8 ? 8 : 5;
+  b.style.gridTemplateColumns = `repeat(${memCols}, 1fr)`;
   $("mem-found").textContent = "0";
   $("mem-total").textContent = memPairs;
   $("mem-moves").textContent = "0";
@@ -844,7 +844,22 @@ function initMemoire() {
     c.onclick = () => clickMemCard(c);
     b.appendChild(c);
   });
+  sizeMemBoard();
 }
+// Taille des cartes fixée en JS (rangs carrés) : `aspect-ratio` s'effondre
+// dans un grid étiré sur WebKit/iPad → on impose la hauteur de rangée.
+function sizeMemBoard() {
+  const b = document.getElementById("mem-board");
+  if (!b || !memCols) return;
+  const gap = 10;
+  requestAnimationFrame(() => {
+    const w = b.clientWidth;
+    if (!w) return;
+    const cw = Math.floor((w - gap * (memCols - 1)) / memCols);
+    b.style.gridAutoRows = cw + "px";
+  });
+}
+window.addEventListener("resize", sizeMemBoard);
 function clickMemCard(card) {
   if (memLock || card.classList.contains("open") || card.classList.contains("matched")) return;
   card.textContent = card.dataset.e;
