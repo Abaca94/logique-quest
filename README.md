@@ -15,7 +15,7 @@ Ouvrir `index.html` — c'est tout. Avec le service worker, le jeu fonctionne **
 | 🃏 Mémoire | 8 ou 10 paires d'emojis |
 | 🧮 Sudoku | 4×4 (facile), 6×6 (moyen), 9×9 (difficile) — grilles uniques générées à la volée |
 | 🔤 Mots mêlés | Grilles 8×8 / 10×10 / 12×12, mots cachés en 8 directions, glisser-pour-sélectionner |
-| 🧠 Cross-Logic | 5 grilles de déduction (style Sherlock) : ✘ / ✔ + vérification — dont une grille **expert 5×5** (île au trésor) |
+| 🧠 Cross-Logic | 6 grilles de déduction (style Sherlock) : ✘ / ✔ + vérification — dont expert 5×5 (île au trésor) et **expert+ 6×6** (train de 8h06) |
 | ⚖️ Vrai/Faux | 12 affirmations surprenantes avec explications |
 
 🔊 Sons intégrés (Web Audio, aucun fichier) — bouton 🔊/🔇 dans l'entête.
