@@ -491,7 +491,7 @@
     <p style="text-align:center; color:var(--muted); font-size:12.5px; margin-top:22px; line-height:1.5;">
       💡 Sur iPad : bouton <b>Partager</b> → <b>« Sur l’écran d’accueil »</b><br>pour jouer en plein écran comme une vraie app.
     </p>
-    <p style="text-align:center; color:var(--muted); font-size:11px; margin-top:10px; opacity:.7;">LogiqueQuest <span id="verBadge" onclick="forceUpdate()" style="cursor:pointer; text-decoration:underline dotted;">v2.6</span> — touche le badge pour forcer la mise à jour</p>
+    <p style="text-align:center; color:var(--muted); font-size:11px; margin-top:10px; opacity:.7;">LogiqueQuest <span id="verBadge" onclick="forceUpdate()" style="cursor:pointer; text-decoration:underline dotted;">v2.7</span> — touche le badge pour forcer la mise à jour</p>
   </section>
 
   <!-- ================= ÉNIGMES ================= -->
@@ -1426,6 +1426,31 @@ const LOGIC_PL = [
     ],
     solB: [1, 0, 4, 3, 2], solC: [0, 1, 3, 2, 4],
   },
+  {
+    story: "🚄 <b>Le train de 8h06 (expert+)</b> — 6 voyageurs, 6 destinations, 6 valises.",
+    labelA: ["Ida", "Joachim", "Kenza", "Ludo", "Nat", "Ivan"],
+    labelB: ["Bordeaux", "Calais", "Dijon", "Lille", "Nice", "Tours"],
+    labelC: ["Rouge", "Verte", "Bleue", "Jaune", "Noire", "Violette"],
+    qA: "Les voyageurs", qB: "Les destinations", qC: "Les valises",
+    clues: [
+      "Joachim a une valise jaune.",
+      "Celui qui va à Dijon a une valise jaune.",
+      "Ida va à Nice.",
+      "Kenza va à Bordeaux.",
+      "Le voyageur à la valise rouge va à Tours.",
+      "Nat n'a pas de valise rouge.",
+      "Ludo va à Lille ou à Nice.",
+      "Celui qui a la valise verte n'est pas Ludo.",
+      "La valise bleue appartient à celui qui va à Calais.",
+      "Ivan n'a pas de valise verte.",
+      "Kenza a une valise violette ou noire.",
+      "Nat ne va ni à Lille ni à Nice.",
+      "Ida n'a pas de valise noire.",
+      "Celui qui a une valise noire ne va pas à Tours.",
+      "Le voyageur à la valise violette va à Dijon ou à Bordeaux.",
+    ],
+    solB: [4, 2, 0, 3, 1, 5], solC: [1, 3, 5, 4, 2, 0],
+  },
 ];
 let lgIdx = 0;
 function initLogic() {
@@ -1573,7 +1598,7 @@ document.addEventListener("dblclick", e => e.preventDefault());
 // 1) compare la version servie en ligne à la version locale (ping sans cache)
 // 2) purge service worker + caches puis recharge → l'app passe à la nouvelle version
 //    toute seule dès qu'elle a le réseau (plus de rituel "fermer/rouvrir")
-const LOCAL_VERSION = "v2.6";
+const LOCAL_VERSION = "v2.7";
 // Garde anti-boucle : jamais plus d'un rechargement automatique toutes les 20 s
 function canReloadNow() {
   try {
