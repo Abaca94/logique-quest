@@ -19,14 +19,18 @@ const SEQUENCES = [
   { seq: "2, 5, 11, 23, ?", options: ["35", "43", "47", "45"], answer: "47", explain: "On multiplie par 2 puis on ajoute 1 : 23 × 2 + 1 = 47.", d: 3 },
 ];
 const SEQ_LEVELS = ["Facile", "Moyen", "Difficile"];
-let seqShuffled = [], seqIndex = 0, seqDiff = 1, seqLock = false;
+let seqShuffled = [], seqIndex = 0, seqDiff = 1, seqLock = false, seqGood = 0;
 
 function setSeqDiff(i) {
   seqDiff = i;
   initSequences();
 }
-function initSequences() {
+// cfg (mode parcours) : { diff: 0 | 1 | 2 }
+function initSequences(cfg) {
   navToken++;
+  cfg = cfg || levelCfg();
+  if (cfg) seqDiff = cfg.diff;
+  seqGood = 0;
   setActiveChips("sequences", seqDiff);
   seqShuffled = shuffle(SEQUENCES.filter(s => s.d === seqDiff + 1));
   seqIndex = 0;
@@ -59,7 +63,7 @@ function answerSequence(btn, val) {
   if (ok) {
     btn.classList.add("correct");
     sfx("good");
-    addPoints(10); state.solved++;
+    addPoints(10); state.solved++; seqGood++;
     setBest("sequences", seqDiff + 1);
     save();
     $("seq-feedback").className = "feedback show ok";
@@ -78,7 +82,7 @@ function answerSequence(btn, val) {
 function nextSequence() {
   seqIndex++;
   if (seqIndex < seqShuffled.length) { renderSequence(); window.scrollTo(0, 0); }
-  else winGame("Série terminée", `Niveau ${SEQ_LEVELS[seqDiff].toLowerCase()} : ${seqShuffled.length} suites passées en revue.`, 80 * (seqDiff + 1));
+  else winGame("Série terminée", `${seqGood} bonne${seqGood > 1 ? "s" : ""} réponse${seqGood > 1 ? "s" : ""} sur ${seqShuffled.length} (niveau ${SEQ_LEVELS[seqDiff].toLowerCase()}).`, 0, starsByCount(seqGood, seqShuffled.length));
 }
 
 LQ.register({
@@ -88,8 +92,12 @@ LQ.register({
   hue: "#8fb3ff",
   recordLabel: v => `Record : niveau ${SEQ_LEVELS[v - 1] ? SEQ_LEVELS[v - 1].toLowerCase() : v}`,
   init: initSequences,
+  levelInfo: cfg => {
+    const n = SEQUENCES.filter(s => s.d === cfg.diff + 1).length;
+    return { what: `${n} suites, niveau ${SEQ_LEVELS[cfg.diff].toLowerCase()}`, goals: countGoals(n) };
+  },
   screen: `
-    <div class="chips">
+    <div class="chips lvl-hide">
       ${SEQ_LEVELS.map((l, i) => `<button class="chip" data-b="${i}" onclick="setSeqDiff(${i})">${l}</button>`).join("")}
     </div>
     <div class="quiz-card">

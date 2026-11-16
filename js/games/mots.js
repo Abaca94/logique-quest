@@ -10,8 +10,20 @@ const WS_DIRS = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-
 let wsS = 8, wsG = [], wsList = [], wsFound = new Set(), wsStart = null;
 
 function setMots(s) { wsS = s; initMots(); }
-function initMots() {
+// Objectifs en secondes : [3 étoiles, 2 étoiles]
+const WS_TIME = { 8: [60, 120], 10: [120, 240], 12: [180, 360] };
+let wsSeconds = 0;
+// cfg (mode parcours) : { size: 8 | 10 | 12 }
+function initMots(cfg) {
   navToken++;
+  cfg = cfg || levelCfg();
+  if (cfg) wsS = cfg.size;
+  stopTimers();
+  wsSeconds = 0;
+  $("ws-time").textContent = "0 s";
+  timers.push(setInterval(() => { wsSeconds++; $("ws-time").textContent = wsSeconds + " s"; }, 1000));
+  const [t3, t2] = WS_TIME[wsS];
+  $("ws-goals").innerHTML = `3 ${ICONS.star} en ${t3} s ou moins · 2 ${ICONS.star} jusqu’à ${t2} s`;
   setActiveChips("mots", wsS);
   wsFound = new Set(); wsStart = null;
   const nWords = { 8: 5, 10: 8, 12: 10 }[wsS];
@@ -114,7 +126,10 @@ function wsCheck() {
     state.solved++;
     addPoints(30);
     toast("Grille terminée : +30 points de bonus");
-    later(() => winGame("Tous trouvés", `${wsList.length} mots repérés sur une grille ${wsS}×${wsS}.`, 80 + wsFound.size * 8), 700);
+    stopTimers();
+    const [t3, t2] = WS_TIME[wsS];
+    const stars = wsSeconds <= t3 ? 3 : wsSeconds <= t2 ? 2 : 1;
+    later(() => winGame("Tous trouvés", `${wsList.length} mots repérés en ${wsSeconds} s sur une grille ${wsS}×${wsS}.`, 0, stars), 700);
   }
 }
 function renderWsWords() {
@@ -130,16 +145,22 @@ LQ.register({
   hue: "#9ccf7a",
   recordLabel: v => `Record : ${v} mots`,
   init: initMots,
+  levelInfo: cfg => {
+    const [t3, t2] = WS_TIME[cfg.size];
+    return { what: `Une grille de mots mêlés ${cfg.size}×${cfg.size}`, goals: [`Tout trouver en ${t3} s ou moins`, `Tout trouver en ${t2} s ou moins`, "Trouver tous les mots"] };
+  },
   screen: `
-    <div class="chips">
+    <div class="chips lvl-hide">
       <button class="chip" data-b="8" onclick="setMots(8)">Facile · 8×8</button>
       <button class="chip" data-b="10" onclick="setMots(10)">Moyen · 10×10</button>
       <button class="chip" data-b="12" onclick="setMots(12)">Difficile · 12×12</button>
     </div>
     <div class="stat-pills">
       <div class="pill">Trouvés <b><span id="ws-found-n">0</span>/<span id="ws-total">5</span></b></div>
+      <div class="pill">Temps <b id="ws-time">0 s</b></div>
       <button class="btn ghost small" onclick="initMots()">${ICONS.refresh} Nouvelle grille</button>
     </div>
+    <p class="goals" id="ws-goals"></p>
     <div class="ws-words" id="ws-words"></div>
     <div class="ws-board" id="ws-board"></div>
     <p class="hint-line">Glissez le doigt le long d’un mot, dans n’importe quelle direction. Pas besoin de vous arrêter pile sur la dernière lettre.</p>`,

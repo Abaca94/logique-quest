@@ -76,7 +76,7 @@ const LOGIC_PL = [
     solB: [4, 2, 0, 3, 1, 5], solC: [1, 3, 5, 4, 2, 0],
   },
 ];
-let lgIdx = 0, lgLock = false;
+let lgIdx = 0, lgLock = false, lgErrors = 0;
 let lgAuto = true; // ✘ automatiques sur la ligne et la colonne d’un ✔
 
 /* Tableau croisé (grille en escalier) :
@@ -85,7 +85,10 @@ let lgAuto = true; // ✘ automatiques sur la ligne et la colonne d’un ✔
    C (lignes)|    C × B     |
    Les blocs A×B et A×C sont vérifiés ; le bloc C×B sert d’aide au raisonnement. */
 
-function initLogic() {
+// cfg (mode parcours) : { grid: indice dans LOGIC_PL }
+function initLogic(cfg) {
+  cfg = cfg || levelCfg();
+  if (cfg) lgIdx = cfg.grid;
   try { lgAuto = localStorage.getItem("lq_lg_auto") !== "0"; } catch (e) {}
   renderLogicChips();
   renderLogic();
@@ -102,7 +105,7 @@ function renderLogicChips() {
 }
 function renderLogic() {
   const P = LOGIC_PL[lgIdx];
-  lgLock = false;
+  lgLock = false; lgErrors = 0;
   $("lg-story").innerHTML = P.story;
   $("lg-clues").innerHTML = "<ul>" + P.clues.map((c, i) => `<li><span class="n">${i + 1}.</span><span>${c}</span></li>`).join("") + "</ul>";
   $("lg-grids").innerHTML = logicCrossTable(P);
@@ -189,16 +192,22 @@ function checkLogic() {
     lgLock = true;
     const pts = 40 + lgIdx * 10;
     addPoints(pts); state.solved++;
-    setBest("logique", lgIdx + 1);
+    if (!LQ.level) setBest("logique", lgIdx + 1);
     save(); sfx("good");
     fb.className = "feedback show ok";
     fb.innerHTML = `<b>Déductions exactes.</b> +${pts} points`;
+    // 3 étoiles sans erreur de vérification, 2 avec une erreur, 1 au-delà.
+    const stars = lgErrors === 0 ? 3 : lgErrors === 1 ? 2 : 1;
+    if (LQ.level) {
+      later(() => winGame("Déductions exactes", `${P.story.replace(/<[^>]+>/g, "").split(".")[0]} : grille résolue${lgErrors ? ` après ${lgErrors} vérification${lgErrors > 1 ? "s" : ""} ratée${lgErrors > 1 ? "s" : ""}` : " du premier coup"}.`, 0, stars), 1200);
+      return;
+    }
     later(() => {
       if (lgIdx < LOGIC_PL.length - 1) selectLogic(lgIdx + 1);
       else { lgIdx = 0; winGame("Esprit de détective", `Les ${LOGIC_PL.length} grilles de déduction sont résolues.`, 240); }
     }, 1600);
   } else {
-    addPoints(-3); sfx("bad");
+    addPoints(-3); sfx("bad"); lgErrors++;
     const where = !doneB && !doneC ? "les deux blocs du haut" : doneB ? `le bloc « ${P.qA} × ${P.qC} »` : `le bloc « ${P.qA} × ${P.qB} »`;
     fb.className = "feedback show ko";
     fb.innerHTML = `Quelque chose cloche dans ${where}. Chaque ligne doit avoir exactement un ✔, au bon endroit.`;
@@ -212,8 +221,12 @@ LQ.register({
   hue: "#c79bf2",
   recordLabel: v => `Record : grille ${v}`,
   init: initLogic,
+  levelInfo: cfg => ({
+    what: LOGIC_PL[cfg.grid].story.replace(/<[^>]+>/g, ""),
+    goals: ["Résoudre sans erreur de vérification", "Au plus une vérification ratée", "Résoudre la grille"],
+  }),
   screen: `
-    <div class="chips" id="lg-chips"></div>
+    <div class="chips lvl-hide" id="lg-chips"></div>
     <div class="quiz-card">
       <div class="lg-story" id="lg-story"></div>
       <div class="clues" id="lg-clues"></div>

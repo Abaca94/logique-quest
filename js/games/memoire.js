@@ -4,8 +4,11 @@
 const MEM_SYMBOLS = ["🍎", "🍋", "🍇", "🍒", "🥝", "🍑", "🌵", "🌙", "⭐", "🔔", "🎲", "🧭", "🗝️", "🎻", "⚓", "🪶"];
 let memPairs = 8, memCols = 4, memFirst = null, memLock = false, memFound = 0, memMoves = 0;
 
-function initMemoire() {
+// cfg (mode parcours) : { pairs: 8 | 10 | 12 }
+function initMemoire(cfg) {
   navToken++;
+  cfg = cfg || levelCfg();
+  if (cfg) memPairs = cfg.pairs;
   setActiveChips("memoire", memPairs);
   memFirst = null; memLock = false; memFound = 0; memMoves = 0;
   const pick = shuffle(MEM_SYMBOLS).slice(0, memPairs);
@@ -58,7 +61,7 @@ function clickMemCard(card) {
       state.solved++;
       // Score de précision : moins d’essais en trop, meilleur score.
       const precision = Math.max(10, memPairs * 10 - (memMoves - memPairs) * 3);
-      setBest("memoire", precision);
+      if (!LQ.level) setBest("memoire", precision);
       save();
       const [t3, t2] = memTargets();
       const stars = memMoves <= t3 ? 3 : memMoves <= t2 ? 2 : 1;
@@ -90,8 +93,12 @@ LQ.register({
   hue: "#e7c86e",
   recordLabel: v => `Record : ${v} points`,
   init: initMemoire,
+  levelInfo: cfg => ({
+    what: `${cfg.pairs} paires à retrouver`,
+    goals: [`Terminer en ${Math.ceil(cfg.pairs * 1.5)} essais ou moins`, `Terminer en ${cfg.pairs * 2} essais ou moins`, "Retrouver toutes les paires"],
+  }),
   screen: `
-    <div class="chips">
+    <div class="chips lvl-hide">
       <button class="chip" data-b="8" onclick="setMemLevel(8)">8 paires</button>
       <button class="chip" data-b="10" onclick="setMemLevel(10)">10 paires</button>
       <button class="chip" data-b="12" onclick="setMemLevel(12)">12 paires</button>

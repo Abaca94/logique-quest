@@ -17,9 +17,11 @@ const VF_LIST = [
 ];
 let vfShuffled = [], vfIndex = 0, vfGood = 0, vfLock = false;
 
-function initVF() {
+// cfg (mode parcours) : { ids: [indices dans VF_LIST] }
+function initVF(cfg) {
   navToken++;
-  vfShuffled = shuffle(VF_LIST);
+  cfg = cfg || levelCfg();
+  vfShuffled = shuffle(cfg && cfg.ids ? cfg.ids.map(i => VF_LIST[i]) : VF_LIST);
   vfIndex = 0; vfGood = 0;
   renderVF();
 }
@@ -43,7 +45,7 @@ function answerVF(v) {
   if (ok) {
     vfGood++;
     addPoints(10); state.solved++;
-    setBest("vf", vfGood);
+    if (!LQ.level) setBest("vf", vfGood);
     save();
     sfx("good");
     fb.className = "feedback show ok";
@@ -60,7 +62,7 @@ function answerVF(v) {
 function nextVF() {
   vfIndex++;
   if (vfIndex < vfShuffled.length) { renderVF(); window.scrollTo(0, 0); }
-  else winGame("Démêlé", `${vfGood} bonnes réponses sur ${vfShuffled.length}.`, Math.round(vfGood / vfShuffled.length * 240));
+  else winGame("Démêlé", `${vfGood} bonne${vfGood > 1 ? "s" : ""} réponse${vfGood > 1 ? "s" : ""} sur ${vfShuffled.length}.`, 0, starsByCount(vfGood, vfShuffled.length));
 }
 
 LQ.register({
@@ -70,6 +72,7 @@ LQ.register({
   hue: "#e58fb0",
   recordLabel: v => `Record : ${v} bonnes réponses`,
   init: initVF,
+  levelInfo: cfg => ({ what: `${cfg.ids.length} affirmations à départager`, goals: countGoals(cfg.ids.length) }),
   screen: `
     <div class="quiz-card">
       <div class="quiz-progress" id="vf-progress"></div>

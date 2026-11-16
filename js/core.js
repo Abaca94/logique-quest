@@ -25,6 +25,11 @@ const ICONS = {
   refresh: '<svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>',
   bulb: '<svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>',
   erase: '<svg viewBox="0 0 24 24"><path d="M9 5h11v14H9l-6-7z"/><path d="M12.5 9.5l5 5M17.5 9.5l-5 5"/></svg>',
+  medal: '<svg viewBox="0 0 24 24"><path d="M8 3l2.5 6M16 3l-2.5 6"/><circle cx="12" cy="15" r="6"/><path d="M12 12.2l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 14.3l2-.3z"/></svg>',
+  lock: '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  map: '<svg viewBox="0 0 24 24"><path d="M9 4L3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>',
+  user: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+  play: '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>',
   shuffle: '<svg viewBox="0 0 24 24"><path d="M3 7h3.5c4 0 6 10 10 10H21M3 17h3.5c1.6 0 2.8-1.5 3.8-3.4M13.7 10.4C14.7 8.5 15.9 7 17.5 7H21"/><path d="M18.5 4.5L21 7l-2.5 2.5M18.5 14.5L21 17l-2.5 2.5"/></svg>',
 };
 
@@ -50,13 +55,17 @@ const LQ = {
 // Même clé que la v2 : les scores déjà gagnés sont conservés.
 const SAVE_KEY = "logiquequest_v1";
 function defaultState() {
-  return { score: 0, solved: 0, bestStreak: 0, streak: 0, sound: true, best: {} };
+  // levels : étoiles par niveau du parcours · badges : date d’obtention · wins : parties gagnées par jeu
+  return { score: 0, solved: 0, bestStreak: 0, streak: 0, sound: true, best: {}, levels: {}, badges: {}, wins: {} };
 }
 function loadState() {
   try {
     const raw = JSON.parse(localStorage.getItem(SAVE_KEY) || "{}");
     const s = { ...defaultState(), ...raw };
     s.best = { ...(raw.best || {}) };
+    s.levels = { ...(raw.levels || {}) };
+    s.badges = { ...(raw.badges || {}) };
+    s.wins = { ...(raw.wins || {}) };
     return s;
   } catch (e) { return defaultState(); }
 }
@@ -142,54 +151,98 @@ function later(fn, ms) {
 }
 function stopTimers() { timers.forEach(clearInterval); timers = []; }
 
+// Niveau du parcours en cours (null en jeu libre). Voir js/levels.js.
+LQ.level = null;
+function levelCfg() { return LQ.level ? LQ.level.cfg : null; }
+let currentScreen = "home";
+
+const SCREEN_TITLES = { home: "", map: "Parcours", profile: "Profil" };
 function showScreen(name) {
+  currentScreen = name;
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   $("screen-" + name).classList.add("active");
   $("btnBack").classList.toggle("show", name !== "home");
   const g = LQ.byId[currentGame];
-  $("screenTitle").textContent = name === "home" ? "" : name === "win" ? "Victoire" : (g ? g.title : "");
+  let title = SCREEN_TITLES[name];
+  if (title === undefined) {
+    if (LQ.level) title = `Niveau ${LQ.level.n}` + (name === "win" ? "" : ` · ${g ? g.title : ""}`);
+    else title = name === "win" ? "Résultat" : (g ? g.title : "");
+  }
+  $("screenTitle").textContent = title;
+  document.body.classList.toggle("in-level", !!LQ.level && name !== "win");
   window.scrollTo(0, 0);
 }
+function leaveGame() { navToken++; stopTimers(); }
 function goHome() {
-  navToken++;
-  stopTimers();
+  leaveGame();
   currentGame = "home";
+  LQ.level = null;
+  if (typeof renderHome === "function") renderHome();
   showScreen("home");
 }
+// Bouton retour : un niveau ramène à la carte, le reste à l’accueil.
+function goBack() {
+  if (LQ.level && (LQ.byId[currentScreen] || currentScreen === "win")) { leaveGame(); openMap(); }
+  else goHome();
+}
 function startGame(id) {
+  LQ.level = null;
+  launchGame(id);
+}
+function launchGame(id) {
   const g = LQ.byId[id];
   if (!g) return;
-  navToken++;
-  stopTimers();
+  leaveGame();
   sfx("tick");
   currentGame = id;
   showScreen(id);
-  g.init();
+  g.init(levelCfg());
 }
-function replay() { startGame(currentGame); }
+function replay() {
+  if (LQ.level) startLevel(LQ.level.n);
+  else startGame(currentGame);
+}
+function starsHtml(n, total = 3) {
+  return Array.from({ length: total }, (_, i) => ICONS.star.replace("<svg", `<svg class="${i < n ? "on" : ""}"`)).join("");
+}
 
-// Étoiles : un jeu peut les fixer lui-même (stars = 1 à 3) ;
-// sinon elles dépendent des points gagnés dans la partie.
+// Fin de partie. stars : 0 (échec) à 3 ; sans valeur, elles dépendent des points.
 function winGame(title, sub, pts, stars) {
-  navToken++;
-  stopTimers();
-  sfx("win");
+  leaveGame();
   const g = LQ.byId[currentGame];
+  const n = stars === undefined ? Math.max(1, Math.min(3, Math.round(pts / 80))) : stars;
+  if (n > 0) state.wins[currentGame] = (state.wins[currentGame] || 0) + 1;
+  const notes = [];
+  if (LQ.level) notes.push(...recordLevel(LQ.level.n, n));
+  const badges = checkBadges();
+  save();
+  sfx(n > 0 ? "win" : "bad");
   $("win-icon").innerHTML = (g && ICONS[g.id]) || ICONS.trophy;
-  $("win-title").textContent = title;
-  $("win-sub").textContent = sub;
-  const n = Math.max(1, Math.min(3, stars || Math.round(pts / 80)));
-  $("win-stars").innerHTML = [0, 1, 2].map(i => ICONS.star.replace("<svg", `<svg class="${i < n ? "on" : ""}"`)).join("");
+  $("win-icon").classList.toggle("fail", n === 0);
+  $("win-title").textContent = n > 0 ? title : "Pas cette fois";
+  $("win-sub").textContent = n > 0 || !LQ.level ? sub : sub + " Il faut au moins une étoile pour valider le niveau.";
+  $("win-stars").innerHTML = starsHtml(n);
+  $("win-notes").innerHTML = [
+    ...notes.map(t => `<div class="note">${t}</div>`),
+    ...badges.map(b => `<div class="note badge-note">${ICONS.medal} Badge obtenu : <b>${b.name}</b></div>`),
+  ].join("");
+  const next = LQ.level && n > 0 ? nextLevel(LQ.level.n) : null;
+  $("win-actions").innerHTML = LQ.level
+    ? (next ? `<button class="btn" onclick="startLevel(${next})">Niveau suivant →</button>` : "")
+      + `<button class="btn ${next ? "ghost" : ""}" onclick="replay()">${n > 0 ? "Rejouer le niveau" : "Réessayer"}</button>`
+      + `<button class="btn ghost" onclick="openMap()">Carte du parcours</button>`
+    : `<button class="btn" onclick="replay()">Rejouer</button><button class="btn ghost" onclick="goHome()">Retour au menu</button>`;
   showScreen("win");
 }
 
 async function resetProgress() {
-  const ok = await askConfirm("Tout effacer ?", "Votre score, vos séries et vos records seront remis à zéro. Cette action est définitive.", "Effacer");
+  const ok = await askConfirm("Tout effacer ?", "Votre score, vos séries, vos records, vos étoiles du parcours et vos badges seront remis à zéro. Cette action est définitive.", "Effacer");
   if (!ok) return;
   const sound = state.sound;
   state = defaultState();
   state.sound = sound;
   save();
+  if (typeof renderHome === "function") renderHome();
   toast("Progression réinitialisée");
 }
 
@@ -222,6 +275,17 @@ function toggleSound() {
   save();
   sfx("tick");
   toast(state.sound ? "Sons activés" : "Sons coupés");
+}
+
+/* ---------- Étoiles selon le nombre de bonnes réponses ---------- */
+// Tout juste : 3 · une erreur : 2 · au moins la moitié : 1 · sinon 0 (niveau raté)
+function starsByCount(good, total) {
+  if (good >= total) return 3;
+  if (good >= total - 1) return 2;
+  return good >= Math.ceil(total / 2) ? 1 : 0;
+}
+function countGoals(total) {
+  return [`${total} bonnes réponses sur ${total}`, `Au moins ${total - 1} bonnes réponses`, `Au moins ${Math.ceil(total / 2)} bonnes réponses`];
 }
 
 /* ---------- Comparaison de réponses tapées ---------- */
