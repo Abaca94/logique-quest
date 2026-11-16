@@ -7,24 +7,26 @@ Jeu de logique, d’énigmes et de casse-tête pour adultes, pensé pour iPhone 
 Ouvrir `index.html` dans un navigateur, ou mettre le dossier en ligne (HTTPS) pour l’installer :
 Safari → *Partager* → *« Sur l’écran d’accueil »*. L’app se lance alors en plein écran et garde les scores.
 
-## Parcours (30 niveaux)
-3 chapitres de 10 niveaux (Premiers pas, Raisonnement, Expertise) qui piochent dans les 8 jeux.
+## Parcours (50 niveaux)
+5 chapitres de 10 niveaux (Premiers pas, Raisonnement, Expertise, Maîtrise, Virtuose) qui piochent dans les 10 jeux.
 Chaque niveau rapporte 1 à 3 étoiles selon des objectifs affichés avant de jouer.
-Le niveau suivant s’ouvre quand le précédent est validé ; un chapitre s’ouvre à 18, puis 45 étoiles.
-Le **profil** affiche le rang (7 rangs selon les étoiles), les statistiques et 13 badges.
+Le niveau suivant s’ouvre quand le précédent est validé ; les chapitres s’ouvrent à 18, 45, 70 puis 95 étoiles.
+Le **profil** affiche le rang (7 rangs selon les étoiles), les statistiques et 15 badges.
 
-## Jeux libres (8)
+## Jeux libres (10)
 Chaque jeu reste jouable seul, avec le choix de la difficulté.
 | Jeu | Contenu |
 |---|---|
-| Énigmes | 24 problèmes de logique à réponse unique, avec indice et explication |
-| Séquences | 15 suites logiques, 3 niveaux |
+| Énigmes | 60 problèmes de logique à réponse unique, avec indice et explication |
+| Séquences | 30 suites logiques, 3 niveaux |
 | Déduction | 6 tableaux croisés « qui fait quoi » (✘ / ✔), jusqu’à 6×6, croix automatiques en option |
 | Sudoku | 4×4, 6×6, 9×9, grilles à solution unique générées à la volée |
 | Taquin | 3×3, 4×4, 5×5, mélanges toujours solvables, chronomètre |
 | Mémoire | 8, 10 ou 12 paires, étoiles selon le nombre d’essais |
 | Mots mêlés | 8×8, 10×10, 12×12, mots cachés dans 8 directions (le mot est validé même si on glisse au-delà) |
-| Vrai ou faux | 12 affirmations avec explication |
+| Vrai ou faux | 50 affirmations avec explication (séries de 12 tirées au hasard) |
+| Nonogram | 5×5, 8×8, 10×10, grilles générées et toujours résolubles par déduction, sans deviner |
+| Kakuro | 6×6, 8×8, 10×10, grilles générées à solution unique |
 
 ## Organisation des fichiers
 ```

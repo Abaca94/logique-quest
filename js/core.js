@@ -16,6 +16,8 @@ const ICONS = {
   mots: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 16l2.5-8L12 16M7.8 13.4h3.4"/><path d="M14 8l4 8"/></svg>',
   logique: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/><path d="M5.5 7.5l2 2 3-3.5"/><path d="M14.5 14.5l4 4M18.5 14.5l-4 4"/></svg>',
   vf: '<svg viewBox="0 0 24 24"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 6a2.8 2.8 0 0 0 5 0L4 7zM20 7l-2.5 6a2.8 2.8 0 0 0 5 0L20 7z"/></svg>',
+  nonogram: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/><path d="M4.5 4.5h3v3h-3zM10.5 10.5h3v3h-3zM16.5 16.5h3v3h-3zM10.5 4.5h3v3h-3z" fill="currentColor" stroke="none"/></svg>',
+  kakuro: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 10h18M10 3v18M3 3l7 7"/><path d="M13.5 13.5h2.5l-2.5 4h3M6 6.2v-.1"/></svg>',
   trophy: '<svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H4.5a3 3 0 0 0 3.5 4M16 6h3.5a3 3 0 0 1-3.5 4"/><path d="M12 13v4M8.5 20h7M10 17h4"/></svg>',
   star: '<svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg>',
   soundOn: '<svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>',

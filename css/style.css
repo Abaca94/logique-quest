@@ -531,3 +531,46 @@ main {
 .win-row { --hue: var(--accent); display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; font-size: 14.5px; }
 .win-row span:nth-child(2) { flex: 1; }
 .w-ico { color: var(--hue); display: flex; }
+
+/* ===== Nonogram ===== */
+.seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+.seg-btn { background: none; border: 0; color: var(--muted); font: inherit; font-size: 14px; font-weight: 600; padding: 6px 12px; border-radius: 999px; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.seg-btn.active { background: var(--accent-soft); color: var(--accent); }
+.ng-sw { width: 15px; height: 15px; border-radius: 3px; border: 1.5px solid currentColor; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; line-height: 1; }
+.ng-sw.fill { background: currentColor; }
+.ng-board { border-collapse: collapse; margin: 14px auto 6px; touch-action: none; user-select: none; -webkit-user-select: none; }
+.ng-board th { font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; padding: 0; transition: color .2s; }
+.ng-board th.ok { color: var(--muted); opacity: .45; }
+.ng-colclue { vertical-align: bottom; padding-bottom: 5px !important; font-size: 13px; line-height: 1.25; }
+.ng-colclue span { display: block; text-align: center; }
+.ng-rowclue { text-align: right; white-space: nowrap; padding-right: 7px !important; font-size: 13px; }
+.ng-rowclue span { display: inline-block; margin-left: 5px; }
+td.ngc {
+  width: var(--ngc, 40px); height: var(--ngc, 40px); min-width: var(--ngc, 40px);
+  background: var(--surface-2); border: 1px solid #3a4152; padding: 0; cursor: pointer;
+  position: relative; transition: background .08s;
+}
+td.ngc.sep-r { border-right: 2px solid var(--muted); }
+td.ngc.sep-b { border-bottom: 2px solid var(--muted); }
+td.ngc.on { background: var(--accent); }
+td.ngc.x::after { content: "✕"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: calc(var(--ngc, 40px) * .42); }
+
+/* ===== Kakuro ===== */
+.kk-board { display: grid; gap: 2px; background: #3a4152; padding: 3px; border-radius: 12px; margin: 16px auto 8px; box-shadow: var(--shadow); }
+.kk-black, .kk-cell { width: var(--kkc, 44px); height: var(--kkc, 44px); border-radius: 4px; }
+.kk-black { background: #07080b; position: relative; }
+.kk-black.clue { background: linear-gradient(to top right, #12151d calc(50% - .6px), #3a4152 50%, #12151d calc(50% + .6px)); }
+.kk-black.hl { box-shadow: inset 0 0 0 2px var(--accent); }
+.kk-black span { position: absolute; font-size: calc(var(--kkc, 44px) * .3); font-weight: 650; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1; }
+.kk-black .ka { top: 12%; right: 10%; }
+.kk-black .kd { bottom: 12%; left: 10%; }
+.kk-cell { background: #222939; display: flex; align-items: center; justify-content: center; font-size: calc(var(--kkc, 44px) * .52); font-weight: 600; color: var(--cool); font-variant-numeric: tabular-nums; cursor: pointer; }
+.kk-cell.given { background: #313a4f; color: var(--text); cursor: default; }
+.kk-cell.peer { background: #2b3550; }
+.kk-cell.given.peer { background: #3a4560; }
+.kk-cell.sel { background: var(--accent); color: var(--accent-ink); }
+.kk-cell.bad { background: var(--bad); color: #250a0d; }
+.kk-info { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; min-height: 34px; margin-top: 4px; }
+.kk-info .pill { color: var(--muted); font-size: 13px; }
+.kk-info .pill b { color: var(--accent); }
+.kk-info .hint-line { margin-top: 6px; }
