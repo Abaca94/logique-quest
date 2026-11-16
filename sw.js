@@ -1,9 +1,20 @@
 /* Service Worker LogiqueQuest — cache-first : une fois la 1re visite faite, le jeu
    fonctionne 100 % hors-ligne (avion, vacances, coupe du Wi-Fi…). */
-const CACHE = "logiquequest-v14";
+const CACHE = "logiquequest-v15";
 const ASSETS = [
   "./",
   "./index.html",
+  "./css/style.css",
+  "./js/core.js",
+  "./js/games/enigmes.js",
+  "./js/games/sequences.js",
+  "./js/games/logique.js",
+  "./js/games/sudoku.js",
+  "./js/games/taquin.js",
+  "./js/games/memoire.js",
+  "./js/games/mots.js",
+  "./js/games/vraifaux.js",
+  "./js/app.js",
   "./manifest.json",
   "./icon-180.png",
   "./icon-192.png",
