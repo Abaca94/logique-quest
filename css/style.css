@@ -614,3 +614,46 @@ td.ngc.x::after { content: "✕"; position: absolute; inset: 0; display: flex; a
 .cal-stars { display: flex; gap: 0; }
 .cal-stars svg { width: 9px; height: 9px; stroke-width: 1.4; color: var(--surface-3); fill: var(--surface-3); }
 .cal-stars svg.on { color: var(--accent); fill: var(--accent); }
+
+/* ===== Histoire : Venise (étape 5) ===== */
+.home-card.hc-profile-wide { grid-column: 1 / -1; }
+.hc-story { background: linear-gradient(150deg, #2a1418, var(--surface) 72%); border-color: rgba(201, 84, 84, .3); }
+.hc-story .hc-ico { color: #e08a7a; background: rgba(201, 84, 84, .14); border-color: rgba(201, 84, 84, .35); }
+.story-head, .episode {
+  background: radial-gradient(500px 220px at 85% -40px, rgba(216,166,87,.16), transparent 70%), linear-gradient(165deg, #2b1519, var(--surface) 75%);
+  border: 1px solid rgba(201, 84, 84, .28); border-radius: var(--radius); padding: 20px 18px; margin-top: 8px; box-shadow: var(--shadow);
+}
+.st-era { font-size: 12.5px; color: var(--accent); font-weight: 650; letter-spacing: .6px; text-transform: uppercase; }
+.story-head h2, .episode h2 { font-family: var(--font-display); font-size: 28px; font-weight: 600; margin-top: 6px; line-height: 1.15; }
+.st-pro { color: #cfc6b8; font-size: 15px; line-height: 1.6; margin-top: 12px; font-family: var(--font-display); font-style: italic; }
+.st-meta { display: flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 13.5px; color: var(--muted); }
+.st-meta svg { width: 15px; height: 15px; color: var(--accent); fill: var(--accent); }
+.st-meta b { color: var(--text); }
+.story-head .progress-track { margin-top: 10px; }
+.story-list { display: grid; gap: 8px; margin-top: 16px; }
+@media (min-width: 700px) { .story-list { grid-template-columns: 1fr 1fr; } }
+.ep {
+  --hue: var(--accent); display: flex; align-items: center; gap: 12px; text-align: left; color: var(--text);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; cursor: pointer;
+}
+.ep:active { transform: scale(.98); }
+.ep-num { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 17px; font-weight: 600; border: 1px solid var(--line-strong); color: var(--muted); }
+.ep.done .ep-num { background: var(--accent-soft); border-color: rgba(216,166,87,.45); color: var(--accent); }
+.ep.current { border-color: var(--accent); background: linear-gradient(150deg, #231e14, var(--surface) 70%); }
+.ep.current .ep-num { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.ep.locked { opacity: .45; }
+.ep-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.ep-place { font-size: 11.5px; color: var(--muted); font-weight: 600; letter-spacing: .4px; text-transform: uppercase; }
+.ep-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; }
+.ep-side { flex-shrink: 0; display: flex; color: var(--muted); }
+.ep-side > svg { width: 18px; height: 18px; }
+.ep-ico svg { width: 22px; height: 22px; color: var(--hue); }
+.ep-text { margin-top: 14px; display: grid; gap: 12px; }
+.ep-text p { font-family: var(--font-display); font-size: 17px; line-height: 1.6; color: #e3dccf; }
+.ep-trial { --hue: var(--accent); display: flex; align-items: center; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.ep-trial .dc-ico { width: 46px; height: 46px; border-radius: 13px; }
+.ep-trial .dc-ico svg { width: 24px; height: 24px; }
+.ep-what { font-size: 14.5px; color: var(--text); margin-top: 2px; }
+.story-note { text-align: left; }
+.story-note p:last-child { font-family: var(--font-display); font-size: 16px; line-height: 1.55; margin-top: 4px; color: #e3dccf; }
+.win-notes .note:has(.story-note) { max-width: 560px; }

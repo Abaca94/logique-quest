@@ -48,7 +48,7 @@
     <div class="home-foot">
       <button class="btn ghost small" onclick="resetProgress()">Réinitialiser ma progression</button>
       <p class="install-tip">Sur iPhone ou iPad : <b>Partager</b> puis <b>« Sur l’écran d’accueil »</b> pour jouer en plein écran, même hors connexion.</p>
-      <p class="version">LogiqueQuest <span id="verBadge" onclick="forceUpdate()">v6.0</span> · touchez la version pour forcer la mise à jour</p>
+      <p class="version">LogiqueQuest <span id="verBadge" onclick="forceUpdate()">v7.0</span> · touchez la version pour forcer la mise à jour</p>
     </div>
   </section>
 
@@ -56,6 +56,15 @@
   <section class="screen" id="screen-map">
     <div class="map-head" id="map-head"></div>
     <div id="map-chapters"></div>
+  </section>
+
+  <!-- ================= HISTOIRE ================= -->
+  <section class="screen" id="screen-story">
+    <div class="story-head" id="story-head"></div>
+    <div class="story-list" id="story-list"></div>
+  </section>
+  <section class="screen" id="screen-episode">
+    <div class="episode" id="episode-body"></div>
   </section>
 
   <!-- ================= DÉFI DU JOUR ================= -->
@@ -140,6 +149,7 @@
 <script src="js/games/kakuro.js"></script>
 <script src="js/levels.js"></script>
 <script src="js/daily.js"></script>
+<script src="js/story.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

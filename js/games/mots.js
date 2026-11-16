@@ -26,8 +26,9 @@ function initMots(cfg) {
   $("ws-goals").innerHTML = `3 ${ICONS.star} en ${t3} s ou moins · 2 ${ICONS.star} jusqu’à ${t2} s`;
   setActiveChips("mots", wsS);
   wsFound = new Set(); wsStart = null;
-  const nWords = { 8: 5, 10: 8, 12: 10 }[wsS];
-  const fits = WS_WORDS.filter(w => w.length <= wsS);
+  // cfg.words : liste imposée (histoire), tous les mots sont à trouver
+  const nWords = cfg && cfg.words ? cfg.words.length : { 8: 5, 10: 8, 12: 10 }[wsS];
+  const fits = (cfg && cfg.words ? cfg.words : WS_WORDS).filter(w => w.length <= wsS);
   let placed = false, guard = 0;
   while (!placed && guard++ < 60) {
     wsG = Array.from({ length: wsS }, () => Array(wsS).fill(""));

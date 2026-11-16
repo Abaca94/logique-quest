@@ -49,7 +49,7 @@ function initSequences(cfg) {
   seqGood = 0;
   setActiveChips("sequences", seqDiff);
   // cfg.ids (parcours) : une sélection précise ; sinon toutes les suites du niveau choisi.
-  seqShuffled = shuffle(cfg && cfg.ids ? cfg.ids.map(i => SEQUENCES[i]) : SEQUENCES.filter(s => s.d === seqDiff + 1));
+  seqShuffled = cfg && cfg.items ? shuffle(cfg.items) : shuffle(cfg && cfg.ids ? cfg.ids.map(i => SEQUENCES[i]) : SEQUENCES.filter(s => s.d === seqDiff + 1));
   seqIndex = 0;
   renderSequence();
 }
@@ -110,7 +110,7 @@ LQ.register({
   recordLabel: v => `Record : niveau ${SEQ_LEVELS[v - 1] ? SEQ_LEVELS[v - 1].toLowerCase() : v}`,
   init: initSequences,
   levelInfo: cfg => {
-    const n = cfg.ids ? cfg.ids.length : SEQUENCES.filter(s => s.d === cfg.diff + 1).length;
+    const n = cfg.items ? cfg.items.length : cfg.ids ? cfg.ids.length : SEQUENCES.filter(s => s.d === cfg.diff + 1).length;
     return { what: `${n} suites, niveau ${SEQ_LEVELS[cfg.diff].toLowerCase()}`, goals: countGoals(n) };
   },
   screen: `

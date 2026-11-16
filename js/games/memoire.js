@@ -11,7 +11,7 @@ function initMemoire(cfg) {
   if (cfg) memPairs = cfg.pairs;
   setActiveChips("memoire", memPairs);
   memFirst = null; memLock = false; memFound = 0; memMoves = 0;
-  const pick = shuffle(MEM_SYMBOLS).slice(0, memPairs);
+  const pick = shuffle(cfg && cfg.symbols ? cfg.symbols : MEM_SYMBOLS).slice(0, memPairs);
   const items = shuffle([...pick, ...pick]);
   const b = $("mem-board");
   // Sur iPhone : toujours 4 colonnes (cases lisibles). Sur iPad : 4, 5 ou 6 colonnes.

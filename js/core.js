@@ -20,6 +20,7 @@ const ICONS = {
   kakuro: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 10h18M10 3v18M3 3l7 7"/><path d="M13.5 13.5h2.5l-2.5 4h3M6 6.2v-.1"/></svg>',
   calendar: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M12 13.2l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2-1.45-1.4 2-.3z"/></svg>',
   flame: '<svg viewBox="0 0 24 24"><path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.4 2.4-5.4 3.6-8.3.4 1.6 1.2 2.7 2.3 3.4.3-2.9 1.6-5.3 3.6-6.9-.2 3.1 1 5 2.3 6.6 1.1 1.4 1.7 3 1.7 5.2 0 3.6-3 6.2-7 6.2z"/></svg>',
+  book: '<svg viewBox="0 0 24 24"><path d="M12 6.5C10 5 7 4.5 3.5 5v13.5c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5z"/><path d="M12 6.5V20"/></svg>',
   chevL: '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
   chevR: '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>',
   trophy: '<svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H4.5a3 3 0 0 0 3.5 4M16 6h3.5a3 3 0 0 1-3.5 4"/><path d="M12 13v4M8.5 20h7M10 17h4"/></svg>',
@@ -63,7 +64,7 @@ const SAVE_KEY = "logiquequest_v1";
 function defaultState() {
   // levels : étoiles par niveau du parcours · badges : date d’obtention · wins : parties gagnées par jeu
   // daily : étoiles du défi du jour par date (AAAA-MM-JJ) · bestDaily : plus longue série de jours
-  return { score: 0, solved: 0, bestStreak: 0, streak: 0, sound: true, best: {}, levels: {}, badges: {}, wins: {}, daily: {}, bestDaily: 0 };
+  return { score: 0, solved: 0, bestStreak: 0, streak: 0, sound: true, best: {}, levels: {}, badges: {}, wins: {}, daily: {}, bestDaily: 0, story: {} };
 }
 function loadState() {
   try {
@@ -74,6 +75,7 @@ function loadState() {
     s.badges = { ...(raw.badges || {}) };
     s.wins = { ...(raw.wins || {}) };
     s.daily = { ...(raw.daily || {}) };
+    s.story = { ...(raw.story || {}) };
     return s;
   } catch (e) { return defaultState(); }
 }
@@ -163,10 +165,12 @@ function stopTimers() { timers.forEach(clearInterval); timers = []; }
 LQ.level = null;
 // Défi du jour en cours (null sinon). Voir js/daily.js.
 LQ.daily = null;
-function levelCfg() { return LQ.level ? LQ.level.cfg : LQ.daily ? LQ.daily.cfg : null; }
+// Épisode de l’histoire en cours (null sinon). Voir js/story.js.
+LQ.story = null;
+function levelCfg() { const m = LQ.level || LQ.daily || LQ.story; return m ? m.cfg : null; }
 let currentScreen = "home";
 
-const SCREEN_TITLES = { home: "", map: "Parcours", profile: "Profil", daily: "Défi du jour" };
+const SCREEN_TITLES = { home: "", map: "Parcours", profile: "Profil", daily: "Défi du jour", story: "Venise, 1500", episode: "" };
 function showScreen(name) {
   currentScreen = name;
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
@@ -177,10 +181,11 @@ function showScreen(name) {
   if (title === undefined) {
     if (LQ.level) title = `Niveau ${LQ.level.n}` + (name === "win" ? "" : ` · ${g ? g.title : ""}`);
     else if (LQ.daily) title = "Défi du jour" + (name === "win" ? "" : ` · ${g ? g.title : ""}`);
+    else if (LQ.story) title = `Épisode ${LQ.story.n}` + (name === "win" ? "" : ` · ${g ? g.title : ""}`);
     else title = name === "win" ? "Résultat" : (g ? g.title : "");
   }
   $("screenTitle").textContent = title;
-  document.body.classList.toggle("in-level", !!(LQ.level || LQ.daily) && name !== "win");
+  document.body.classList.toggle("in-level", !!(LQ.level || LQ.daily || LQ.story) && name !== "win");
   window.scrollTo(0, 0);
 }
 function leaveGame() { navToken++; stopTimers(); }
@@ -189,6 +194,7 @@ function goHome() {
   currentGame = "home";
   LQ.level = null;
   LQ.daily = null;
+  LQ.story = null;
   if (typeof renderHome === "function") renderHome();
   showScreen("home");
 }
@@ -197,11 +203,14 @@ function goBack() {
   const inGame = LQ.byId[currentScreen] || currentScreen === "win";
   if (LQ.level && inGame) { leaveGame(); openMap(); }
   else if (LQ.daily && inGame) { leaveGame(); openDaily(); }
+  else if (LQ.story && inGame) { leaveGame(); openEpisode(LQ.story.n); }
+  else if (currentScreen === "episode") openStory();
   else goHome();
 }
 function startGame(id) {
   LQ.level = null;
   LQ.daily = null;
+  LQ.story = null;
   launchGame(id);
 }
 function launchGame(id) {
@@ -216,6 +225,7 @@ function launchGame(id) {
 function replay() {
   if (LQ.level) startLevel(LQ.level.n);
   else if (LQ.daily) startDaily();
+  else if (LQ.story) startEpisode(LQ.story.n);
   else startGame(currentGame);
 }
 function starsHtml(n, total = 3) {
@@ -231,14 +241,15 @@ function winGame(title, sub, pts, stars) {
   const notes = [];
   if (LQ.level) notes.push(...recordLevel(LQ.level.n, n));
   if (LQ.daily) notes.push(...recordDaily(LQ.daily.key, n));
+  if (LQ.story) notes.push(...recordStory(LQ.story.n, n));
   const badges = checkBadges();
   save();
   sfx(n > 0 ? "win" : "bad");
   $("win-icon").innerHTML = (g && ICONS[g.id]) || ICONS.trophy;
   $("win-icon").classList.toggle("fail", n === 0);
   $("win-title").textContent = n > 0 ? title : "Pas cette fois";
-  $("win-sub").textContent = n > 0 || !(LQ.level || LQ.daily) ? sub
-    : sub + (LQ.level ? " Il faut au moins une étoile pour valider le niveau." : " Il faut au moins une étoile pour réussir le défi.");
+  $("win-sub").textContent = n > 0 || !(LQ.level || LQ.daily || LQ.story) ? sub
+    : sub + (LQ.level ? " Il faut au moins une étoile pour valider le niveau." : LQ.daily ? " Il faut au moins une étoile pour réussir le défi." : " Il faut au moins une étoile pour poursuivre l’histoire.");
   $("win-stars").innerHTML = starsHtml(n);
   $("win-notes").innerHTML = [
     ...notes.map(t => `<div class="note">${t}</div>`),
@@ -249,6 +260,10 @@ function winGame(title, sub, pts, stars) {
     ? (next ? `<button class="btn" onclick="startLevel(${next})">Niveau suivant →</button>` : "")
       + `<button class="btn ${next ? "ghost" : ""}" onclick="replay()">${n > 0 ? "Rejouer le niveau" : "Réessayer"}</button>`
       + `<button class="btn ghost" onclick="openMap()">Carte du parcours</button>`
+    : LQ.story
+    ? (n > 0 && LQ.story.n < STORY.episodes.length ? `<button class="btn" onclick="openEpisode(${LQ.story.n + 1})">Épisode suivant →</button>` : "")
+      + `<button class="btn ${n > 0 && LQ.story.n < STORY.episodes.length ? "ghost" : ""}" onclick="replay()">${n > 0 ? "Rejouer l’épreuve" : "Réessayer"}</button>`
+      + `<button class="btn ghost" onclick="openStory()">Sommaire de l’histoire</button>`
     : LQ.daily
     ? `<button class="btn" onclick="replay()">${n > 0 ? "Rejouer le défi" : "Réessayer"}</button><button class="btn ghost" onclick="openDaily()">Calendrier des défis</button>`
     : `<button class="btn" onclick="replay()">Rejouer</button><button class="btn ghost" onclick="goHome()">Retour au menu</button>`;

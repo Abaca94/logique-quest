@@ -61,7 +61,7 @@ function initVF(cfg) {
   navToken++;
   cfg = cfg || levelCfg();
   // Jeu libre : une série de 12 affirmations tirées au hasard parmi toutes.
-  vfShuffled = cfg && cfg.ids ? shuffle(cfg.ids.map(i => VF_LIST[i])) : shuffle([...VF_LIST]).slice(0, 12);
+  vfShuffled = cfg && cfg.items ? shuffle(cfg.items) : cfg && cfg.ids ? shuffle(cfg.ids.map(i => VF_LIST[i])) : shuffle([...VF_LIST]).slice(0, 12);
   vfIndex = 0; vfGood = 0;
   renderVF();
 }
@@ -112,7 +112,7 @@ LQ.register({
   hue: "#e58fb0",
   recordLabel: v => `Record : ${v} bonnes réponses`,
   init: initVF,
-  levelInfo: cfg => ({ what: `${cfg.ids.length} affirmations à départager`, goals: countGoals(cfg.ids.length) }),
+  levelInfo: cfg => { const n = (cfg.items || cfg.ids).length; return { what: `${n} affirmations à départager`, goals: countGoals(n) }; },
   screen: `
     <div class="quiz-card">
       <div class="quiz-progress" id="vf-progress"></div>

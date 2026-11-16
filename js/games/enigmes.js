@@ -255,7 +255,8 @@ let enigList = [], enigWrong = 0, enigHints = 0, enigReveals = 0, enigSolved = 0
 function initEnigmes(cfg) {
   navToken++;
   cfg = cfg || levelCfg();
-  enigList = cfg && cfg.ids ? cfg.ids.map(i => ENIGMES[i]) : ENIGMES;
+  // cfg.items : énigmes propres à un épisode de l’histoire
+  enigList = cfg && cfg.items ? cfg.items : cfg && cfg.ids ? cfg.ids.map(i => ENIGMES[i]) : ENIGMES;
   enigIndex = 0; enigWrong = 0; enigHints = 0; enigReveals = 0; enigSolved = 0;
   renderEnigme();
 }
@@ -351,7 +352,7 @@ LQ.register({
   recordLabel: v => `Record : énigme ${v}`,
   init: initEnigmes,
   levelInfo: cfg => ({
-    what: `${cfg.ids.length} énigmes à résoudre`,
+    what: `${(cfg.items || cfg.ids).length} énigmes à résoudre`,
     goals: ["Tout résoudre sans indice, avec au plus une erreur", "Tout résoudre sans voir de réponse", "Résoudre au moins une énigme"],
   }),
   screen: `

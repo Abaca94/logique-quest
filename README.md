@@ -11,12 +11,18 @@ Safari → *Partager* → *« Sur l’écran d’accueil »*. L’app se lance a
 5 chapitres de 10 niveaux (Premiers pas, Raisonnement, Expertise, Maîtrise, Virtuose) qui piochent dans les 10 jeux.
 Chaque niveau rapporte 1 à 3 étoiles selon des objectifs affichés avant de jouer.
 Le niveau suivant s’ouvre quand le précédent est validé ; les chapitres s’ouvrent à 18, 45, 70 puis 95 étoiles.
-Le **profil** affiche le rang (7 rangs selon les étoiles), les statistiques et 18 badges.
+Le **profil** affiche le rang (7 rangs selon les étoiles), les statistiques et 19 badges.
 
 ## Défi du jour
 Chaque jour, un nouveau défi qui tourne entre les 10 jeux. La grille est tirée d’une graine qui dépend
 de la date : tout le monde a le même défi le même jour. Première réussite du jour : +50 points.
 L’écran du défi montre la série de jours, la meilleure série et un calendrier du mois.
+
+## Histoire : « Le Secret du cristal »
+Venise, printemps 1500 : le secret du verre cristallin de Murano a été volé. 10 épisodes, du Palais
+des Doges à la fête de la Sensa, chacun avec un texte, une épreuve (parfois au contenu propre à
+l’histoire : énigmes, tableau croisé, mots mêlés, nonogram dessiné, vrai ou faux sur Venise) et la suite
+du récit. Les personnages sont inventés, le décor et les faits d’époque sont réels.
 
 ## Jeux libres (10)
 Chaque jeu reste jouable seul, avec le choix de la difficulté.
@@ -41,6 +47,7 @@ js/core.js            commun : sauvegarde, points, sons, navigation, icônes
 js/games/*.js         un fichier par jeu, déclaré avec LQ.register({...})
 js/levels.js          parcours : chapitres, niveaux, rangs, badges, carte et profil
 js/daily.js           défi du jour : rotation, graine par date, série, calendrier
+js/story.js           mode histoire : texte des épisodes, épreuves, progression
 js/app.js             menu d’accueil, mises à jour, mode hors ligne
 sw.js                 service worker (cache hors ligne)
 archive/              ancienne version en un seul fichier (v2.7)
