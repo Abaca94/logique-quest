@@ -192,13 +192,13 @@ function checkLogic() {
     lgLock = true;
     const pts = 40 + lgIdx * 10;
     addPoints(pts); state.solved++;
-    if (!LQ.level) setBest("logique", lgIdx + 1);
+    if (!levelCfg()) setBest("logique", lgIdx + 1);
     save(); sfx("good");
     fb.className = "feedback show ok";
     fb.innerHTML = `<b>Déductions exactes.</b> +${pts} points`;
     // 3 étoiles sans erreur de vérification, 2 avec une erreur, 1 au-delà.
     const stars = lgErrors === 0 ? 3 : lgErrors === 1 ? 2 : 1;
-    if (LQ.level) {
+    if (levelCfg()) {
       later(() => winGame("Déductions exactes", `${P.story.replace(/<[^>]+>/g, "").split(".")[0]} : grille résolue${lgErrors ? ` après ${lgErrors} vérification${lgErrors > 1 ? "s" : ""} ratée${lgErrors > 1 ? "s" : ""}` : " du premier coup"}.`, 0, stars), 1200);
       return;
     }

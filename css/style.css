@@ -574,3 +574,43 @@ td.ngc.x::after { content: "✕"; position: absolute; inset: 0; display: flex; a
 .kk-info .pill { color: var(--muted); font-size: 13px; }
 .kk-info .pill b { color: var(--accent); }
 .kk-info .hint-line { margin-top: 6px; }
+
+/* ===== Défi du jour (étape 4) ===== */
+@media (min-width: 700px) {
+  .home-cards { grid-template-columns: 1fr 1fr; }
+  .home-card.hc-main { grid-column: 1 / -1; }
+}
+.hc-daily .hc-ico { color: var(--hue); background: color-mix(in srgb, var(--hue) 14%, transparent); border-color: color-mix(in srgb, var(--hue) 35%, transparent); }
+.hc-sub { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.hc-sub > svg { width: 14px; height: 14px; color: var(--accent); }
+.daily-card { background: linear-gradient(160deg, #1d1a24, var(--surface) 70%); border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 18px; margin-top: 8px; box-shadow: var(--shadow); }
+.dc-date { font-size: 13px; color: var(--accent); font-weight: 650; letter-spacing: .4px; }
+.dc-date::first-letter { text-transform: uppercase; }
+.dc-head { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+.dc-ico { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--hue); background: color-mix(in srgb, var(--hue) 14%, transparent); border: 1px solid color-mix(in srgb, var(--hue) 35%, transparent); flex-shrink: 0; }
+.dc-ico svg { width: 30px; height: 30px; }
+.dc-kicker { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .4px; }
+.dc-head h2 { font-family: var(--font-display); font-size: 26px; font-weight: 600; }
+.dc-what { color: var(--muted); font-size: 14.5px; margin-top: 12px; line-height: 1.45; }
+.dc-done { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--good-soft); color: var(--good); font-size: 14px; }
+.dc-play { width: 100%; justify-content: center; margin-top: 14px; }
+.dc-play svg { fill: currentColor; }
+.dc-bonus { text-align: center; font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.cal { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; margin-top: 16px; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: center; }
+.cal-head b { display: block; font-family: var(--font-display); font-size: 19px; font-weight: 600; }
+.cal-head small { color: var(--muted); font-size: 12.5px; }
+.cal-head .icon-btn[disabled] { opacity: .3; }
+.cal-head .icon-btn svg { width: 20px; height: 20px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 12px; }
+.cal-wd { text-align: center; font-size: 11.5px; color: var(--muted); font-weight: 600; padding-bottom: 2px; }
+.cal-day { --hue: var(--accent); aspect-ratio: 1; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0; }
+.cal-day b { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cal-day.empty { background: none; border: 0; }
+.cal-day.future { opacity: .35; }
+.cal-day.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.cal-day.done { background: var(--accent-soft); border-color: rgba(216,166,87,.35); }
+.cal-ico svg { width: 13px; height: 13px; color: var(--hue); opacity: .55; display: block; }
+.cal-stars { display: flex; gap: 0; }
+.cal-stars svg { width: 9px; height: 9px; stroke-width: 1.4; color: var(--surface-3); fill: var(--surface-3); }
+.cal-stars svg.on { color: var(--accent); fill: var(--accent); }

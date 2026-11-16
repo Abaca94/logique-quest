@@ -120,7 +120,7 @@ function wsCheck() {
   hit.cells.forEach(([r, c]) => document.querySelector(`#ws-board .ws-cell[data-r="${r}"][data-c="${c}"]`)?.classList.add("found"));
   renderWsWords();
   addPoints(8);
-  setBest("mots", wsFound.size);
+  if (!levelCfg()) setBest("mots", wsFound.size);
   sfx("good");
   if (wsFound.size === wsList.length) {
     state.solved++;

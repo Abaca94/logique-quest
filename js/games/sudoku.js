@@ -152,7 +152,7 @@ function checkSudoku() {
   } else {
     const pts = SUD_PTS[sN];
     addPoints(pts); state.solved++;
-    setBest("sudoku", pts);
+    if (!levelCfg()) setBest("sudoku", pts);
     save();
     // 3 étoiles si la grille est juste du premier coup, 2 après une erreur, 1 au-delà.
     const stars = sErrors === 0 ? 3 : sErrors === 1 ? 2 : 1;

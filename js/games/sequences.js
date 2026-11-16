@@ -81,7 +81,7 @@ function answerSequence(btn, val) {
     btn.classList.add("correct");
     sfx("good");
     addPoints(10); state.solved++; seqGood++;
-    setBest("sequences", seqDiff + 1);
+    if (!levelCfg()) setBest("sequences", seqDiff + 1);
     save();
     $("seq-feedback").className = "feedback show ok";
     $("seq-feedback").innerHTML = `<b>Bien vu.</b> +10 points. ${escapeHtml(s.explain)}`;

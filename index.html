@@ -48,7 +48,7 @@
     <div class="home-foot">
       <button class="btn ghost small" onclick="resetProgress()">Réinitialiser ma progression</button>
       <p class="install-tip">Sur iPhone ou iPad : <b>Partager</b> puis <b>« Sur l’écran d’accueil »</b> pour jouer en plein écran, même hors connexion.</p>
-      <p class="version">LogiqueQuest <span id="verBadge" onclick="forceUpdate()">v5.0</span> · touchez la version pour forcer la mise à jour</p>
+      <p class="version">LogiqueQuest <span id="verBadge" onclick="forceUpdate()">v6.0</span> · touchez la version pour forcer la mise à jour</p>
     </div>
   </section>
 
@@ -56,6 +56,17 @@
   <section class="screen" id="screen-map">
     <div class="map-head" id="map-head"></div>
     <div id="map-chapters"></div>
+  </section>
+
+  <!-- ================= DÉFI DU JOUR ================= -->
+  <section class="screen" id="screen-daily">
+    <div class="daily-card" id="daily-card"></div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="v" id="daily-streak">0</div><div class="l">Série en cours</div></div>
+      <div class="stat-box"><div class="v" id="daily-best">0</div><div class="l">Meilleure série</div></div>
+      <div class="stat-box"><div class="v" id="daily-count">0</div><div class="l">Défis réussis</div></div>
+    </div>
+    <div class="cal" id="daily-cal"></div>
   </section>
 
   <!-- ================= PROFIL ================= -->
@@ -128,6 +139,7 @@
 <script src="js/games/nonogram.js"></script>
 <script src="js/games/kakuro.js"></script>
 <script src="js/levels.js"></script>
+<script src="js/daily.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
