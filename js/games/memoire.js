@@ -19,6 +19,8 @@ function initMemoire() {
   $("mem-found").textContent = "0";
   $("mem-total").textContent = memPairs;
   $("mem-moves").textContent = "0";
+  const [t3, t2] = memTargets();
+  $("mem-goals").innerHTML = `3 ${ICONS.star} en ${t3} essais ou moins · 2 ${ICONS.star} jusqu’à ${t2}`;
   b.innerHTML = "";
   items.forEach(sym => {
     const c = document.createElement("div");
@@ -58,7 +60,9 @@ function clickMemCard(card) {
       const precision = Math.max(10, memPairs * 10 - (memMoves - memPairs) * 3);
       setBest("memoire", precision);
       save();
-      later(() => winGame("Mémoire d’éléphant", `${memPairs * 2} cartes retrouvées en ${memMoves} essais.`, precision * 2), 450);
+      const [t3, t2] = memTargets();
+      const stars = memMoves <= t3 ? 3 : memMoves <= t2 ? 2 : 1;
+      later(() => winGame("Mémoire d’éléphant", `${memPairs * 2} cartes retrouvées en ${memMoves} essais.`, 0, stars), 450);
     }
   } else {
     memLock = true;
@@ -71,6 +75,11 @@ function clickMemCard(card) {
       memLock = false;
     }, 750);
   }
+}
+// Objectifs en nombre d’essais (un essai = deux cartes retournées).
+// Le minimum possible est égal au nombre de paires.
+function memTargets() {
+  return [Math.ceil(memPairs * 1.5), memPairs * 2];
 }
 function setMemLevel(n) { memPairs = n; initMemoire(); }
 
@@ -92,6 +101,7 @@ LQ.register({
       <div class="pill">Essais <b id="mem-moves">0</b></div>
       <button class="btn ghost small" onclick="initMemoire()">${ICONS.refresh} Nouvelle partie</button>
     </div>
+    <p class="goals" id="mem-goals"></p>
     <div class="mem-grid" id="mem-board"></div>`,
   setup() {
     window.addEventListener("resize", sizeMemBoard);

@@ -1,5 +1,5 @@
 /* ============================================================
-   Déduction (Cross-Logic) — grilles à cocher ✘ / ✔
+   Déduction — tableaux croisés à cocher ✘ / ✔
    ============================================================ */
 const LOGIC_PL = [
   {
@@ -77,8 +77,16 @@ const LOGIC_PL = [
   },
 ];
 let lgIdx = 0, lgLock = false;
+let lgAuto = true; // ✘ automatiques sur la ligne et la colonne d’un ✔
+
+/* Tableau croisé (grille en escalier) :
+            | B (colonnes) | C (colonnes)
+   A (lignes)|    A × B     |    A × C
+   C (lignes)|    C × B     |
+   Les blocs A×B et A×C sont vérifiés ; le bloc C×B sert d’aide au raisonnement. */
 
 function initLogic() {
+  try { lgAuto = localStorage.getItem("lq_lg_auto") !== "0"; } catch (e) {}
   renderLogicChips();
   renderLogic();
 }
@@ -97,52 +105,86 @@ function renderLogic() {
   lgLock = false;
   $("lg-story").innerHTML = P.story;
   $("lg-clues").innerHTML = "<ul>" + P.clues.map((c, i) => `<li><span class="n">${i + 1}.</span><span>${c}</span></li>`).join("") + "</ul>";
-  $("lg-grids").innerHTML = logicTable(P, "B") + logicTable(P, "C");
+  $("lg-grids").innerHTML = logicCrossTable(P);
   $("lg-feedback").className = "feedback";
+  $("lg-auto").classList.toggle("active", lgAuto);
 }
-function logicTable(P, side) {
-  const labels = P["label" + side];
-  const big = labels.length > 4 ? " lgx" : "";
-  let html = `<p class="lg-title">${P.qA} × ${P["q" + side]}</p>
-  <div class="lg-scroll"><table class="lg"><tr><th></th>${labels.map(l => `<th>${l}</th>`).join("")}</tr>`;
-  for (let a = 0; a < P.labelA.length; a++) {
-    html += `<tr><td class="a">${P.labelA[a]}</td>`;
-    for (let s = 0; s < labels.length; s++) {
-      html += `<td class="lgc${big}" data-a="${a}" data-s="${side}" data-i="${s}"></td>`;
-    }
-    html += "</tr>";
+function logicCrossTable(P) {
+  const n = P.labelA.length;
+  const cell = (g, r, c) => `<td class="lgc" data-g="${g}" data-r="${r}" data-c="${c}"></td>`;
+  const sp = '<td class="sp"></td>';
+  let h = `<table class="lg lg-cross lg-n${n}">`;
+  // Titres des groupes de colonnes
+  h += `<tr><th colspan="2"></th><th class="grp" colspan="${n}">${P.qB}</th>${sp}<th class="grp" colspan="${n}">${P.qC}</th></tr>`;
+  // Noms des colonnes (verticaux)
+  h += `<tr><th colspan="2"></th>${P.labelB.map(l => `<th class="col"><span>${l}</span></th>`).join("")}${sp}${P.labelC.map(l => `<th class="col"><span>${l}</span></th>`).join("")}</tr>`;
+  // Bloc A : A×B puis A×C
+  for (let a = 0; a < n; a++) {
+    h += "<tr>";
+    if (a === 0) h += `<th class="grp-row" rowspan="${n}"><span>${P.qA}</span></th>`;
+    h += `<td class="a">${P.labelA[a]}</td>`;
+    for (let b = 0; b < n; b++) h += cell("AB", a, b);
+    h += sp;
+    for (let c = 0; c < n; c++) h += cell("AC", a, c);
+    h += "</tr>";
   }
-  return html + "</table></div>";
+  h += `<tr class="sp-row"><td colspan="${2 * n + 3}"></td></tr>`;
+  // Bloc C : C×B
+  for (let c = 0; c < n; c++) {
+    h += "<tr>";
+    if (c === 0) h += `<th class="grp-row" rowspan="${n}"><span>${P.qC}</span></th>`;
+    h += `<td class="a">${P.labelC[c]}</td>`;
+    for (let b = 0; b < n; b++) h += cell("CB", c, b);
+    h += "</tr>";
+  }
+  return `<div class="lg-scroll">${h}</table></div>`;
 }
-function cycleLogicCell(c) {
-  const next = c.textContent === "" ? "✘" : c.textContent === "✘" ? "✔" : "";
-  c.textContent = next;
-  c.classList.toggle("x", next === "✘");
-  c.classList.toggle("v", next === "✔");
+function lgCell(g, r, c) {
+  return document.querySelector(`#lg-grids .lgc[data-g="${g}"][data-r="${r}"][data-c="${c}"]`);
+}
+function setLogicMark(el, mark) {
+  el.textContent = mark;
+  el.classList.toggle("x", mark === "✘");
+  el.classList.toggle("v", mark === "✔");
+}
+function cycleLogicCell(el) {
+  const next = el.textContent === "" ? "✘" : el.textContent === "✘" ? "✔" : "";
+  setLogicMark(el, next);
+  if (next === "✔" && lgAuto) {
+    // Un seul ✔ par ligne et par colonne dans un bloc : on barre le reste automatiquement.
+    const g = el.dataset.g, r = +el.dataset.r, c = +el.dataset.c;
+    const n = LOGIC_PL[lgIdx].labelA.length;
+    for (let k = 0; k < n; k++) {
+      if (k !== c) { const o = lgCell(g, r, k); if (o.textContent === "") setLogicMark(o, "✘"); }
+      if (k !== r) { const o = lgCell(g, k, c); if (o.textContent === "") setLogicMark(o, "✘"); }
+    }
+  }
   sfx("tick");
+}
+function toggleLogicAuto() {
+  lgAuto = !lgAuto;
+  try { localStorage.setItem("lq_lg_auto", lgAuto ? "1" : "0"); } catch (e) {}
+  $("lg-auto").classList.toggle("active", lgAuto);
+  toast(lgAuto ? "Croix automatiques activées" : "Croix automatiques désactivées");
+}
+function clearLogic() {
+  document.querySelectorAll("#lg-grids .lgc").forEach(el => setLogicMark(el, ""));
+  $("lg-feedback").className = "feedback";
 }
 function checkLogic() {
   if (lgLock) return;
   const P = LOGIC_PL[lgIdx];
-  const marks = {};
-  ["B", "C"].forEach(side => {
-    marks[side] = P.labelA.map(() => P["label" + side].map(() => ""));
-    document.querySelectorAll(`#lg-grids .lgc[data-s="${side}"]`).forEach(c => {
-      marks[side][+c.dataset.a][+c.dataset.i] = c.textContent;
-    });
-  });
-  const okSide = side => {
-    const sol = P["sol" + side];
-    return P.labelA.every((_, a) =>
-      marks[side][a][sol[a]] === "✔" && marks[side][a].every((m, i) => m !== "✔" || i === sol[a]));
-  };
+  const n = P.labelA.length;
+  const read = g => Array.from({ length: n }, (_, r) => Array.from({ length: n }, (_, c) => lgCell(g, r, c).textContent));
+  const AB = read("AB"), AC = read("AC");
+  const okBlock = (m, sol) => m.every((row, r) => row[sol[r]] === "✔" && row.every((x, c) => x !== "✔" || c === sol[r]));
   const fb = $("lg-feedback");
-  if (!["B", "C"].every(side => marks[side].some(row => row.includes("✔")))) {
+  if (![AB, AC].every(m => m.some(row => row.includes("✔")))) {
     fb.className = "feedback show ko";
-    fb.innerHTML = "Placez d’abord vos ✘ et ✔ dans les deux tableaux.";
+    fb.innerHTML = `Placez vos ✔ dans les blocs « ${P.qA} × ${P.qB} » et « ${P.qA} × ${P.qC} ».`;
     return;
   }
-  const doneB = okSide("B"), doneC = okSide("C");
+  const doneB = okBlock(AB, P.solB), doneC = okBlock(AC, P.solC);
   if (doneB && doneC) {
     lgLock = true;
     const pts = 40 + lgIdx * 10;
@@ -157,7 +199,7 @@ function checkLogic() {
     }, 1600);
   } else {
     addPoints(-3); sfx("bad");
-    const where = !doneB && !doneC ? "les deux tableaux" : doneB ? "le second tableau" : "le premier tableau";
+    const where = !doneB && !doneC ? "les deux blocs du haut" : doneB ? `le bloc « ${P.qA} × ${P.qC} »` : `le bloc « ${P.qA} × ${P.qB} »`;
     fb.className = "feedback show ko";
     fb.innerHTML = `Quelque chose cloche dans ${where}. Chaque ligne doit avoir exactement un ✔, au bon endroit.`;
   }
@@ -166,7 +208,7 @@ function checkLogic() {
 LQ.register({
   id: "logique",
   title: "Déduction",
-  desc: "Qui fait quoi ? Croisez les indices",
+  desc: "Qui fait quoi ? Tableaux croisés",
   hue: "#c79bf2",
   recordLabel: v => `Record : grille ${v}`,
   init: initLogic,
@@ -179,9 +221,11 @@ LQ.register({
       <div class="feedback" id="lg-feedback"></div>
       <div class="actions-row">
         <button class="btn small" onclick="checkLogic()">${ICONS.check} Vérifier</button>
+        <button class="chip" id="lg-auto" onclick="toggleLogicAuto()">Croix automatiques</button>
+        <button class="btn ghost small" onclick="clearLogic()">${ICONS.erase} Tout effacer</button>
       </div>
     </div>
-    <p class="hint-line">Touchez une case : une fois pour ✘, deux fois pour ✔, trois fois pour l’effacer.</p>`,
+    <p class="hint-line">Touchez une case : une fois pour ✘, deux fois pour ✔, trois fois pour l’effacer.<br>Le bloc du bas sert à croiser les deux autres catégories entre elles.</p>`,
   setup() {
     $("lg-grids").addEventListener("click", e => {
       const c = e.target.closest(".lgc");
