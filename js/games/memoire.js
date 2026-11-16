@@ -61,7 +61,7 @@ function clickMemCard(card) {
       state.solved++;
       // Score de précision : moins d’essais en trop, meilleur score.
       const precision = Math.max(10, memPairs * 10 - (memMoves - memPairs) * 3);
-      if (!LQ.level) setBest("memoire", precision);
+      if (!levelCfg()) setBest("memoire", precision);
       save();
       const [t3, t2] = memTargets();
       const stars = memMoves <= t3 ? 3 : memMoves <= t2 ? 2 : 1;

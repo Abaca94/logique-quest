@@ -150,6 +150,9 @@ const BADGES = [
   { id: "allstars", name: "Grand maître", desc: `Réunir les ${MAX_STARS} étoiles du parcours`, test: () => totalStars() >= MAX_STARS },
   { id: "poly", name: "Touche-à-tout", desc: `Gagner une partie dans chacun des ${LQ.games.length} jeux`, test: () => LQ.games.every(g => (state.wins[g.id] || 0) > 0) },
   { id: "detective", name: "Détective", desc: "3 étoiles sur les 6 grilles de déduction du parcours", test: () => LEVELS.every((l, i) => l.game !== "logique" || levelStars(i + 1) === 3) },
+  { id: "daily1", name: "Rendez-vous", desc: "Réussir un premier défi du jour", test: () => Object.values(state.daily).some(v => v > 0) },
+  { id: "daily7", name: "Assidu", desc: "Réussir le défi du jour 7 jours d’affilée", test: () => (state.bestDaily || 0) >= 7 },
+  { id: "daily30", name: "Fidèle", desc: "Réussir 30 défis du jour", test: () => Object.values(state.daily).filter(v => v > 0).length >= 30 },
   { id: "streak10", name: "En série", desc: "Enchaîner 10 réussites sans erreur", test: () => state.bestStreak >= 10 },
   { id: "streak25", name: "Implacable", desc: "Enchaîner 25 réussites sans erreur", test: () => state.bestStreak >= 25 },
   { id: "solved100", name: "Centurion", desc: "Réussir 100 défis", test: () => state.solved >= 100 },
@@ -209,6 +212,7 @@ const MAP_ROW = 104;             // hauteur d’une étape (px)
 function openMap() {
   leaveGame();
   LQ.level = null;
+  LQ.daily = null;
   currentGame = "map";
   renderMap();
   showScreen("map");
@@ -253,6 +257,7 @@ function renderMap() {
 function openProfile() {
   leaveGame();
   LQ.level = null;
+  LQ.daily = null;
   currentGame = "profile";
   renderProfile();
   showScreen("profile");
@@ -280,6 +285,17 @@ function renderProfile() {
 }
 
 /* ---------- Cartes de l’accueil ---------- */
+function dailyHomeCard() {
+  const t = dailyToday(), g = LQ.byId[t.game], st = dailyStars(t.key), streak = dailyStreak();
+  return `<button class="home-card hc-daily" onclick="openDaily()">
+      <span class="hc-ico" style="--hue:${g.hue}">${ICONS.calendar}</span>
+      <span class="hc-body">
+        <span class="hc-kicker">Défi du jour · ${frenchDate(t.date)}</span>
+        <span class="hc-title">${st ? "Défi réussi" : g.title}</span>
+        <span class="hc-sub">${st ? `<span class="ls-stars">${starsHtml(st)}</span>` : "Nouveau défi chaque jour"}${streak ? ` · ${ICONS.flame} ${streak} jour${streak > 1 ? "s" : ""}` : ""}</span>
+      </span>
+    </button>`;
+}
 function renderHome() {
   const total = totalStars(), rank = rankFor(total), n = currentLevel();
   const L = LEVELS[n - 1], g = LQ.byId[L.game];
@@ -296,6 +312,7 @@ function renderHome() {
       </span>
       <span class="hc-go">${ICONS.play}</span>
     </button>
+    ${dailyHomeCard()}
     <button class="home-card" onclick="openProfile()">
       <span class="hc-ico">${ICONS.user}</span>
       <span class="hc-body">

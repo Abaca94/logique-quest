@@ -1,6 +1,6 @@
 /* Service Worker LogiqueQuest — cache-first : une fois la 1re visite faite, le jeu
    fonctionne 100 % hors-ligne (avion, vacances, coupe du Wi-Fi…). */
-const CACHE = "logiquequest-v19";
+const CACHE = "logiquequest-v20";
 const ASSETS = [
   "./",
   "./index.html",
@@ -17,6 +17,7 @@ const ASSETS = [
   "./js/games/nonogram.js",
   "./js/games/kakuro.js",
   "./js/levels.js",
+  "./js/daily.js",
   "./js/app.js",
   "./manifest.json",
   "./icon-180.png",

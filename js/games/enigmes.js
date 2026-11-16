@@ -313,7 +313,7 @@ function submitEnigme() {
     const pts = enigHintUsed ? 5 : 10;
     addPoints(pts); sfx("good");
     state.solved++; enigSolved++;
-    if (!LQ.level) setBest("enigmes", enigIndex + 1);
+    if (!levelCfg()) setBest("enigmes", enigIndex + 1);
     save();
     fb.className = "feedback show ok";
     fb.innerHTML = `<b>Exact : ${escapeHtml(e.a)}.</b> ${escapeHtml(e.ex)} +${pts} points`;

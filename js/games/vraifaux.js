@@ -85,7 +85,7 @@ function answerVF(v) {
   if (ok) {
     vfGood++;
     addPoints(10); state.solved++;
-    if (!LQ.level) setBest("vf", vfGood);
+    if (!levelCfg()) setBest("vf", vfGood);
     save();
     sfx("good");
     fb.className = "feedback show ok";

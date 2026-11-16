@@ -71,7 +71,7 @@ function clickTaquin(i) {
     stopTaquinTimer();
     const pts = Math.max(20, Math.round(tqSize * 60 - Math.min(tqMoves, tqSize * tqSize * 10) * .5 - tqSeconds * .4));
     addPoints(pts); state.solved++;
-    setBest("taquin", pts);
+    if (!levelCfg()) setBest("taquin", pts);
     save();
     const [g3, g2] = TQ_GOALS[tqSize];
     const stars = tqMoves <= g3 ? 3 : tqMoves <= g2 ? 2 : 1;

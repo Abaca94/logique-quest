@@ -166,7 +166,7 @@ function ngCheckWin() {
   for (let r = 0; r < ngN; r++) for (let c = 0; c < ngN; c++) if (ngCells[r][c] !== 1) { ngCells[r][c] = 2; paintNgCell(r, c); }
   const pts = { 5: 30, 8: 80, 10: 150 }[ngN];
   addPoints(pts); state.solved++;
-  if (!LQ.level) setBest("nonogram", ngN);
+  if (!levelCfg()) setBest("nonogram", ngN);
   save();
   const [t3, t2] = NG_TIME[ngN];
   const stars = ngSeconds <= t3 ? 3 : ngSeconds <= t2 ? 2 : 1;

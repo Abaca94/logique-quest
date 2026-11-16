@@ -256,7 +256,7 @@ function checkKakuro() {
   kkDone = true;
   const pts = KK_PTS[kkN];
   addPoints(pts); state.solved++;
-  if (!LQ.level) setBest("kakuro", kkN);
+  if (!levelCfg()) setBest("kakuro", kkN);
   save();
   const stars = kkErrors === 0 ? 3 : kkErrors === 1 ? 2 : 1;
   winGame("Kakuro résolu", `Grille ${kkN}×${kkN} terminée${kkErrors ? ` après ${kkErrors} vérification${kkErrors > 1 ? "s" : ""} ratée${kkErrors > 1 ? "s" : ""}` : " sans faute"}. +${pts} points`, pts, stars);
