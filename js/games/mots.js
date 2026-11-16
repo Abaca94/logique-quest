@@ -90,12 +90,22 @@ function wsCheck() {
   wsStart = null;
   document.querySelectorAll("#ws-board .ws-cell.sel").forEach(c => c.classList.remove("sel"));
   if (!path || path.length < 2) return;
+  // Le mot est accepté même si la sélection déborde avant ou après lui :
+  // on cherche, dans les lettres glissées (dans les deux sens), le plus long mot restant.
   const word = path.map(([r, c]) => wsG[r][c]).join("");
   const rev = [...word].reverse().join("");
-  const w = wsList.find(x => !wsFound.has(x) && (x === word || x === rev));
-  if (!w) { sfx("flip"); return; }
+  let hit = null;
+  for (const x of wsList) {
+    if (wsFound.has(x) || (hit && hit.w.length >= x.length)) continue;
+    const i = word.indexOf(x);
+    if (i >= 0) { hit = { w: x, cells: path.slice(i, i + x.length) }; continue; }
+    const j = rev.indexOf(x);
+    if (j >= 0) { const k = path.length - j - x.length; hit = { w: x, cells: path.slice(k, k + x.length) }; }
+  }
+  if (!hit) { sfx("flip"); return; }
+  const w = hit.w;
   wsFound.add(w);
-  path.forEach(([r, c]) => document.querySelector(`#ws-board .ws-cell[data-r="${r}"][data-c="${c}"]`)?.classList.add("found"));
+  hit.cells.forEach(([r, c]) => document.querySelector(`#ws-board .ws-cell[data-r="${r}"][data-c="${c}"]`)?.classList.add("found"));
   renderWsWords();
   addPoints(8);
   setBest("mots", wsFound.size);
@@ -132,7 +142,7 @@ LQ.register({
     </div>
     <div class="ws-words" id="ws-words"></div>
     <div class="ws-board" id="ws-board"></div>
-    <p class="hint-line">Glissez le doigt de la première à la dernière lettre, dans n’importe quelle direction.</p>`,
+    <p class="hint-line">Glissez le doigt le long d’un mot, dans n’importe quelle direction. Pas besoin de vous arrêter pile sur la dernière lettre.</p>`,
   setup() {
     const b = $("ws-board");
     b.addEventListener("pointerdown", e => {

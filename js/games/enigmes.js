@@ -1,27 +1,106 @@
 /* ============================================================
-   Énigmes — questions à réponse libre, indice contre points
+   Énigmes — problèmes de logique à réponse unique
+   Chaque énigme a une seule bonne réponse, vérifiable, et une explication.
+   num : réponse numérique (on accepte « 47 », « 47 jours », « quarante-sept »…)
+   accept : autres formes acceptées (comparées sans accents ni majuscules)
    ============================================================ */
 const ENIGMES = [
-  { q: "Je suis le début de l’ennui, la fin de la vie, le début de l’été et la fin de la mer. Qui suis-je ?", a: "la lettre E", accept: ["e", "lettre e", "la lettre e", "le e", "un e"], hint: "Ne regardez pas le sens des mots, mais leurs lettres au début et à la fin." },
-  { q: "Plus il y en a, moins on voit. Que suis-je ?", a: "l’obscurité", accept: ["obscurite", "l obscurite", "le noir", "noir", "les tenebres", "tenebres", "la nuit", "nuit", "brouillard", "un brouillard"], hint: "Allumez la lumière et elle disparaît." },
-  { q: "Qu’est-ce qui peut remplir une pièce entière sans prendre la moindre place ?", a: "la lumière", accept: ["lumiere", "la lumiere", "l air", "air", "gaz", "le gaz", "un parfum", "parfum", "le son", "son"], hint: "Il suffit d’appuyer sur l’interrupteur. L’air ou un parfum sont aussi acceptés." },
-  { q: "Qu’est-ce qui a des dents mais ne mord jamais ?", a: "un peigne", accept: ["peigne", "un peigne", "le peigne", "une scie", "scie", "une fermeture eclair", "fermeture eclair"], hint: "On le trouve dans la salle de bain." },
-  { q: "Un fermier a 17 moutons. Tous meurent sauf 9. Combien en reste-t-il ?", a: "9", accept: ["9", "neuf", "9 moutons", "neuf moutons"], hint: "Relisez bien : « tous meurent SAUF 9 »." },
-  { q: "Je peux faire le tour du monde tout en restant dans mon coin. Qui suis-je ?", a: "un timbre", accept: ["timbre", "un timbre", "le timbre"], hint: "Il se colle sur une enveloppe." },
-  { q: "Qu’est-ce qui monte et descend sans jamais bouger ?", a: "la température", accept: ["temperature", "la temperature", "un escalier", "escalier", "l escalier"], hint: "On la consulte chaque matin. L’escalier est aussi accepté." },
-  { q: "Le père de Paul a trois fils : Pierre, Jacques et… ?", a: "Paul", accept: ["paul"], hint: "Relisez le début de la phrase." },
-  { q: "Plus on m’enlève de matière, plus je grandis. Que suis-je ?", a: "un trou", accept: ["trou", "un trou", "le trou"], hint: "On en creuse dans le sable." },
-  { q: "Je n’ai pas de voix mais je vous réponds. Je n’ai pas de corps mais je résonne. Qui suis-je ?", a: "l’écho", accept: ["echo", "l echo", "un echo"], hint: "Criez dans la montagne." },
-  { q: "Qu’y a-t-il au bout de tout ?", a: "la lettre T", accept: ["t", "la lettre t", "lettre t", "le t"], hint: "C’est une lettre." },
-  { q: "Deux pères et deux fils pêchent chacun un poisson, mais seuls 3 poissons sont pêchés. Pourquoi ?", a: "ils ne sont que trois", accept: ["3", "trois", "3 personnes", "trois personnes", "grand pere", "grand-pere", "il y a 3 personnes", "ils sont trois", "ils sont 3"], hint: "Un grand-père, son fils et son petit-fils…" },
-  { q: "Quel mot commence par E, finit par E et ne contient qu’une seule lettre ?", a: "une enveloppe", accept: ["enveloppe", "une enveloppe", "l enveloppe"], hint: "Ouvrez-la et regardez à l’intérieur." },
-  { q: "Trois chats attrapent trois souris en trois minutes. Combien de temps faut-il à cent chats pour attraper cent souris ?", a: "trois minutes", accept: ["trois minutes", "3 minutes", "3", "trois", "3 min", "trois min", "la meme duree"], hint: "Un seul chat attrape déjà une souris en trois minutes." },
-  { q: "Combien de fois peut-on soustraire 5 de 25 ?", a: "une seule fois", accept: ["une seule fois", "une fois", "1", "1 fois", "une seule", "1 seule fois"], hint: "Après la première soustraction, ce n’est plus 25." },
-  { q: "Toutes les fenêtres de ma maison donnent au sud. Un ours passe devant. De quelle couleur est-il ?", a: "blanc", accept: ["blanc", "blanche", "un ours blanc", "il est blanc", "ours polaire", "ours blanc", "un ours polaire"], hint: "Si toutes les fenêtres donnent au sud, la maison est… au pôle Nord." },
-  { q: "Qu’est-ce qui vous appartient, mais que les autres utilisent bien plus que vous ?", a: "votre prénom", accept: ["prenom", "votre prenom", "ton prenom", "mon prenom", "son prenom", "nom", "votre nom", "ton nom", "mon nom"], hint: "On vous l’a choisi à la naissance." },
-  { q: "Qu’est-ce qui a une tête et une queue, mais pas de corps ?", a: "une pièce de monnaie", accept: ["piece", "une piece", "la piece", "piece de monnaie", "une piece de monnaie", "une monnaie"], hint: "Pile ou face ?" },
-  { q: "Comment appelle-t-on un mot qui se lit de la même façon dans les deux sens ?", a: "un palindrome", accept: ["palindrome", "un palindrome"], hint: "« Kayak » et « radar » en sont deux exemples." },
-  { q: "J’ai besoin d’air pour vivre, mais l’eau me tue. Qui suis-je ?", a: "le feu", accept: ["feu", "le feu", "un feu", "la flamme", "une flamme", "flamme", "l incendie"], hint: "Il danse dans la cheminée." },
+  { q: "Une batte et une balle coûtent 1,10 € au total. La batte coûte exactement 1 € de plus que la balle. Combien coûte la balle, en centimes ?",
+    num: 5, a: "5 centimes", accept: ["cinq", "cinq centimes", "0,05", "0.05"],
+    hint: "Si la balle coûtait 10 centimes, la batte coûterait 1,10 € et le total 1,20 €.",
+    ex: "Balle 0,05 € + batte 1,05 € = 1,10 €, et la batte coûte bien 1 € de plus." },
+  { q: "Un nénuphar double de surface chaque jour. Il lui faut 48 jours pour couvrir tout l’étang. Au bout de combien de jours en couvrait-il exactement la moitié ?",
+    num: 47, a: "47 jours", accept: ["quarante-sept", "quarante sept"],
+    hint: "Raisonnez à rebours : que se passe-t-il entre l’avant-dernier et le dernier jour ?",
+    ex: "Comme il double chaque jour, la veille du 48e jour il couvrait la moitié de l’étang." },
+  { q: "5 machines fabriquent 5 objets en 5 minutes. Combien de minutes faut-il à 100 machines pour fabriquer 100 objets ?",
+    num: 5, a: "5 minutes", accept: ["cinq", "cinq minutes"],
+    hint: "Combien de temps faut-il à une seule machine pour fabriquer un seul objet ?",
+    ex: "Chaque machine fabrique un objet en 5 minutes : 100 machines font 100 objets en 5 minutes." },
+  { q: "Pendant une course, vous dépassez le coureur qui est deuxième. À quelle place êtes-vous maintenant ?",
+    num: 2, a: "deuxième", accept: ["deuxieme", "second", "seconde", "2e", "2eme", "2nd"],
+    hint: "Vous prenez la place de celui que vous dépassez.",
+    ex: "En doublant le deuxième, vous prenez sa place : vous êtes deuxième, pas premier." },
+  { q: "Le père de Marie a cinq filles : Lala, Lélé, Lili et Lolo. Comment s’appelle la cinquième ?",
+    a: "Marie", accept: ["marie"],
+    hint: "Relisez le début de la phrase.",
+    ex: "La cinquième fille est Marie elle-même." },
+  { q: "En écrivant tous les nombres entiers de 1 à 100, combien de fois écrit-on le chiffre 9 ?",
+    num: 20, a: "20 fois", accept: ["vingt"],
+    hint: "Comptez séparément les 9 en position des unités et en position des dizaines.",
+    ex: "Dix fois aux unités (9, 19… 99) et dix fois aux dizaines (90 à 99) : 20 au total." },
+  { q: "Un escargot est au fond d’un puits de 10 mètres. Chaque jour il grimpe de 3 mètres, chaque nuit il glisse de 2 mètres. Au cours de quel jour sort-il du puits ?",
+    num: 8, a: "le 8e jour", accept: ["huit", "huitieme"],
+    hint: "Attention au dernier jour : une fois sorti, il ne glisse plus.",
+    ex: "Il gagne 1 m par jour complet : au matin du 8e jour il est à 7 m, et grimpe jusqu’à 10 m." },
+  { q: "Il faut 10 minutes pour scier une bûche en 2 morceaux. Au même rythme, combien de minutes faut-il pour la scier en 4 morceaux ?",
+    num: 30, a: "30 minutes", accept: ["trente"],
+    hint: "Combien de coups de scie faut-il pour obtenir 4 morceaux ?",
+    ex: "2 morceaux = 1 coupe (10 min). 4 morceaux = 3 coupes, donc 30 minutes." },
+  { q: "Un médecin vous donne 3 comprimés à prendre, un toutes les demi-heures, en commençant tout de suite. Combien de minutes durera le traitement ?",
+    num: 60, a: "60 minutes", accept: ["soixante", "une heure", "1 heure", "1h"],
+    hint: "Vous prenez le premier comprimé à la minute 0.",
+    ex: "Comprimés à 0, 30 et 60 minutes : le traitement dure une heure." },
+  { q: "Un tiroir contient 10 chaussettes noires et 10 blanches, mélangées. Dans le noir, combien devez-vous en prendre au minimum pour être sûr d’avoir deux chaussettes de la même couleur ?",
+    num: 3, a: "3", accept: ["trois"],
+    hint: "Il n’y a que deux couleurs possibles.",
+    ex: "Avec 2 chaussettes, on peut tomber sur une noire et une blanche. La 3e forme forcément une paire." },
+  { q: "Même tiroir : 10 chaussettes noires et 10 blanches. Combien devez-vous en prendre au minimum pour être sûr d’avoir deux chaussettes noires ?",
+    num: 12, a: "12", accept: ["douze"],
+    hint: "Imaginez la pire malchance possible.",
+    ex: "Dans le pire cas, on prend d’abord les 10 blanches. Il faut ensuite 2 noires : 12 chaussettes." },
+  { q: "Si 3 poules pondent 3 œufs en 3 jours, combien d’œufs pondent 12 poules en 12 jours ?",
+    num: 48, a: "48 œufs", accept: ["quarante-huit", "quarante huit"],
+    hint: "Combien d’œufs une poule pond-elle en 3 jours ?",
+    ex: "Une poule pond 1 œuf en 3 jours, donc 4 œufs en 12 jours. 12 poules × 4 = 48." },
+  { q: "Quel nombre vient ensuite : 1, 11, 21, 1211, 111221, … ?",
+    num: 312211, a: "312211", accept: [],
+    hint: "Lisez chaque terme à voix haute en décrivant le précédent : « un 1 », « deux 1 »…",
+    ex: "111221 se lit « trois 1, deux 2, un 1 » : 312211." },
+  { q: "Les pages d’un livre sont numérotées de 1 à 120. Combien de chiffres faut-il imprimer au total ?",
+    num: 252, a: "252 chiffres", accept: [],
+    hint: "Séparez les pages à 1, 2 et 3 chiffres.",
+    ex: "9 pages × 1 + 90 pages × 2 + 21 pages × 3 = 9 + 180 + 63 = 252." },
+  { q: "Nous sommes mardi. Quel jour de la semaine serons-nous dans 100 jours ?",
+    a: "jeudi", accept: ["jeudi"],
+    hint: "Combien reste-t-il de jours après avoir retiré des semaines entières ?",
+    ex: "100 = 14 semaines + 2 jours. Mardi + 2 jours = jeudi." },
+  { q: "Je suis un nombre à deux chiffres. Mon chiffre des dizaines est le double de mon chiffre des unités, et la somme de mes deux chiffres vaut 9. Qui suis-je ?",
+    num: 63, a: "63", accept: ["soixante-trois", "soixante trois"],
+    hint: "Si les unités valent u, les dizaines valent 2u et la somme fait 3u.",
+    ex: "3u = 9 donc u = 3 et les dizaines valent 6 : 63." },
+  { q: "Une horloge met 5 secondes pour sonner les 6 coups de 6 heures. Combien de secondes lui faut-il pour sonner les 12 coups de midi ?",
+    num: 11, a: "11 secondes", accept: ["onze"],
+    hint: "Ce qui prend du temps, ce sont les intervalles entre les coups.",
+    ex: "6 coups = 5 intervalles d’une seconde. 12 coups = 11 intervalles, donc 11 secondes." },
+  { q: "Combien de carrés de toutes tailles peut-on compter sur un échiquier de 8 × 8 cases ?",
+    num: 204, a: "204", accept: ["deux cent quatre"],
+    hint: "Comptez les carrés de 1×1, puis de 2×2, et ainsi de suite jusqu’à 8×8.",
+    ex: "64 + 49 + 36 + 25 + 16 + 9 + 4 + 1 = 204." },
+  { q: "Anne a autant de frères que de sœurs. Son frère Paul a deux fois plus de sœurs que de frères. Combien d’enfants y a-t-il dans la famille ?",
+    num: 7, a: "7 enfants", accept: ["sept"],
+    hint: "Anne ne se compte pas parmi ses sœurs, Paul ne se compte pas parmi ses frères.",
+    ex: "4 filles et 3 garçons : Anne a 3 sœurs et 3 frères, Paul a 4 sœurs et 2 frères." },
+  { q: "Quel est le plus petit nombre entier supérieur à 1 qui, divisé par 2, 3, 4, 5 ou 6, laisse toujours un reste de 1 ?",
+    num: 61, a: "61", accept: ["soixante et un", "soixante-et-un"],
+    hint: "Retirez 1 : le nombre obtenu doit être divisible par 2, 3, 4, 5 et 6.",
+    ex: "Le plus petit multiple commun de 2, 3, 4, 5 et 6 est 60. Donc 60 + 1 = 61." },
+  { q: "Un père a 36 ans et son fils 12 ans. Dans combien d’années le père aura-t-il exactement le double de l’âge de son fils ?",
+    num: 12, a: "dans 12 ans", accept: ["douze"],
+    hint: "Posez 36 + x = 2 × (12 + x).",
+    ex: "Dans 12 ans, le père aura 48 ans et le fils 24 ans." },
+  { q: "En écrivant tous les nombres entiers de 1 à 50, combien de fois écrit-on le chiffre 1 ?",
+    num: 15, a: "15 fois", accept: ["quinze"],
+    hint: "N’oubliez pas que 11 contient deux fois le chiffre 1.",
+    ex: "1, puis 10 à 19 (11 chiffres « 1 » car 11 en a deux), puis 21, 31 et 41 : 1 + 11 + 3 = 15." },
+  { q: "Vous entrez dans une pièce sombre avec une seule allumette. Il y a une bougie, une lampe à huile et un poêle à bois. Qu’allumez-vous en premier ?",
+    a: "l’allumette", accept: ["allumette", "l allumette", "une allumette"],
+    hint: "Comment allumeriez-vous la bougie ?",
+    ex: "Avant tout le reste, il faut allumer l’allumette." },
+  { q: "Un train de 100 m roule à vitesse constante. Il met 10 secondes pour traverser entièrement un tunnel de 400 m, de l’entrée de la locomotive à la sortie du dernier wagon. Quelle est sa vitesse, en mètres par seconde ?",
+    num: 50, a: "50 m/s", accept: ["cinquante"],
+    hint: "Le train doit parcourir la longueur du tunnel plus sa propre longueur.",
+    ex: "Il parcourt 400 + 100 = 500 m en 10 s, soit 50 m/s (180 km/h)." },
 ];
 
 let enigIndex = 0, enigHintUsed = false, enigLock = false;
@@ -39,16 +118,30 @@ function renderEnigme() {
   $("enig-input").value = "";
   $("enig-hint").classList.remove("show");
   $("enig-feedback").className = "feedback";
+  $("enig-actions").style.display = "";
   enigHintUsed = false;
   enigLock = false;
   // Pas de focus() automatique : sur iOS en plein écran, il fait clignoter ou figer l’affichage.
 }
 function enigmeMatches(raw, e) {
+  if (e.num !== undefined) {
+    const nums = (raw.replace(/\s/g, "").match(/\d+(?:[.,]\d+)?/g) || []).map(x => parseFloat(x.replace(",", ".")));
+    if (nums.length && nums[0] === e.num) return true;
+  }
   const r = normalize(raw);
   return e.accept.some(a => {
     const n = normalize(a);
     return r === n || (n.length > 2 && (" " + r + " ").includes(" " + n + " "));
   });
+}
+function nextEnigme(delay) {
+  enigLock = true;
+  $("enig-actions").style.display = "none";
+  later(() => {
+    enigIndex++;
+    if (enigIndex < ENIGMES.length) renderEnigme();
+    else winGame("Enquête bouclée", `Vous avez parcouru les ${ENIGMES.length} énigmes.`, 240);
+  }, delay);
 }
 function submitEnigme() {
   if (enigLock) return;
@@ -57,40 +150,45 @@ function submitEnigme() {
   if (raw.trim() === "") { toast("Écrivez d’abord votre réponse"); return; }
   const fb = $("enig-feedback");
   if (enigmeMatches(raw, e)) {
-    enigLock = true;
     const pts = enigHintUsed ? 5 : 10;
     addPoints(pts); sfx("good");
     state.solved++;
     setBest("enigmes", enigIndex + 1);
     save();
     fb.className = "feedback show ok";
-    fb.innerHTML = `<b>Exact.</b> La réponse était « ${escapeHtml(e.a)} ». +${pts} points`;
-    later(() => {
-      enigIndex++;
-      if (enigIndex < ENIGMES.length) renderEnigme();
-      else winGame("Enquête bouclée", `Les ${ENIGMES.length} énigmes sont résolues.`, 240);
-    }, 1400);
+    fb.innerHTML = `<b>Exact : ${escapeHtml(e.a)}.</b> ${escapeHtml(e.ex)} +${pts} points`;
+    nextEnigme(3200);
   } else {
     addPoints(-3); sfx("bad");
     fb.className = "feedback show ko";
-    fb.innerHTML = `Ce n’est pas « ${escapeHtml(raw)} ». Essayez encore, ou prenez un indice.`;
+    fb.innerHTML = `Ce n’est pas « ${escapeHtml(raw)} ». Essayez encore, prenez un indice ou passez.`;
     $("enig-input").value = "";
   }
 }
 function showEnigmeHint() {
+  if (enigLock) return;
   const e = ENIGMES[enigIndex];
   const h = $("enig-hint");
   h.textContent = e.hint;
   h.classList.add("show");
   if (!enigHintUsed) { addPoints(-5); enigHintUsed = true; toast("Indice affiché (−5 points)"); }
 }
+function revealEnigme() {
+  if (enigLock) return;
+  const e = ENIGMES[enigIndex];
+  sfx("flip");
+  const fb = $("enig-feedback");
+  fb.className = "feedback show ko";
+  fb.innerHTML = `La réponse était <b>${escapeHtml(e.a)}</b>. ${escapeHtml(e.ex)}`;
+  nextEnigme(4500);
+}
 
 LQ.register({
   id: "enigmes",
   title: "Énigmes",
-  desc: "Devinettes et pièges de langage",
+  desc: "Problèmes de logique à réponse unique",
   hue: "#d8a657",
-  recordLabel: v => `Record : ${v} résolues`,
+  recordLabel: v => `Record : énigme ${v}`,
   init: initEnigmes,
   screen: `
     <div class="quiz-card">
@@ -103,8 +201,9 @@ LQ.register({
       </div>
       <div class="hint-box" id="enig-hint"></div>
       <div class="feedback" id="enig-feedback"></div>
-      <div class="actions-row">
+      <div class="actions-row" id="enig-actions">
         <button class="btn ghost small" onclick="showEnigmeHint()">${ICONS.bulb} Indice (−5 points)</button>
+        <button class="btn ghost small" onclick="revealEnigme()">Voir la réponse</button>
       </div>
     </div>`,
   setup() {

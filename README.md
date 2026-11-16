@@ -10,13 +10,13 @@ Safari → *Partager* → *« Sur l’écran d’accueil »*. L’app se lance a
 ## Jeux libres (8)
 | Jeu | Contenu |
 |---|---|
-| Énigmes | 20 devinettes à réponse libre, indice contre points |
+| Énigmes | 24 problèmes de logique à réponse unique, avec indice et explication |
 | Séquences | 15 suites logiques, 3 niveaux |
-| Déduction | 6 grilles « qui fait quoi » (✘ / ✔), jusqu’à 6×6 |
+| Déduction | 6 tableaux croisés « qui fait quoi » (✘ / ✔), jusqu’à 6×6, croix automatiques en option |
 | Sudoku | 4×4, 6×6, 9×9, grilles à solution unique générées à la volée |
 | Taquin | 3×3, 4×4, 5×5, mélanges toujours solvables, chronomètre |
-| Mémoire | 8, 10 ou 12 paires |
-| Mots mêlés | 8×8, 10×10, 12×12, mots cachés dans 8 directions |
+| Mémoire | 8, 10 ou 12 paires, étoiles selon le nombre d’essais |
+| Mots mêlés | 8×8, 10×10, 12×12, mots cachés dans 8 directions (le mot est validé même si on glisse au-delà) |
 | Vrai ou faux | 12 affirmations avec explication |
 
 ## Organisation des fichiers

@@ -168,8 +168,9 @@ function startGame(id) {
 }
 function replay() { startGame(currentGame); }
 
-// Étoiles : 1 à 3 selon les points gagnés dans la partie.
-function winGame(title, sub, pts) {
+// Étoiles : un jeu peut les fixer lui-même (stars = 1 à 3) ;
+// sinon elles dépendent des points gagnés dans la partie.
+function winGame(title, sub, pts, stars) {
   navToken++;
   stopTimers();
   sfx("win");
@@ -177,7 +178,7 @@ function winGame(title, sub, pts) {
   $("win-icon").innerHTML = (g && ICONS[g.id]) || ICONS.trophy;
   $("win-title").textContent = title;
   $("win-sub").textContent = sub;
-  const n = Math.max(1, Math.min(3, Math.round(pts / 80)));
+  const n = Math.max(1, Math.min(3, stars || Math.round(pts / 80)));
   $("win-stars").innerHTML = [0, 1, 2].map(i => ICONS.star.replace("<svg", `<svg class="${i < n ? "on" : ""}"`)).join("");
   showScreen("win");
 }

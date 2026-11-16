@@ -258,6 +258,8 @@ main {
 .tile.empty { background: transparent; border-color: transparent; cursor: default; }
 
 /* ===== Mémoire ===== */
+.goals { text-align: center; color: var(--muted); font-size: 13px; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap; }
+.goals svg { width: 13px; height: 13px; color: var(--accent); fill: var(--accent); }
 .mem-grid { display: grid; gap: 10px; width: 100%; max-width: 560px; margin: 16px auto; }
 .mem-card {
   border-radius: 14px; display: flex; align-items: center; justify-content: center;
@@ -307,19 +309,27 @@ main {
 .ws-word.found { color: var(--good); text-decoration: line-through; opacity: .7; }
 
 /* ===== Déduction (Cross-Logic) ===== */
-.lg-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -8px; padding: 0 8px; }
-.lg-title { text-align: center; color: var(--muted); font-weight: 600; margin-top: 18px; font-size: 13px; letter-spacing: .8px; text-transform: uppercase; }
-.lg { border-spacing: 4px; margin: 6px auto; }
-.lg th { color: var(--muted); font-size: 12px; font-weight: 600; max-width: 70px; padding: 4px 2px; line-height: 1.2; }
+.lg-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 16px -8px 0; padding: 0 8px 4px; }
+.lg { border-spacing: 2px; margin: 0 auto; --lgc: 36px; }
+.lg.lg-n5 { --lgc: 32px; }
+.lg.lg-n6 { --lgc: 30px; }
+.lg th { color: var(--muted); font-weight: 600; padding: 0; }
+.lg th.grp { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--accent); padding-bottom: 6px; border-bottom: 1px solid var(--line-strong); }
+.lg th.col { vertical-align: bottom; height: 88px; padding-bottom: 4px; }
+.lg th.col span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 12px; white-space: nowrap; color: var(--text); font-weight: 500; }
+.lg th.grp-row { width: 18px; border-right: 1px solid var(--line-strong); padding-right: 4px; }
+.lg th.grp-row span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+.lg td.sp { width: 6px; min-width: 6px; }
+.lg tr.sp-row td { height: 6px; }
 .lg td.lgc {
-  width: 44px; height: 44px; min-width: 44px;
-  background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px;
-  text-align: center; font-size: 18px; font-weight: 700; cursor: pointer;
+  width: var(--lgc); height: var(--lgc); min-width: var(--lgc);
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px;
+  text-align: center; font-size: calc(var(--lgc) * .48); font-weight: 700; cursor: pointer; padding: 0;
 }
-.lg td.lgc.lgx { width: 38px; height: 40px; min-width: 38px; font-size: 16px; }
+.lg td.lgc[data-g="CB"] { background: #191d27; }
 .lg td.lgc.x { color: var(--bad); }
 .lg td.lgc.v { color: var(--good); background: var(--good-soft); border-color: rgba(103,199,159,.4); }
-.lg td.a { color: var(--text); font-weight: 600; font-size: 13px; padding-right: 8px; white-space: nowrap; }
+.lg td.a { color: var(--text); font-weight: 600; font-size: 13px; padding: 0 6px 0 4px; white-space: nowrap; text-align: right; }
 .lg-story { font-family: var(--font-display); font-size: 19px; line-height: 1.45; margin-bottom: 14px; }
 .lg-story b { color: var(--accent); font-weight: 600; }
 .clues { text-align: left; font-size: 15px; line-height: 1.5; }
@@ -327,11 +337,14 @@ main {
 .clues li { margin: 7px 0; display: flex; gap: 10px; align-items: flex-start; }
 @media (max-width: 430px) {
   .quiz-card { padding: 18px 14px; }
-  .lg { border-spacing: 3px; }
-  .lg th { font-size: 10.5px; }
-  .lg td.a { font-size: 12.5px; padding-right: 4px; }
-  .lg td.lgc { width: 40px; height: 40px; min-width: 40px; }
-  .lg td.lgc.lgx { width: 34px; height: 36px; min-width: 34px; font-size: 15px; }
+  .lg-scroll { margin: 16px -14px 0; padding: 0 6px 4px; }
+  .lg { --lgc: 30px; }
+  .lg.lg-n5 { --lgc: 27px; }
+  .lg.lg-n6 { --lgc: 25px; }
+  .lg th.grp-row { width: 0; padding: 0; border: 0; }
+  .lg th.grp-row span { display: none; }
+  .lg td.a { font-size: 12px; }
+  .lg th.col span { font-size: 11px; }
 }
 .clues .n { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; min-width: 22px; }
 
