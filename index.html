@@ -17,7 +17,7 @@
 <body>
 
 <header class="topbar">
-  <button class="icon-btn" id="btnBack" onclick="goHome()" aria-label="Retour au menu">
+  <button class="icon-btn" id="btnBack" onclick="goBack()" aria-label="Retour">
     <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
   </button>
   <div class="screen-title" id="screenTitle"></div>
@@ -40,11 +40,7 @@
       <p>Énigmes, déduction et casse-tête. Un peu chaque jour, pour garder l’esprit vif.</p>
     </div>
 
-    <div class="stats-row">
-      <div class="stat-box"><div class="v" id="stat-score">0</div><div class="l">Points</div></div>
-      <div class="stat-box"><div class="v" id="stat-solved">0</div><div class="l">Défis réussis</div></div>
-      <div class="stat-box"><div class="v" id="stat-best">0</div><div class="l">Meilleure série</div></div>
-    </div>
+    <div class="home-cards" id="home-cards"></div>
 
     <h2 class="section-title">Jeux libres</h2>
     <div class="menu-grid" id="menu-grid"></div>
@@ -52,8 +48,31 @@
     <div class="home-foot">
       <button class="btn ghost small" onclick="resetProgress()">Réinitialiser ma progression</button>
       <p class="install-tip">Sur iPhone ou iPad : <b>Partager</b> puis <b>« Sur l’écran d’accueil »</b> pour jouer en plein écran, même hors connexion.</p>
-      <p class="version">LogiqueQuest <span id="verBadge" onclick="forceUpdate()">v3.2</span> · touchez la version pour forcer la mise à jour</p>
+      <p class="version">LogiqueQuest <span id="verBadge" onclick="forceUpdate()">v4.0</span> · touchez la version pour forcer la mise à jour</p>
     </div>
+  </section>
+
+  <!-- ================= CARTE DU PARCOURS ================= -->
+  <section class="screen" id="screen-map">
+    <div class="map-head" id="map-head"></div>
+    <div id="map-chapters"></div>
+  </section>
+
+  <!-- ================= PROFIL ================= -->
+  <section class="screen" id="screen-profile">
+    <div class="rank-card" id="rank-card"></div>
+    <div class="stats-row stats-6">
+      <div class="stat-box"><div class="v" id="stat-score">0</div><div class="l">Points</div></div>
+      <div class="stat-box"><div class="v" id="stat-solved">0</div><div class="l">Défis réussis</div></div>
+      <div class="stat-box"><div class="v" id="stat-best">0</div><div class="l">Meilleure série</div></div>
+      <div class="stat-box"><div class="v" id="stat-levels">0</div><div class="l">Niveaux validés</div></div>
+      <div class="stat-box"><div class="v" id="stat-stars">0</div><div class="l">Étoiles</div></div>
+      <div class="stat-box"><div class="v" id="stat-badges">0</div><div class="l">Badges</div></div>
+    </div>
+    <h2 class="section-title">Badges</h2>
+    <div class="badge-grid" id="badge-grid"></div>
+    <h2 class="section-title">Parties gagnées par jeu</h2>
+    <div class="wins-list" id="wins-list"></div>
   </section>
 
   <!-- Les écrans de chaque jeu sont ajoutés ici par js/games/*.js -->
@@ -65,16 +84,26 @@
       <h2 id="win-title">Bravo !</h2>
       <p id="win-sub"></p>
       <div class="stars" id="win-stars"></div>
+      <div class="win-notes" id="win-notes"></div>
     </div>
-    <div class="center-col">
-      <button class="btn" onclick="replay()">Rejouer</button>
-      <button class="btn ghost" onclick="goHome()">Retour au menu</button>
-    </div>
+    <div class="center-col" id="win-actions"></div>
   </section>
 
 </main>
 
 <div id="toast" role="status" aria-live="polite"></div>
+
+<div class="modal" id="level-sheet" aria-hidden="true">
+  <div class="modal-card level-card" role="dialog" aria-modal="true" aria-labelledby="ls-title">
+    <div class="ls-top"><span class="ls-ico" id="ls-ico"></span><div><p class="ls-kicker" id="ls-kicker"></p><h3 id="ls-title"></h3></div></div>
+    <p id="ls-what"></p>
+    <ul class="ls-goals" id="ls-goals"></ul>
+    <div class="modal-actions">
+      <button class="btn ghost small" onclick="closeLevelSheet()">Fermer</button>
+      <button class="btn small" id="ls-play">Jouer</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal" id="modal" aria-hidden="true">
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -96,6 +125,7 @@
 <script src="js/games/memoire.js"></script>
 <script src="js/games/mots.js"></script>
 <script src="js/games/vraifaux.js"></script>
+<script src="js/levels.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -21,7 +21,7 @@ window.addEventListener("scroll", () => document.body.classList.toggle("scrolled
 /* ---------- Mises à jour ----------
    1) compare la version en ligne (badge de index.html) à la version locale ;
    2) si elle diffère : purge service worker et caches, puis recharge.        */
-const LOCAL_VERSION = "v3.2";
+const LOCAL_VERSION = "v4.0";
 function canReloadNow() { // garde anti-boucle : au plus un rechargement automatique toutes les 20 s
   try { return Date.now() - Number(localStorage.getItem("lq_last_reload") || 0) > 20000; }
   catch (e) { return true; }
@@ -70,4 +70,6 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
 }
 
 renderMenu();
-refreshHUD();
+checkBadges(); // attribue sans bruit les badges déjà mérités (progression existante)
+save();
+renderHome();

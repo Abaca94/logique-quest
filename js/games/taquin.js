@@ -3,9 +3,16 @@
    ============================================================ */
 let tqSize = 3, tqGrid = [], tqMoves = 0, tqSeconds = 0, tqSolved = false, tqTimer = null;
 
-function initTaquin() {
+// Objectifs en nombre de coups : [3 étoiles, 2 étoiles]
+const TQ_GOALS = { 3: [60, 120], 4: [220, 400], 5: [500, 900] };
+// cfg (mode parcours) : { size: 3 | 4 | 5 }
+function initTaquin(cfg) {
   navToken++;
+  cfg = cfg || levelCfg();
+  if (cfg) tqSize = cfg.size;
   setActiveChips("taquin", tqSize);
+  const [g3, g2] = TQ_GOALS[tqSize];
+  $("taquin-goals").innerHTML = `3 ${ICONS.star} en ${g3} coups ou moins · 2 ${ICONS.star} jusqu’à ${g2}`;
   stopTaquinTimer();
   tqMoves = 0; tqSeconds = 0; tqSolved = false;
   const n = tqSize * tqSize;
@@ -66,7 +73,9 @@ function clickTaquin(i) {
     addPoints(pts); state.solved++;
     setBest("taquin", pts);
     save();
-    later(() => winGame("Taquin résolu", `${tqMoves} coups en ${tqSeconds} s. +${pts} points`, pts), 400);
+    const [g3, g2] = TQ_GOALS[tqSize];
+    const stars = tqMoves <= g3 ? 3 : tqMoves <= g2 ? 2 : 1;
+    later(() => winGame("Taquin résolu", `${tqMoves} coups en ${tqSeconds} s. +${pts} points`, pts, stars), 400);
   }
 }
 function isTaquinSolved() {
@@ -82,13 +91,18 @@ LQ.register({
   hue: "#e59a7a",
   recordLabel: v => `Record : ${v} points`,
   init: initTaquin,
+  levelInfo: cfg => {
+    const [g3, g2] = TQ_GOALS[cfg.size];
+    return { what: `Un taquin ${cfg.size}×${cfg.size}`, goals: [`Résoudre en ${g3} coups ou moins`, `Résoudre en ${g2} coups ou moins`, "Résoudre le taquin"] };
+  },
   screen: `
-    <div class="chips">
+    <div class="chips lvl-hide">
       <button class="chip" data-b="3" onclick="setTaquinSize(3)">3×3</button>
       <button class="chip" data-b="4" onclick="setTaquinSize(4)">4×4</button>
       <button class="chip" data-b="5" onclick="setTaquinSize(5)">5×5</button>
     </div>
     <div class="board-wrap">
+      <p class="goals" id="taquin-goals"></p>
       <div class="board" id="taquin-board"></div>
       <div class="toolbar">
         <div class="pill">Coups <b id="taquin-moves">0</b></div>

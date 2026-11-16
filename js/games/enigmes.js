@@ -104,16 +104,20 @@ const ENIGMES = [
 ];
 
 let enigIndex = 0, enigHintUsed = false, enigLock = false;
+let enigList = [], enigWrong = 0, enigHints = 0, enigReveals = 0, enigSolved = 0;
 
-function initEnigmes() {
+// cfg (mode parcours) : { ids: [indices dans ENIGMES] }. Sans cfg : toutes les énigmes.
+function initEnigmes(cfg) {
   navToken++;
-  enigIndex = 0;
+  cfg = cfg || levelCfg();
+  enigList = cfg && cfg.ids ? cfg.ids.map(i => ENIGMES[i]) : ENIGMES;
+  enigIndex = 0; enigWrong = 0; enigHints = 0; enigReveals = 0; enigSolved = 0;
   renderEnigme();
 }
 function renderEnigme() {
-  const e = ENIGMES[enigIndex];
-  $("enig-progress").textContent = `Énigme ${enigIndex + 1} sur ${ENIGMES.length}`;
-  $("enig-fill").style.width = (enigIndex / ENIGMES.length * 100) + "%";
+  const e = enigList[enigIndex];
+  $("enig-progress").textContent = `Énigme ${enigIndex + 1} sur ${enigList.length}`;
+  $("enig-fill").style.width = (enigIndex / enigList.length * 100) + "%";
   $("enig-question").textContent = e.q;
   $("enig-input").value = "";
   $("enig-hint").classList.remove("show");
@@ -123,6 +127,13 @@ function renderEnigme() {
   enigHintUsed = false;
   enigLock = false;
   // Pas de focus() automatique : sur iOS en plein écran, il fait clignoter ou figer l’affichage.
+}
+// 3 étoiles : tout résolu sans indice, au plus une erreur.
+// 2 étoiles : tout résolu sans voir de réponse. 1 étoile : au moins une résolue.
+function enigStars() {
+  if (enigSolved === 0) return 0;
+  if (enigReveals > 0) return 1;
+  return enigHints === 0 && enigWrong <= 1 ? 3 : 2;
 }
 function enigmeMatches(raw, e) {
   if (e.num !== undefined) {
@@ -140,30 +151,30 @@ function endEnigme() {
   enigLock = true;
   $("enig-actions").style.display = "none";
   $("enig-next").style.display = "";
-  $("enig-next-btn").textContent = enigIndex < ENIGMES.length - 1 ? "Énigme suivante →" : "Terminer";
+  $("enig-next-btn").textContent = enigIndex < enigList.length - 1 ? "Énigme suivante →" : "Terminer";
 }
 function nextEnigme() {
   enigIndex++;
-  if (enigIndex < ENIGMES.length) { renderEnigme(); window.scrollTo(0, 0); }
-  else winGame("Enquête bouclée", `Vous avez parcouru les ${ENIGMES.length} énigmes.`, 240);
+  if (enigIndex < enigList.length) { renderEnigme(); window.scrollTo(0, 0); }
+  else winGame("Enquête bouclée", `${enigSolved} énigme${enigSolved > 1 ? "s" : ""} résolue${enigSolved > 1 ? "s" : ""} sur ${enigList.length}.`, 0, enigStars());
 }
 function submitEnigme() {
   if (enigLock) return;
-  const e = ENIGMES[enigIndex];
+  const e = enigList[enigIndex];
   const raw = $("enig-input").value;
   if (raw.trim() === "") { toast("Écrivez d’abord votre réponse"); return; }
   const fb = $("enig-feedback");
   if (enigmeMatches(raw, e)) {
     const pts = enigHintUsed ? 5 : 10;
     addPoints(pts); sfx("good");
-    state.solved++;
-    setBest("enigmes", enigIndex + 1);
+    state.solved++; enigSolved++;
+    if (!LQ.level) setBest("enigmes", enigIndex + 1);
     save();
     fb.className = "feedback show ok";
     fb.innerHTML = `<b>Exact : ${escapeHtml(e.a)}.</b> ${escapeHtml(e.ex)} +${pts} points`;
     endEnigme();
   } else {
-    addPoints(-3); sfx("bad");
+    addPoints(-3); sfx("bad"); enigWrong++;
     fb.className = "feedback show ko";
     fb.innerHTML = `Ce n’est pas « ${escapeHtml(raw)} ». Essayez encore, prenez un indice ou passez.`;
     $("enig-input").value = "";
@@ -171,16 +182,16 @@ function submitEnigme() {
 }
 function showEnigmeHint() {
   if (enigLock) return;
-  const e = ENIGMES[enigIndex];
+  const e = enigList[enigIndex];
   const h = $("enig-hint");
   h.textContent = e.hint;
   h.classList.add("show");
-  if (!enigHintUsed) { addPoints(-5); enigHintUsed = true; toast("Indice affiché (−5 points)"); }
+  if (!enigHintUsed) { addPoints(-5); enigHintUsed = true; enigHints++; toast("Indice affiché (−5 points)"); }
 }
 function revealEnigme() {
   if (enigLock) return;
-  const e = ENIGMES[enigIndex];
-  sfx("flip");
+  const e = enigList[enigIndex];
+  sfx("flip"); enigReveals++;
   const fb = $("enig-feedback");
   fb.className = "feedback show ko";
   fb.innerHTML = `La réponse était <b>${escapeHtml(e.a)}</b>. ${escapeHtml(e.ex)}`;
@@ -194,6 +205,10 @@ LQ.register({
   hue: "#d8a657",
   recordLabel: v => `Record : énigme ${v}`,
   init: initEnigmes,
+  levelInfo: cfg => ({
+    what: `${cfg.ids.length} énigmes à résoudre`,
+    goals: ["Tout résoudre sans indice, avec au plus une erreur", "Tout résoudre sans voir de réponse", "Résoudre au moins une énigme"],
+  }),
   screen: `
     <div class="quiz-card">
       <div class="quiz-progress" id="enig-progress"></div>

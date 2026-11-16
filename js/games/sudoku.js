@@ -3,6 +3,7 @@
    ============================================================ */
 const SUD_BOX = { 4: [2, 2], 6: [2, 3], 9: [3, 3] };
 const SUD_PTS = { 4: 40, 6: 100, 9: 200 };
+let sErrors = 0;
 let sN = 4, sBr = 2, sBc = 2, sSol = [], sGrid = [], sGiven = [], sSelIdx = -1, sBad = [];
 
 function setSudoku(n) { sN = n; [sBr, sBc] = SUD_BOX[n]; initSudoku(); }
@@ -64,8 +65,12 @@ function countSols(g, cap = 2) {
   dfs();
   return count;
 }
-function initSudoku() {
+// cfg (mode parcours) : { size: 4 | 6 | 9 }
+function initSudoku(cfg) {
   navToken++;
+  cfg = cfg || levelCfg();
+  if (cfg) sN = cfg.size;
+  sErrors = 0;
   [sBr, sBc] = SUD_BOX[sN];
   setActiveChips("sudoku", sN);
   sSelIdx = -1;
@@ -141,7 +146,7 @@ function checkSudoku() {
   if (empties) { toast(`Il reste ${empties} case${empties > 1 ? "s" : ""} à remplir`); return; }
   sBad = sGrid.map((v, p) => v !== sSol[p] ? 1 : 0);
   if (sBad.some(Boolean)) {
-    sfx("bad"); addPoints(-3);
+    sfx("bad"); addPoints(-3); sErrors++;
     renderSudoku();
     toast("Certaines cases sont fausses");
   } else {
@@ -149,7 +154,9 @@ function checkSudoku() {
     addPoints(pts); state.solved++;
     setBest("sudoku", pts);
     save();
-    winGame("Grille complète", `Sudoku ${sN}×${sN} terminé sans faute. +${pts} points`, pts);
+    // 3 étoiles si la grille est juste du premier coup, 2 après une erreur, 1 au-delà.
+    const stars = sErrors === 0 ? 3 : sErrors === 1 ? 2 : 1;
+    winGame("Grille complète", `Sudoku ${sN}×${sN} terminé${sErrors ? ` après ${sErrors} vérification${sErrors > 1 ? "s" : ""} ratée${sErrors > 1 ? "s" : ""}` : " sans faute"}. +${pts} points`, pts, stars);
   }
 }
 
@@ -160,8 +167,12 @@ LQ.register({
   hue: "#7fcfc0",
   recordLabel: v => `Record : ${({ 40: "4×4", 100: "6×6", 200: "9×9" })[v] || v + " pts"}`,
   init: initSudoku,
+  levelInfo: cfg => ({
+    what: `Une grille de sudoku ${cfg.size}×${cfg.size}`,
+    goals: ["Grille juste du premier coup", "Au plus une vérification ratée", "Terminer la grille"],
+  }),
   screen: `
-    <div class="chips">
+    <div class="chips lvl-hide">
       <button class="chip" data-b="4" onclick="setSudoku(4)">Facile · 4×4</button>
       <button class="chip" data-b="6" onclick="setSudoku(6)">Moyen · 6×6</button>
       <button class="chip" data-b="9" onclick="setSudoku(9)">Difficile · 9×9</button>
