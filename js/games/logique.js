@@ -77,6 +77,8 @@ const LOGIC_PL = [
   },
 ];
 let lgIdx = 0, lgLock = false, lgErrors = 0;
+// Grille en cours : celle imposée par un épisode de l’histoire (cfg.puzzle), sinon LOGIC_PL[lgIdx].
+function lgP() { const c = levelCfg(); return (c && c.puzzle) || LOGIC_PL[lgIdx]; }
 let lgAuto = true; // ✘ automatiques sur la ligne et la colonne d’un ✔
 
 /* Tableau croisé (grille en escalier) :
@@ -88,7 +90,7 @@ let lgAuto = true; // ✘ automatiques sur la ligne et la colonne d’un ✔
 // cfg (mode parcours) : { grid: indice dans LOGIC_PL }
 function initLogic(cfg) {
   cfg = cfg || levelCfg();
-  if (cfg) lgIdx = cfg.grid;
+  if (cfg && cfg.grid !== undefined) lgIdx = cfg.grid;
   try { lgAuto = localStorage.getItem("lq_lg_auto") !== "0"; } catch (e) {}
   renderLogicChips();
   renderLogic();
@@ -104,7 +106,7 @@ function renderLogicChips() {
     `<button class="chip ${i === lgIdx ? "active" : ""}" onclick="selectLogic(${i})">Grille ${i + 1}</button>`).join("");
 }
 function renderLogic() {
-  const P = LOGIC_PL[lgIdx];
+  const P = lgP();
   lgLock = false; lgErrors = 0;
   $("lg-story").innerHTML = P.story;
   $("lg-clues").innerHTML = "<ul>" + P.clues.map((c, i) => `<li><span class="n">${i + 1}.</span><span>${c}</span></li>`).join("") + "</ul>";
@@ -156,7 +158,7 @@ function cycleLogicCell(el) {
   if (next === "✔" && lgAuto) {
     // Un seul ✔ par ligne et par colonne dans un bloc : on barre le reste automatiquement.
     const g = el.dataset.g, r = +el.dataset.r, c = +el.dataset.c;
-    const n = LOGIC_PL[lgIdx].labelA.length;
+    const n = lgP().labelA.length;
     for (let k = 0; k < n; k++) {
       if (k !== c) { const o = lgCell(g, r, k); if (o.textContent === "") setLogicMark(o, "✘"); }
       if (k !== r) { const o = lgCell(g, k, c); if (o.textContent === "") setLogicMark(o, "✘"); }
@@ -176,7 +178,7 @@ function clearLogic() {
 }
 function checkLogic() {
   if (lgLock) return;
-  const P = LOGIC_PL[lgIdx];
+  const P = lgP();
   const n = P.labelA.length;
   const read = g => Array.from({ length: n }, (_, r) => Array.from({ length: n }, (_, c) => lgCell(g, r, c).textContent));
   const AB = read("AB"), AC = read("AC");
@@ -222,7 +224,7 @@ LQ.register({
   recordLabel: v => `Record : grille ${v}`,
   init: initLogic,
   levelInfo: cfg => ({
-    what: LOGIC_PL[cfg.grid].story.replace(/<[^>]+>/g, ""),
+    what: (cfg.puzzle || LOGIC_PL[cfg.grid]).story.replace(/<[^>]+>/g, ""),
     goals: ["Résoudre sans erreur de vérification", "Au plus une vérification ratée", "Résoudre la grille"],
   }),
   screen: `

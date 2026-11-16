@@ -74,6 +74,11 @@ function ngGenerate(n) {
   return null;
 }
 
+function ngFromImage(img) {
+  const sol = img.map(row => [...row].map(ch => ch === "#" ? 1 : 0));
+  return { sol, rows: sol.map(ngClues), cols: sol[0].map((_, c) => ngClues(sol.map(r => r[c]))) };
+}
+
 /* ---------- Partie ---------- */
 // cfg (mode parcours) : { size: 5 | 8 | 10 }
 function initNonogram(cfg) {
@@ -81,7 +86,8 @@ function initNonogram(cfg) {
   cfg = cfg || levelCfg();
   if (cfg) ngN = cfg.size;
   setActiveChips("nonogram", ngN);
-  let p = ngGenerate(ngN);
+  // cfg.image : dessin imposé (histoire), lignes de "#" (noir) et "." (blanc)
+  let p = cfg && cfg.image ? ngFromImage(cfg.image) : ngGenerate(ngN);
   while (!p) p = ngGenerate(ngN);
   ngSol = p.sol; ngRows = p.rows; ngCols = p.cols;
   ngCells = Array.from({ length: ngN }, () => new Array(ngN).fill(0)); // 0 vide, 1 noir, 2 croix
@@ -187,7 +193,7 @@ LQ.register({
   init: initNonogram,
   levelInfo: cfg => {
     const [t3, t2] = NG_TIME[cfg.size];
-    return { what: `Un nonogram ${cfg.size}×${cfg.size}`, goals: [`Résoudre en ${t3} s ou moins`, `Résoudre en ${t2} s ou moins`, "Résoudre la grille"] };
+    return { what: cfg.picture ? `Un nonogram ${cfg.size}×${cfg.size} qui révèle ${cfg.picture}` : `Un nonogram ${cfg.size}×${cfg.size}`, goals: [`Résoudre en ${t3} s ou moins`, `Résoudre en ${t2} s ou moins`, "Résoudre la grille"] };
   },
   screen: `
     <div class="chips lvl-hide">

@@ -85,6 +85,7 @@ function dailyCount() { return Object.values(state.daily).filter(v => v > 0).len
 function startDaily() {
   const t = dailyToday();
   LQ.level = null;
+  LQ.story = null;
   LQ.daily = { key: t.key, cfg: t.cfg };
   withSeed(t.seed + 1, () => launchGame(t.game));
 }
@@ -110,6 +111,7 @@ function openDaily() {
   leaveGame();
   LQ.level = null;
   LQ.daily = null;
+  LQ.story = null;
   currentGame = "daily";
   const now = new Date();
   calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
