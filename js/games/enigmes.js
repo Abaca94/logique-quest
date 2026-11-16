@@ -119,6 +119,7 @@ function renderEnigme() {
   $("enig-hint").classList.remove("show");
   $("enig-feedback").className = "feedback";
   $("enig-actions").style.display = "";
+  $("enig-next").style.display = "none";
   enigHintUsed = false;
   enigLock = false;
   // Pas de focus() automatique : sur iOS en plein écran, il fait clignoter ou figer l’affichage.
@@ -134,14 +135,17 @@ function enigmeMatches(raw, e) {
     return r === n || (n.length > 2 && (" " + r + " ").includes(" " + n + " "));
   });
 }
-function nextEnigme(delay) {
+// Après une réponse, on attend que le joueur touche « Énigme suivante ».
+function endEnigme() {
   enigLock = true;
   $("enig-actions").style.display = "none";
-  later(() => {
-    enigIndex++;
-    if (enigIndex < ENIGMES.length) renderEnigme();
-    else winGame("Enquête bouclée", `Vous avez parcouru les ${ENIGMES.length} énigmes.`, 240);
-  }, delay);
+  $("enig-next").style.display = "";
+  $("enig-next-btn").textContent = enigIndex < ENIGMES.length - 1 ? "Énigme suivante →" : "Terminer";
+}
+function nextEnigme() {
+  enigIndex++;
+  if (enigIndex < ENIGMES.length) { renderEnigme(); window.scrollTo(0, 0); }
+  else winGame("Enquête bouclée", `Vous avez parcouru les ${ENIGMES.length} énigmes.`, 240);
 }
 function submitEnigme() {
   if (enigLock) return;
@@ -157,7 +161,7 @@ function submitEnigme() {
     save();
     fb.className = "feedback show ok";
     fb.innerHTML = `<b>Exact : ${escapeHtml(e.a)}.</b> ${escapeHtml(e.ex)} +${pts} points`;
-    nextEnigme(3200);
+    endEnigme();
   } else {
     addPoints(-3); sfx("bad");
     fb.className = "feedback show ko";
@@ -180,7 +184,7 @@ function revealEnigme() {
   const fb = $("enig-feedback");
   fb.className = "feedback show ko";
   fb.innerHTML = `La réponse était <b>${escapeHtml(e.a)}</b>. ${escapeHtml(e.ex)}`;
-  nextEnigme(4500);
+  endEnigme();
 }
 
 LQ.register({
@@ -201,12 +205,18 @@ LQ.register({
       </div>
       <div class="hint-box" id="enig-hint"></div>
       <div class="feedback" id="enig-feedback"></div>
+      <div class="actions-row" id="enig-next" style="display:none">
+        <button class="btn" id="enig-next-btn" onclick="nextEnigme()">Énigme suivante →</button>
+      </div>
       <div class="actions-row" id="enig-actions">
         <button class="btn ghost small" onclick="showEnigmeHint()">${ICONS.bulb} Indice (−5 points)</button>
         <button class="btn ghost small" onclick="revealEnigme()">Voir la réponse</button>
       </div>
     </div>`,
   setup() {
-    $("enig-input").addEventListener("keydown", e => { if (e.key === "Enter") submitEnigme(); });
+    $("enig-input").addEventListener("keydown", e => {
+      if (e.key !== "Enter") return;
+      if (enigLock) nextEnigme(); else submitEnigme();
+    });
   },
 });
