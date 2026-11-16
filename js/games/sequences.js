@@ -39,6 +39,7 @@ function renderSequence() {
   $("seq-fill").style.width = (seqIndex / seqShuffled.length * 100) + "%";
   $("seq-question").innerHTML = `Quel nombre complète la suite ?<span class="seq">${escapeHtml(s.seq)}</span>`;
   $("seq-feedback").className = "feedback";
+  $("seq-next").style.display = "none";
   const box = $("seq-answers");
   box.innerHTML = "";
   shuffle(s.options).forEach(o => {
@@ -71,11 +72,13 @@ function answerSequence(btn, val) {
     $("seq-feedback").className = "feedback show ko";
     $("seq-feedback").innerHTML = `La bonne réponse était <b>${escapeHtml(s.answer)}</b>. ${escapeHtml(s.explain)}`;
   }
-  later(() => {
-    seqIndex++;
-    if (seqIndex < seqShuffled.length) renderSequence();
-    else winGame("Série terminée", `Niveau ${SEQ_LEVELS[seqDiff].toLowerCase()} : ${seqShuffled.length} suites passées en revue.`, 80 * (seqDiff + 1));
-  }, ok ? 1600 : 2400);
+  $("seq-next").style.display = "";
+  $("seq-next-btn").textContent = seqIndex < seqShuffled.length - 1 ? "Suite suivante →" : "Terminer";
+}
+function nextSequence() {
+  seqIndex++;
+  if (seqIndex < seqShuffled.length) { renderSequence(); window.scrollTo(0, 0); }
+  else winGame("Série terminée", `Niveau ${SEQ_LEVELS[seqDiff].toLowerCase()} : ${seqShuffled.length} suites passées en revue.`, 80 * (seqDiff + 1));
 }
 
 LQ.register({
@@ -95,5 +98,8 @@ LQ.register({
       <div class="question-txt" id="seq-question"></div>
       <div class="answers" id="seq-answers"></div>
       <div class="feedback" id="seq-feedback"></div>
+      <div class="actions-row" id="seq-next" style="display:none">
+        <button class="btn" id="seq-next-btn" onclick="nextSequence()">Suite suivante →</button>
+      </div>
     </div>`,
 });

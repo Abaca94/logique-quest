@@ -15,7 +15,7 @@ const VF_LIST = [
   { s: "Les pieuvres ont trois cœurs.", v: true, e: "Deux irriguent les branchies, le troisième le reste du corps." },
   { s: "L’autruche enfouit sa tête dans le sable quand elle a peur.", v: false, e: "Elle baisse la tête au ras du sol pour se faire discrète, mais ne l’enterre pas." },
 ];
-let vfShuffled = [], vfIndex = 0, vfGood = 0;
+let vfShuffled = [], vfIndex = 0, vfGood = 0, vfLock = false;
 
 function initVF() {
   navToken++;
@@ -30,8 +30,12 @@ function renderVF() {
   $("vf-question").textContent = "« " + item.s + " »";
   $("vf-feedback").className = "feedback";
   document.querySelectorAll("#screen-vf .vf-btn").forEach(b => b.disabled = false);
+  $("vf-next").style.display = "none";
+  vfLock = false;
 }
 function answerVF(v) {
+  if (vfLock) return;
+  vfLock = true;
   document.querySelectorAll("#screen-vf .vf-btn").forEach(b => b.disabled = true);
   const item = vfShuffled[vfIndex];
   const ok = v === item.v;
@@ -50,11 +54,13 @@ function answerVF(v) {
     fb.className = "feedback show ko";
     fb.innerHTML = `C’était <b>${item.v ? "vrai" : "faux"}</b>. ${escapeHtml(item.e)}`;
   }
-  later(() => {
-    vfIndex++;
-    if (vfIndex < vfShuffled.length) renderVF();
-    else winGame("Démêlé", `${vfGood} bonnes réponses sur ${vfShuffled.length}.`, Math.round(vfGood / vfShuffled.length * 240));
-  }, ok ? 1700 : 2500);
+  $("vf-next").style.display = "";
+  $("vf-next-btn").textContent = vfIndex < vfShuffled.length - 1 ? "Affirmation suivante →" : "Voir le résultat";
+}
+function nextVF() {
+  vfIndex++;
+  if (vfIndex < vfShuffled.length) { renderVF(); window.scrollTo(0, 0); }
+  else winGame("Démêlé", `${vfGood} bonnes réponses sur ${vfShuffled.length}.`, Math.round(vfGood / vfShuffled.length * 240));
 }
 
 LQ.register({
@@ -74,5 +80,8 @@ LQ.register({
         <button class="vf-btn f" onclick="answerVF(false)">${ICONS.cross} FAUX</button>
       </div>
       <div class="feedback" id="vf-feedback"></div>
+      <div class="actions-row" id="vf-next" style="display:none">
+        <button class="btn" id="vf-next-btn" onclick="nextVF()">Affirmation suivante →</button>
+      </div>
     </div>`,
 });
