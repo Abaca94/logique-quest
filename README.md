@@ -1,25 +1,40 @@
-# 🧩 LogiqueQuest
+# LogiqueQuest
 
-Mini-app de casse-têtes : **énigmes**, **séquences logiques**, **taquin** et **mémoire**.
-100 % local, aucune dépendance, pensée tactile pour iPad (compatible mobile + desktop).
+Jeu de logique, d’énigmes et de casse-tête pour adultes, pensé pour iPhone et iPad (fonctionne aussi sur ordinateur).
+100 % local, aucune dépendance, jouable hors connexion une fois installé.
 
-## 🚀 Utilisation
-Ouvrir `index.html` — c'est tout. Avec le service worker, le jeu fonctionne **hors-ligne** après la première visite.
+## Utilisation
+Ouvrir `index.html` dans un navigateur, ou mettre le dossier en ligne (HTTPS) pour l’installer :
+Safari → *Partager* → *« Sur l’écran d’accueil »*. L’app se lance alors en plein écran et garde les scores.
 
-## 🎮 Modes (8)
-| Mode | Description |
+## Jeux libres (8)
+| Jeu | Contenu |
 |---|---|
-| 🕵️ Énigmes | 12 énigmes à texte, indices contre points |
-| 🔢 Séquences | 15 suites logiques mélangées + explications — 3 niveaux |
-| 🀄 Taquin | 3×3 / 4×4, mélanges toujours solvables, chrono |
-| 🃏 Mémoire | 8 ou 10 paires d'emojis |
-| 🧮 Sudoku | 4×4 (facile), 6×6 (moyen), 9×9 (difficile) — grilles uniques générées à la volée |
-| 🔤 Mots mêlés | Grilles 8×8 / 10×10 / 12×12, mots cachés en 8 directions, glisser-pour-sélectionner |
-| 🧠 Cross-Logic | 6 grilles de déduction (style Sherlock) : ✘ / ✔ + vérification — dont expert 5×5 (île au trésor) et **expert+ 6×6** (train de 8h06) |
-| ⚖️ Vrai/Faux | 12 affirmations surprenantes avec explications |
+| Énigmes | 20 devinettes à réponse libre, indice contre points |
+| Séquences | 15 suites logiques, 3 niveaux |
+| Déduction | 6 grilles « qui fait quoi » (✘ / ✔), jusqu’à 6×6 |
+| Sudoku | 4×4, 6×6, 9×9, grilles à solution unique générées à la volée |
+| Taquin | 3×3, 4×4, 5×5, mélanges toujours solvables, chronomètre |
+| Mémoire | 8, 10 ou 12 paires |
+| Mots mêlés | 8×8, 10×10, 12×12, mots cachés dans 8 directions |
+| Vrai ou faux | 12 affirmations avec explication |
 
-🔊 Sons intégrés (Web Audio, aucun fichier) — bouton 🔊/🔇 dans l'entête.
-📊 Niveaux de difficulté sur Séquences, Sudoku, Mots mêlés (et Taquin via la taille).
+## Organisation des fichiers
+```
+index.html            coquille de l’app (barre du haut, accueil, écran de victoire)
+css/style.css         tout le style (thème sombre, iPhone et iPad)
+js/core.js            commun : sauvegarde, points, sons, navigation, icônes
+js/games/*.js         un fichier par jeu, déclaré avec LQ.register({...})
+js/app.js             menu d’accueil, mises à jour, mode hors ligne
+sw.js                 service worker (cache hors ligne)
+archive/              ancienne version en un seul fichier (v2.7)
+```
 
-## 📲 Installation sur iPad
-Safari → ouvrir le site → *Partager* → *« Sur l'écran d'accueil »* → l'app se lance en plein écran et garde les scores.
+### Ajouter un jeu
+Créer `js/games/monjeu.js` qui appelle `LQ.register({ id, title, desc, hue, init, screen })`,
+ajouter sa balise `<script>` dans `index.html` et son chemin dans la liste `ASSETS` de `sw.js`.
+Une icône peut être ajoutée dans `ICONS` (js/core.js) sous le même `id`.
+
+### Publier une nouvelle version
+Changer le numéro dans `index.html` (badge `verBadge`) **et** `LOCAL_VERSION` dans `js/app.js`,
+puis incrémenter `CACHE` dans `sw.js`. Les appareils installés se mettent à jour seuls au lancement suivant.

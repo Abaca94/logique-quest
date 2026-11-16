@@ -1,0 +1,156 @@
+/* ============================================================
+   Mots mêlés — glisser le doigt sur les lettres (8 directions)
+   ============================================================ */
+const WS_WORDS = [
+  "ENIGME", "LOGIQUE", "INDICE", "MYSTERE", "SECRET", "DEDUIRE", "SPHINX", "CODE", "CLEF", "PUZZLE",
+  "LABYRINTHE", "ORACLE", "BOUSSOLE", "ASTROLABE", "CRYPTE", "GRIMOIRE", "SIGNAL", "PARADOXE",
+  "THEOREME", "ALIBI", "TEMOIN", "PISTE", "DETECTIVE", "SOLUTION", "HORLOGE", "MIROIR", "LANTERNE", "ECHIQUIER",
+];
+const WS_DIRS = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]];
+let wsS = 8, wsG = [], wsList = [], wsFound = new Set(), wsStart = null;
+
+function setMots(s) { wsS = s; initMots(); }
+function initMots() {
+  navToken++;
+  setActiveChips("mots", wsS);
+  wsFound = new Set(); wsStart = null;
+  const nWords = { 8: 5, 10: 8, 12: 10 }[wsS];
+  const fits = WS_WORDS.filter(w => w.length <= wsS);
+  let placed = false, guard = 0;
+  while (!placed && guard++ < 60) {
+    wsG = Array.from({ length: wsS }, () => Array(wsS).fill(""));
+    wsList = shuffle(fits).slice(0, nWords);
+    placed = wsList.every(w => wsPlace(w));
+  }
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  for (let r = 0; r < wsS; r++) for (let c = 0; c < wsS; c++) if (!wsG[r][c]) wsG[r][c] = letters[Math.floor(Math.random() * 26)];
+  renderWsBoard();
+  renderWsWords();
+}
+function wsPlace(w) {
+  for (let tries = 0; tries < 500; tries++) {
+    const dir = WS_DIRS[Math.floor(Math.random() * 8)];
+    const r0 = Math.floor(Math.random() * wsS), c0 = Math.floor(Math.random() * wsS);
+    const rE = r0 + dir[0] * (w.length - 1), cE = c0 + dir[1] * (w.length - 1);
+    if (rE < 0 || cE < 0 || rE >= wsS || cE >= wsS) continue;
+    let ok = true;
+    for (let k = 0; k < w.length; k++) {
+      const cur = wsG[r0 + dir[0] * k][c0 + dir[1] * k];
+      if (cur && cur !== w[k]) { ok = false; break; }
+    }
+    if (!ok) continue;
+    for (let k = 0; k < w.length; k++) wsG[r0 + dir[0] * k][c0 + dir[1] * k] = w[k];
+    return true;
+  }
+  return false;
+}
+function renderWsBoard() {
+  const b = $("ws-board");
+  b.style.gridTemplateColumns = `repeat(${wsS}, 1fr)`;
+  b.innerHTML = "";
+  for (let r = 0; r < wsS; r++) for (let c = 0; c < wsS; c++) {
+    const d = document.createElement("div");
+    d.className = "ws-cell";
+    d.dataset.r = r; d.dataset.c = c;
+    d.textContent = wsG[r][c];
+    b.appendChild(d);
+  }
+  sizeWs();
+}
+function wsCellAt(x, y) {
+  const el = document.elementFromPoint(x, y);
+  return el && el.closest ? el.closest("#ws-board .ws-cell") : null;
+}
+function sizeWs() {
+  const b = $("ws-board");
+  requestAnimationFrame(() => {
+    const w = b.clientWidth;
+    if (!w) return;
+    const cw = Math.floor((w - 3 * (wsS - 1)) / wsS);
+    b.style.gridAutoRows = cw + "px";
+    b.style.setProperty("--wsf", Math.max(12, Math.floor(cw * .5)) + "px");
+  });
+}
+function wsPath(r0, c0, r1, c1) {
+  const dr = r1 - r0, dc = c1 - c0;
+  if (!(dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc))) return null;
+  const steps = Math.max(Math.abs(dr), Math.abs(dc));
+  const sr = Math.sign(dr), sc = Math.sign(dc);
+  return Array.from({ length: steps + 1 }, (_, k) => [r0 + sr * k, c0 + sc * k]);
+}
+function drawWsSel(r0, c0, r1, c1) {
+  const path = wsPath(r0, c0, r1, c1);
+  if (!path) return; // hors ligne droite : on garde la dernière sélection valide
+  document.querySelectorAll("#ws-board .ws-cell.sel").forEach(c => c.classList.remove("sel"));
+  wsStart.path = path;
+  path.forEach(([r, c]) => document.querySelector(`#ws-board .ws-cell[data-r="${r}"][data-c="${c}"]`)?.classList.add("sel"));
+}
+function wsCheck() {
+  const path = wsStart && wsStart.path;
+  wsStart = null;
+  document.querySelectorAll("#ws-board .ws-cell.sel").forEach(c => c.classList.remove("sel"));
+  if (!path || path.length < 2) return;
+  const word = path.map(([r, c]) => wsG[r][c]).join("");
+  const rev = [...word].reverse().join("");
+  const w = wsList.find(x => !wsFound.has(x) && (x === word || x === rev));
+  if (!w) { sfx("flip"); return; }
+  wsFound.add(w);
+  path.forEach(([r, c]) => document.querySelector(`#ws-board .ws-cell[data-r="${r}"][data-c="${c}"]`)?.classList.add("found"));
+  renderWsWords();
+  addPoints(8);
+  setBest("mots", wsFound.size);
+  sfx("good");
+  if (wsFound.size === wsList.length) {
+    state.solved++;
+    addPoints(30);
+    toast("Grille terminée : +30 points de bonus");
+    later(() => winGame("Tous trouvés", `${wsList.length} mots repérés sur une grille ${wsS}×${wsS}.`, 80 + wsFound.size * 8), 700);
+  }
+}
+function renderWsWords() {
+  $("ws-words").innerHTML = wsList.map(w => `<span class="ws-word ${wsFound.has(w) ? "found" : ""}">${w}</span>`).join("");
+  $("ws-found-n").textContent = wsFound.size;
+  $("ws-total").textContent = wsList.length;
+}
+
+LQ.register({
+  id: "mots",
+  title: "Mots mêlés",
+  desc: "Repérer les mots cachés",
+  hue: "#9ccf7a",
+  recordLabel: v => `Record : ${v} mots`,
+  init: initMots,
+  screen: `
+    <div class="chips">
+      <button class="chip" data-b="8" onclick="setMots(8)">Facile · 8×8</button>
+      <button class="chip" data-b="10" onclick="setMots(10)">Moyen · 10×10</button>
+      <button class="chip" data-b="12" onclick="setMots(12)">Difficile · 12×12</button>
+    </div>
+    <div class="stat-pills">
+      <div class="pill">Trouvés <b><span id="ws-found-n">0</span>/<span id="ws-total">5</span></b></div>
+      <button class="btn ghost small" onclick="initMots()">${ICONS.refresh} Nouvelle grille</button>
+    </div>
+    <div class="ws-words" id="ws-words"></div>
+    <div class="ws-board" id="ws-board"></div>
+    <p class="hint-line">Glissez le doigt de la première à la dernière lettre, dans n’importe quelle direction.</p>`,
+  setup() {
+    const b = $("ws-board");
+    b.addEventListener("pointerdown", e => {
+      const cell = wsCellAt(e.clientX, e.clientY);
+      if (!cell) return;
+      e.preventDefault();
+      wsStart = { r: +cell.dataset.r, c: +cell.dataset.c, path: null };
+      drawWsSel(wsStart.r, wsStart.c, wsStart.r, wsStart.c);
+    });
+    b.addEventListener("pointermove", e => {
+      if (!wsStart) return;
+      const cell = wsCellAt(e.clientX, e.clientY);
+      if (cell) drawWsSel(wsStart.r, wsStart.c, +cell.dataset.r, +cell.dataset.c);
+    });
+    const end = () => { if (wsStart) wsCheck(); };
+    b.addEventListener("pointerup", end);
+    b.addEventListener("pointercancel", end);
+    b.addEventListener("pointerleave", end);
+    window.addEventListener("resize", sizeWs);
+  },
+});
