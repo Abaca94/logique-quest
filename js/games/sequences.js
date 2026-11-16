@@ -17,6 +17,22 @@ const SEQUENCES = [
   { seq: "100, 50, 52, 26, 28, ?", options: ["14", "30", "16", "12"], answer: "14", explain: "On divise par 2, puis on ajoute 2, en alternance : 28 ÷ 2 = 14.", d: 3 },
   { seq: "1, 2, 6, 24, ?", options: ["96", "120", "144", "48"], answer: "120", explain: "Factorielles : ×2, ×3, ×4, puis ×5 : 24 × 5 = 120.", d: 3 },
   { seq: "2, 5, 11, 23, ?", options: ["35", "43", "47", "45"], answer: "47", explain: "On multiplie par 2 puis on ajoute 1 : 23 × 2 + 1 = 47.", d: 3 },
+  /* ----- Ajouts v5.0 ----- */
+  { seq: "3, 9, 27, 81, ?", options: ["162", "243", "108", "324"], answer: "243", explain: "On multiplie par 3 à chaque étape.", d: 1 },
+  { seq: "50, 45, 40, 35, ?", options: ["25", "30", "32", "20"], answer: "30", explain: "On retire 5 à chaque fois.", d: 1 },
+  { seq: "1, 3, 5, 7, 9, ?", options: ["10", "11", "12", "13"], answer: "11", explain: "Ce sont les nombres impairs : on ajoute 2.", d: 1 },
+  { seq: "7, 14, 21, 28, ?", options: ["32", "35", "36", "42"], answer: "35", explain: "La table de 7 : on ajoute 7.", d: 1 },
+  { seq: "1000, 100, 10, ?", options: ["0", "1", "0,1", "5"], answer: "1", explain: "On divise par 10 à chaque étape.", d: 1 },
+  { seq: "2, 3, 5, 7, 11, ?", options: ["12", "13", "14", "15"], answer: "13", explain: "Ce sont les nombres premiers : après 11 vient 13.", d: 2 },
+  { seq: "1, 2, 4, 7, 11, ?", options: ["15", "16", "17", "18"], answer: "16", explain: "Les écarts augmentent de 1 : +1, +2, +3, +4, puis +5.", d: 2 },
+  { seq: "0, 3, 8, 15, 24, ?", options: ["33", "35", "36", "48"], answer: "35", explain: "Ce sont les carrés moins 1 : 1−1, 4−1, 9−1… donc 36 − 1 = 35.", d: 2 },
+  { seq: "1, 4, 13, 40, ?", options: ["120", "121", "118", "160"], answer: "121", explain: "On multiplie par 3 puis on ajoute 1 : 40 × 3 + 1 = 121.", d: 2 },
+  { seq: "2, 4, 3, 6, 5, 10, ?", options: ["9", "11", "8", "20"], answer: "9", explain: "On multiplie par 2, puis on retire 1, en alternance : 10 − 1 = 9.", d: 2 },
+  { seq: "1, 4, 27, 256, ?", options: ["625", "1024", "3125", "3000"], answer: "3125", explain: "Chaque nombre élevé à sa propre puissance : 1¹, 2², 3³, 4⁴, donc 5⁵ = 3125.", d: 3 },
+  { seq: "2, 3, 5, 9, 17, ?", options: ["31", "33", "34", "35"], answer: "33", explain: "Les écarts doublent : +1, +2, +4, +8, puis +16 : 17 + 16 = 33.", d: 3 },
+  { seq: "1, 2, 5, 14, 41, ?", options: ["121", "122", "123", "124"], answer: "122", explain: "On multiplie par 3 puis on retire 1 : 41 × 3 − 1 = 122.", d: 3 },
+  { seq: "6, 11, 21, 36, 56, ?", options: ["76", "80", "81", "86"], answer: "81", explain: "Les écarts sont +5, +10, +15, +20, puis +25 : 56 + 25 = 81.", d: 3 },
+  { seq: "4 ; 6 ; 9 ; 13,5 ; ?", options: ["18", "20,25", "19,5", "22"], answer: "20,25", explain: "On multiplie par 1,5 à chaque étape : 13,5 × 1,5 = 20,25.", d: 3 },
 ];
 const SEQ_LEVELS = ["Facile", "Moyen", "Difficile"];
 let seqShuffled = [], seqIndex = 0, seqDiff = 1, seqLock = false, seqGood = 0;
@@ -25,14 +41,15 @@ function setSeqDiff(i) {
   seqDiff = i;
   initSequences();
 }
-// cfg (mode parcours) : { diff: 0 | 1 | 2 }
+// cfg (mode parcours) : { diff: 0 | 1 | 2, ids?: [indices dans SEQUENCES] }
 function initSequences(cfg) {
   navToken++;
   cfg = cfg || levelCfg();
   if (cfg) seqDiff = cfg.diff;
   seqGood = 0;
   setActiveChips("sequences", seqDiff);
-  seqShuffled = shuffle(SEQUENCES.filter(s => s.d === seqDiff + 1));
+  // cfg.ids (parcours) : une sélection précise ; sinon toutes les suites du niveau choisi.
+  seqShuffled = shuffle(cfg && cfg.ids ? cfg.ids.map(i => SEQUENCES[i]) : SEQUENCES.filter(s => s.d === seqDiff + 1));
   seqIndex = 0;
   renderSequence();
 }
@@ -93,7 +110,7 @@ LQ.register({
   recordLabel: v => `Record : niveau ${SEQ_LEVELS[v - 1] ? SEQ_LEVELS[v - 1].toLowerCase() : v}`,
   init: initSequences,
   levelInfo: cfg => {
-    const n = SEQUENCES.filter(s => s.d === cfg.diff + 1).length;
+    const n = cfg.ids ? cfg.ids.length : SEQUENCES.filter(s => s.d === cfg.diff + 1).length;
     return { what: `${n} suites, niveau ${SEQ_LEVELS[cfg.diff].toLowerCase()}`, goals: countGoals(n) };
   },
   screen: `

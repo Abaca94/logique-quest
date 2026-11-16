@@ -9,9 +9,11 @@ const CHAPTERS = [
   { name: "Premiers pas", roman: "I", need: 0 },
   { name: "Raisonnement", roman: "II", need: 18 },
   { name: "Expertise", roman: "III", need: 45 },
+  { name: "Maîtrise", roman: "IV", need: 70 },
+  { name: "Virtuose", roman: "V", need: 95 },
 ];
 
-// 10 niveaux par chapitre, dans l’ordre.
+// 10 niveaux par chapitre, dans l’ordre (50 niveaux en 5 chapitres).
 const LEVELS = [
   // Chapitre I
   { game: "enigmes", cfg: { ids: [0, 2, 4] } },
@@ -46,18 +48,40 @@ const LEVELS = [
   { game: "taquin", cfg: { size: 5 } },
   { game: "enigmes", cfg: { ids: [18, 19, 23] } },
   { game: "logique", cfg: { grid: 5 } },
+  // Chapitre IV
+  { game: "nonogram", cfg: { size: 5 } },
+  { game: "enigmes", cfg: { ids: [25, 29, 32] } },
+  { game: "kakuro", cfg: { size: 6 } },
+  { game: "vf", cfg: { ids: [12, 13, 14, 15, 16, 17, 18, 19] } },
+  { game: "sequences", cfg: { diff: 1, ids: [20, 21, 22, 23, 24] } },
+  { game: "enigmes", cfg: { ids: [36, 37, 56] } },
+  { game: "nonogram", cfg: { size: 8 } },
+  { game: "kakuro", cfg: { size: 8 } },
+  { game: "vf", cfg: { ids: [20, 21, 22, 23, 24, 25, 26, 27] } },
+  { game: "enigmes", cfg: { ids: [51, 57, 58] } },
+  // Chapitre V
+  { game: "sequences", cfg: { diff: 2, ids: [25, 26, 27, 28, 29] } },
+  { game: "nonogram", cfg: { size: 10 } },
+  { game: "enigmes", cfg: { ids: [38, 42, 47] } },
+  { game: "sudoku", cfg: { size: 9 } },
+  { game: "vf", cfg: { ids: [28, 29, 30, 31, 32, 33, 34, 35] } },
+  { game: "kakuro", cfg: { size: 10 } },
+  { game: "mots", cfg: { size: 12 } },
+  { game: "enigmes", cfg: { ids: [24, 43, 50] } },
+  { game: "vf", cfg: { ids: [36, 37, 38, 39, 40, 41, 42, 43] } },
+  { game: "enigmes", cfg: { ids: [44, 45, 49] } },
 ];
 const PER_CHAPTER = 10;
 const MAX_STARS = LEVELS.length * 3;
 
 const RANKS = [
   { min: 0, name: "Apprenti" },
-  { min: 8, name: "Curieux" },
-  { min: 20, name: "Enquêteur" },
-  { min: 35, name: "Analyste" },
-  { min: 55, name: "Stratège" },
-  { min: 75, name: "Maître" },
-  { min: 90, name: "Grand maître" },
+  { min: 10, name: "Curieux" },
+  { min: 25, name: "Enquêteur" },
+  { min: 45, name: "Analyste" },
+  { min: 70, name: "Stratège" },
+  { min: 100, name: "Maître" },
+  { min: 130, name: "Grand maître" },
 ];
 
 /* ---------- Calculs de progression ---------- */
@@ -120,9 +144,11 @@ const BADGES = [
   { id: "chap1", name: "Chapitre I", desc: "Valider les 10 niveaux du chapitre I", test: () => chapterDone(0) },
   { id: "chap2", name: "Chapitre II", desc: "Valider les 10 niveaux du chapitre II", test: () => chapterDone(1) },
   { id: "chap3", name: "Chapitre III", desc: "Valider les 10 niveaux du chapitre III", test: () => chapterDone(2) },
+  { id: "chap4", name: "Chapitre IV", desc: "Valider les 10 niveaux du chapitre IV", test: () => chapterDone(3) },
+  { id: "chap5", name: "Chapitre V", desc: "Valider les 10 niveaux du chapitre V", test: () => chapterDone(4) },
   { id: "chapperfect", name: "Perfectionniste", desc: "3 étoiles sur tous les niveaux d’un chapitre", test: () => CHAPTERS.some((_, c) => chapterStars(c) === PER_CHAPTER * 3) },
   { id: "allstars", name: "Grand maître", desc: `Réunir les ${MAX_STARS} étoiles du parcours`, test: () => totalStars() >= MAX_STARS },
-  { id: "poly", name: "Touche-à-tout", desc: "Gagner une partie dans chacun des 8 jeux", test: () => LQ.games.every(g => (state.wins[g.id] || 0) > 0) },
+  { id: "poly", name: "Touche-à-tout", desc: `Gagner une partie dans chacun des ${LQ.games.length} jeux`, test: () => LQ.games.every(g => (state.wins[g.id] || 0) > 0) },
   { id: "detective", name: "Détective", desc: "3 étoiles sur les 6 grilles de déduction du parcours", test: () => LEVELS.every((l, i) => l.game !== "logique" || levelStars(i + 1) === 3) },
   { id: "streak10", name: "En série", desc: "Enchaîner 10 réussites sans erreur", test: () => state.bestStreak >= 10 },
   { id: "streak25", name: "Implacable", desc: "Enchaîner 25 réussites sans erreur", test: () => state.bestStreak >= 25 },
