@@ -135,7 +135,10 @@ function renderDaily() {
     <p class="dc-what">${escapeHtml(info.what)}. Le même défi pour tout le monde aujourd’hui.</p>
     <ul class="ls-goals">${info.goals.map((x, i) => `<li><span class="ls-stars">${starsHtml(3 - i)}</span><span>${escapeHtml(x)}</span></li>`).join("")}</ul>
     ${st ? `<div class="dc-done"><span class="ls-stars">${starsHtml(st)}</span><span>Réussi aujourd’hui. Prochain défi dans ${untilTomorrow()}.</span></div>` : ""}
-    <button class="btn dc-play" onclick="startDaily()">${ICONS.play} ${st ? (st < 3 ? "Rejouer pour faire mieux" : "Rejouer") : "Relever le défi"}</button>
+    <div class="dc-btns">
+      <button class="btn dc-play ${st ? "ghost" : ""}" onclick="startDaily()">${ICONS.play} ${st ? (st < 3 ? "Rejouer pour faire mieux" : "Rejouer") : "Relever le défi"}</button>
+      ${st ? `<button class="btn dc-play" onclick="shareDaily('${t.key}')">${ICONS.share} Partager</button>` : ""}
+    </div>
     ${st ? "" : `<p class="dc-bonus">Bonus de ${DAILY_BONUS} points à la première réussite du jour.</p>`}`;
   $("daily-streak").textContent = dailyStreak();
   $("daily-best").textContent = Math.max(state.bestDaily || 0, dailyStreak());

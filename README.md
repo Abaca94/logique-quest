@@ -33,6 +33,13 @@ du récit. Les personnages sont inventés, le décor et les faits d’époque so
 - **Règles** de chaque jeu : affichées à la première ouverture, puis via le bouton « ? » en haut.
 - **Texte agrandi** (bouton sur l’accueil) et clavier numérique pour les énigmes à réponse chiffrée.
 
+## Partage, changement d’appareil, statistiques (v8.1)
+- **Partager le défi du jour** : une fois réussi, un bouton envoie le résultat (jeu, étoiles, série) par la feuille de partage d’iOS.
+- **Changer d’appareil** (Profil) : « Envoyer ma progression » produit un code à transmettre par AirDrop, Messages ou Notes ;
+  sur l’autre appareil, « Récupérer une progression » le lit et **fusionne** : on garde le meilleur des deux, rien n’est effacé.
+- **Statistiques** (Profil) : activité des 12 dernières semaines (jours joués, défis réussis), taux de parties gagnées,
+  et un bilan par jeu (parties gagnées, record en jeu libre, étoiles du parcours).
+
 ## Jeux libres (10)
 Chaque jeu reste jouable seul, avec le choix de la difficulté.
 | Jeu | Contenu |
@@ -57,6 +64,7 @@ js/games/*.js         un fichier par jeu, déclaré avec LQ.register({...})
 js/levels.js          parcours : chapitres, niveaux, rangs, badges, carte et profil
 js/daily.js           défi du jour : rotation, graine par date, série, calendrier
 js/story.js           mode histoire : texte des épisodes, épreuves, progression
+js/share.js           partage du défi, code de transfert entre appareils, statistiques du profil
 js/app.js             menu d’accueil, mises à jour, mode hors ligne
 sw.js                 service worker (cache hors ligne)
 archive/              ancienne version en un seul fichier (v2.7)

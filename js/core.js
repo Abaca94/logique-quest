@@ -40,6 +40,8 @@ const ICONS = {
   undo: '<svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
   pencil: '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>',
   help: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.6"/><path d="M12 16.8v.1"/></svg>',
+  share: '<svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>',
+  transfer: '<svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="8" height="14" rx="1.5"/><rect x="13.5" y="6" width="8" height="14" rx="1.5"/><path d="M8 11h8M14 9l2 2-2 2"/></svg>',
   textSize: '<svg viewBox="0 0 24 24"><path d="M3 19l5-13 5 13M4.8 14.5h6.4"/><path d="M14 19l3.5-9 3.5 9M15.2 16h4.6"/></svg>',
   shuffle: '<svg viewBox="0 0 24 24"><path d="M3 7h3.5c4 0 6 10 10 10H21M3 17h3.5c1.6 0 2.8-1.5 3.8-3.4M13.7 10.4C14.7 8.5 15.9 7 17.5 7H21"/><path d="M18.5 4.5L21 7l-2.5 2.5M18.5 14.5L21 17l-2.5 2.5"/></svg>',
 };
@@ -68,7 +70,7 @@ const SAVE_KEY = "logiquequest_v1";
 function defaultState() {
   // levels : étoiles par niveau du parcours · badges : date d’obtention · wins : parties gagnées par jeu
   // daily : étoiles du défi du jour par date (AAAA-MM-JJ) · bestDaily : plus longue série de jours
-  return { score: 0, solved: 0, bestStreak: 0, streak: 0, sound: true, best: {}, levels: {}, badges: {}, wins: {}, daily: {}, bestDaily: 0, story: {}, resume: {}, seenRules: {}, bigText: false };
+  return { score: 0, solved: 0, bestStreak: 0, streak: 0, sound: true, best: {}, levels: {}, badges: {}, wins: {}, daily: {}, bestDaily: 0, story: {}, resume: {}, seenRules: {}, bigText: false, played: {}, activity: {} };
 }
 function loadState() {
   try {
@@ -82,6 +84,8 @@ function loadState() {
     s.story = { ...(raw.story || {}) };
     s.resume = { ...(raw.resume || {}) };
     s.seenRules = { ...(raw.seenRules || {}) };
+    s.played = { ...(raw.played || {}) };
+    s.activity = { ...(raw.activity || {}) };
     return s;
   } catch (e) { return defaultState(); }
 }
@@ -292,6 +296,7 @@ function winGame(title, sub, pts, stars) {
   const g = LQ.byId[currentGame];
   const n = stars === undefined ? Math.max(1, Math.min(3, Math.round(pts / 80))) : stars;
   if (n > 0) state.wins[currentGame] = (state.wins[currentGame] || 0) + 1;
+  trackPlay(currentGame, n > 0);
   const notes = [];
   if (LQ.level) notes.push(...recordLevel(LQ.level.n, n));
   if (LQ.daily) notes.push(...recordDaily(LQ.daily.key, n));
@@ -319,7 +324,8 @@ function winGame(title, sub, pts, stars) {
       + `<button class="btn ${n > 0 && LQ.story.n < STORY.episodes.length ? "ghost" : ""}" onclick="replay()">${n > 0 ? "Rejouer l’épreuve" : "Réessayer"}</button>`
       + `<button class="btn ghost" onclick="openStory()">Sommaire de l’histoire</button>`
     : LQ.daily
-    ? `<button class="btn" onclick="replay()">${n > 0 ? "Rejouer le défi" : "Réessayer"}</button><button class="btn ghost" onclick="openDaily()">Calendrier des défis</button>`
+    ? (dailyStars(LQ.daily.key) > 0 ? `<button class="btn" onclick="shareDaily('${LQ.daily.key}')">${ICONS.share} Partager mon résultat</button>` : "")
+      + `<button class="btn ${dailyStars(LQ.daily.key) > 0 ? "ghost" : ""}" onclick="replay()">${n > 0 ? "Rejouer le défi" : "Réessayer"}</button><button class="btn ghost" onclick="openDaily()">Calendrier des défis</button>`
     : `<button class="btn" onclick="replay()">Rejouer</button><button class="btn ghost" onclick="goHome()">Retour au menu</button>`;
   showScreen("win");
 }

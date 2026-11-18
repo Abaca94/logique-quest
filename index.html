@@ -52,7 +52,7 @@
         <button class="btn ghost small" onclick="resetProgress()">Réinitialiser ma progression</button>
       </div>
       <p class="install-tip">Sur iPhone ou iPad : <b>Partager</b> puis <b>« Sur l’écran d’accueil »</b> pour jouer en plein écran, même hors connexion.</p>
-      <p class="version">LogiqueQuest <span id="verBadge" onclick="forceUpdate()">v8.0</span> · touchez la version pour forcer la mise à jour</p>
+      <p class="version">LogiqueQuest <span id="verBadge" onclick="forceUpdate()">v8.1</span> · touchez la version pour forcer la mise à jour</p>
     </div>
   </section>
 
@@ -93,10 +93,28 @@
       <div class="stat-box"><div class="v" id="stat-stars">0</div><div class="l">Étoiles</div></div>
       <div class="stat-box"><div class="v" id="stat-badges">0</div><div class="l">Badges</div></div>
     </div>
+    <h2 class="section-title">Activité des 12 dernières semaines</h2>
+    <div class="stats-row stats-act" id="act-summary"></div>
+    <div class="act-card">
+      <div class="act-wrap">
+        <div class="act-days"><span>L</span><span></span><span>M</span><span></span><span>V</span><span></span><span>D</span></div>
+        <div class="act-grid" id="act-grid" onclick="actTip(event)"></div>
+      </div>
+      <div class="act-foot"><span id="act-tip"></span><span class="act-legend">Moins <i class="act-cell a0"></i><i class="act-cell a1"></i><i class="act-cell a2"></i><i class="act-cell a3"></i><i class="act-cell a4"></i> Plus</span></div>
+    </div>
+    <h2 class="section-title">Bilan par jeu</h2>
+    <p class="section-note">Parties gagnées, record en jeu libre et étoiles du parcours.</p>
+    <div class="wins-list" id="wins-list"></div>
     <h2 class="section-title">Badges</h2>
     <div class="badge-grid" id="badge-grid"></div>
-    <h2 class="section-title">Parties gagnées par jeu</h2>
-    <div class="wins-list" id="wins-list"></div>
+    <h2 class="section-title">Changer d’appareil</h2>
+    <div class="transfer-card">
+      <p>Retrouvez votre progression sur votre iPad ou votre iPhone : envoyez un code depuis cet appareil, puis collez-le sur l’autre. Les deux progressions sont fusionnées.</p>
+      <div class="transfer-btns">
+        <button class="btn small" onclick="openTransfer('export')">Envoyer ma progression</button>
+        <button class="btn ghost small" onclick="openTransfer('import')">Récupérer une progression</button>
+      </div>
+    </div>
   </section>
 
   <!-- Les écrans de chaque jeu sont ajoutés ici par js/games/*.js -->
@@ -137,6 +155,15 @@
   </div>
 </div>
 
+<div class="modal" id="transfer-sheet" aria-hidden="true">
+  <div class="modal-card transfer-modal" role="dialog" aria-modal="true" aria-labelledby="transfer-title">
+    <h3 id="transfer-title"></h3>
+    <p id="transfer-text"></p>
+    <textarea id="transfer-code" rows="5" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea>
+    <div class="modal-actions" id="transfer-actions"></div>
+  </div>
+</div>
+
 <div class="modal" id="modal" aria-hidden="true">
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <h3 id="modal-title"></h3>
@@ -162,6 +189,7 @@
 <script src="js/levels.js"></script>
 <script src="js/daily.js"></script>
 <script src="js/story.js"></script>
+<script src="js/share.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

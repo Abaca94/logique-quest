@@ -284,7 +284,7 @@ function renderProfile() {
       <div><b>${b.name}</b><p>${b.desc}</p>${got ? `<small>Obtenu le ${got.split("-").reverse().join("/")}</small>` : ""}</div>
     </div>`;
   }).join("");
-  $("wins-list").innerHTML = LQ.games.map(g => `<div class="win-row" style="--hue:${g.hue}"><span class="w-ico">${ICONS[g.id]}</span><span>${g.title}</span><b>${state.wins[g.id] || 0}</b></div>`).join("");
+  renderStats();
 }
 
 /* ---------- Cartes de l’accueil ---------- */

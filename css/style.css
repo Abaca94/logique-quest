@@ -688,3 +688,47 @@ body.big-text .menu-card p, body.big-text .hc-sub { font-size: 15px; }
 body.big-text #lg-clues li, body.big-text #lg-story { font-size: 16.5px; }
 body.big-text .text-input { font-size: 19px; }
 body.big-text .rules-list { font-size: 16.5px; }
+
+/* ============ Partage, transfert, statistiques (v8.1) ============ */
+.dc-btns { display: flex; gap: 10px; }
+.dc-btns .dc-play { flex: 1; }
+.dc-btns .dc-play + .dc-play svg { fill: none; }
+.section-note { color: var(--muted); font-size: 13.5px; margin: -4px 0 10px; }
+.stats-act { grid-template-columns: repeat(4, 1fr); max-width: none; margin: 0 0 10px; }
+.stats-act .v { font-size: 20px; }
+.act-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px; }
+.act-wrap { display: flex; gap: 6px; justify-content: center; }
+.act-days { display: grid; grid-template-rows: repeat(7, 1fr); gap: 4px; font-size: 10px; color: var(--muted); }
+.act-days span { display: flex; align-items: center; }
+.act-grid { flex: 1; max-width: 420px; display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, auto); grid-template-columns: repeat(12, 1fr); gap: 4px; }
+.act-cell { display: block; aspect-ratio: 1; border-radius: 4px; background: var(--surface-3); cursor: pointer; }
+.act-cell.a1 { background: #6a5a3e; }
+.act-cell.a2 { background: #92763f; }
+.act-cell.a3 { background: #bb924a; }
+.act-cell.a4 { background: #e6b866; }
+.act-cell.dly { box-shadow: inset 0 0 0 2px var(--good); }
+.act-cell.today { outline: 2px solid var(--text); outline-offset: 1px; }
+.act-cell.sel { outline: 2px solid var(--cool); outline-offset: 1px; }
+.act-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+.act-legend { display: inline-flex; align-items: center; gap: 3px; }
+.act-legend .act-cell { width: 11px; height: 11px; border-radius: 3px; cursor: default; }
+.gstat { --hue: var(--accent); display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; }
+.gstat .w-ico svg { width: 22px; height: 22px; }
+.gs-body { flex: 1; min-width: 0; }
+.gs-top, .gs-meta { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.gs-top b { font-size: 15px; }
+.gs-top span { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gs-bar { height: 6px; border-radius: 3px; background: var(--surface-3); margin: 7px 0; overflow: hidden; }
+.gs-bar span { display: block; height: 100%; border-radius: 3px; background: var(--hue); }
+.gs-meta { font-size: 12.5px; color: var(--muted); }
+.gs-meta .ls-stars { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.gs-meta .ls-stars svg { width: 13px; height: 13px; }
+.transfer-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px 16px; }
+.transfer-card p { color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+.transfer-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.transfer-modal { max-width: 440px; }
+.transfer-modal textarea { width: 100%; margin-top: 14px; background: var(--bg); color: var(--text); border: 1px solid var(--line-strong); border-radius: 10px; padding: 10px; font: 12.5px/1.45 var(--font-mono); word-break: break-all; resize: none; }
+.transfer-modal .modal-actions { flex-wrap: wrap; }
+@media (max-width: 420px) { .stats-act { grid-template-columns: repeat(2, 1fr); } }
+body.big-text .gs-top b { font-size: 17px; }
+body.big-text .gs-meta, body.big-text .act-foot { font-size: 14px; }
