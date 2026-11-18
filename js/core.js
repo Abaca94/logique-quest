@@ -43,6 +43,10 @@ const ICONS = {
   share: '<svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>',
   transfer: '<svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="8" height="14" rx="1.5"/><rect x="13.5" y="6" width="8" height="14" rx="1.5"/><path d="M8 11h8M14 9l2 2-2 2"/></svg>',
   textSize: '<svg viewBox="0 0 24 24"><path d="M3 19l5-13 5 13M4.8 14.5h6.4"/><path d="M14 19l3.5-9 3.5 9M15.2 16h4.6"/></svg>',
+  takuzu: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M12 3v18M3 12h18"/><circle cx="7.5" cy="7.5" r="2"/><path d="M16.5 5.5v4M7.5 14.5v4"/><circle cx="16.5" cy="16.5" r="2"/></svg>',
+  futoshiki: '<svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="8" height="10" rx="2"/><rect x="13.5" y="7" width="8" height="10" rx="2"/><path d="M13 9.5L11.2 12 13 14.5" /><path d="M5.5 10.5h2.5l-2 3h2.5"/></svg>',
+  hashi: '<svg viewBox="0 0 24 24"><circle cx="5" cy="5" r="3"/><circle cx="19" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><path d="M8 4h8M8 6h8M5 8v8"/></svg>',
+  code: '<svg viewBox="0 0 24 24"><circle cx="5" cy="8" r="2.4"/><circle cx="12" cy="8" r="2.4"/><circle cx="19" cy="8" r="2.4"/><path d="M4 16h.01M9 16h.01"/><circle cx="16" cy="16" r="1.6"/><circle cx="20" cy="16" r="1.6"/></svg>',
   shuffle: '<svg viewBox="0 0 24 24"><path d="M3 7h3.5c4 0 6 10 10 10H21M3 17h3.5c1.6 0 2.8-1.5 3.8-3.4M13.7 10.4C14.7 8.5 15.9 7 17.5 7H21"/><path d="M18.5 4.5L21 7l-2.5 2.5M18.5 14.5L21 17l-2.5 2.5"/></svg>',
 };
 

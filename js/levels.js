@@ -11,9 +11,10 @@ const CHAPTERS = [
   { name: "Expertise", roman: "III", need: 45 },
   { name: "Maîtrise", roman: "IV", need: 70 },
   { name: "Virtuose", roman: "V", need: 95 },
+  { name: "Nouveaux horizons", roman: "VI", need: 115 },
 ];
 
-// 10 niveaux par chapitre, dans l’ordre (50 niveaux en 5 chapitres).
+// 10 niveaux par chapitre, dans l’ordre (60 niveaux en 6 chapitres).
 const LEVELS = [
   // Chapitre I
   { game: "enigmes", cfg: { ids: [0, 2, 4] } },
@@ -70,6 +71,17 @@ const LEVELS = [
   { game: "enigmes", cfg: { ids: [24, 43, 50] } },
   { game: "vf", cfg: { ids: [36, 37, 38, 39, 40, 41, 42, 43] } },
   { game: "enigmes", cfg: { ids: [44, 45, 49] } },
+  // Chapitre VI : les nouveaux jeux
+  { game: "takuzu", cfg: { size: 6 } },
+  { game: "futoshiki", cfg: { size: 4 } },
+  { game: "code", cfg: { mode: 1 } },
+  { game: "hashi", cfg: { size: 7 } },
+  { game: "logique", cfg: { gen: 4 } },
+  { game: "takuzu", cfg: { size: 8 } },
+  { game: "futoshiki", cfg: { size: 5 } },
+  { game: "code", cfg: { mode: 2 } },
+  { game: "hashi", cfg: { size: 9 } },
+  { game: "futoshiki", cfg: { size: 6 } },
 ];
 const PER_CHAPTER = 10;
 const MAX_STARS = LEVELS.length * 3;
@@ -82,6 +94,7 @@ const RANKS = [
   { min: 70, name: "Stratège" },
   { min: 100, name: "Maître" },
   { min: 130, name: "Grand maître" },
+  { min: 165, name: "Légende" },
 ];
 
 /* ---------- Calculs de progression ---------- */
@@ -146,6 +159,7 @@ const BADGES = [
   { id: "chap3", name: "Chapitre III", desc: "Valider les 10 niveaux du chapitre III", test: () => chapterDone(2) },
   { id: "chap4", name: "Chapitre IV", desc: "Valider les 10 niveaux du chapitre IV", test: () => chapterDone(3) },
   { id: "chap5", name: "Chapitre V", desc: "Valider les 10 niveaux du chapitre V", test: () => chapterDone(4) },
+  { id: "chap6", name: "Chapitre VI", desc: "Valider les 10 niveaux du chapitre VI", test: () => chapterDone(5) },
   { id: "chapperfect", name: "Perfectionniste", desc: "3 étoiles sur tous les niveaux d’un chapitre", test: () => CHAPTERS.some((_, c) => chapterStars(c) === PER_CHAPTER * 3) },
   { id: "allstars", name: "Grand maître", desc: `Réunir les ${MAX_STARS} étoiles du parcours`, test: () => totalStars() >= MAX_STARS },
   { id: "poly", name: "Touche-à-tout", desc: `Gagner une partie dans chacun des ${LQ.games.length} jeux`, test: () => LQ.games.every(g => (state.wins[g.id] || 0) > 0) },
