@@ -799,3 +799,11 @@ body.big-text .gs-meta, body.big-text .act-foot { font-size: 14px; }
   .hud:has(#rulesBtn.show) .pill:nth-child(2) { display: none; }
   .topbar:has(#rulesBtn.show) .screen-title { font-size: 19px; }
 }
+/* Tomes de l’histoire */
+.story-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0 14px; }
+.story-tab { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; color: var(--text); cursor: pointer; font: inherit; display: flex; flex-direction: column; gap: 2px; }
+.story-tab.active { border-color: var(--accent); background: var(--accent-soft); }
+.story-tab.locked { opacity: .6; }
+.stt-k { font-size: 11.5px; letter-spacing: .6px; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.stt-t { font-family: var(--font-display); font-size: 15.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; line-height: 1.25; }
+.stt-t svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--muted); }

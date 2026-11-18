@@ -1,6 +1,6 @@
 /* Service Worker LogiqueQuest — cache-first : une fois la 1re visite faite, le jeu
    fonctionne 100 % hors-ligne (avion, vacances, coupe du Wi-Fi…). */
-const CACHE = "logiquequest-v25";
+const CACHE = "logiquequest-v26";
 const ASSETS = [
   "./",
   "./index.html",
@@ -23,6 +23,7 @@ const ASSETS = [
   "./js/games/code.js",
   "./js/levels.js",
   "./js/daily.js",
+  "./js/story2.js",
   "./js/story.js",
   "./js/share.js",
   "./js/app.js",

@@ -18,11 +18,16 @@ Chaque jour, un nouveau défi qui tourne entre les jeux (14 jours de rotation de
 de la date : tout le monde a le même défi le même jour. Première réussite du jour : +50 points.
 L’écran du défi montre la série de jours, la meilleure série et un calendrier du mois.
 
-## Histoire : « Le Secret du cristal »
-Venise, printemps 1500 : le secret du verre cristallin de Murano a été volé. 10 épisodes, du Palais
-des Doges à la fête de la Sensa, chacun avec un texte, une épreuve (parfois au contenu propre à
-l’histoire : énigmes, tableau croisé, mots mêlés, nonogram dessiné, vrai ou faux sur Venise) et la suite
-du récit. Les personnages sont inventés, le décor et les faits d’époque sont réels.
+## Histoire (2 tomes)
+- **Tome 1, « Le Secret du cristal »** : Venise, printemps 1500. Le secret du verre cristallin de Murano a été volé.
+  10 épisodes, du Palais des Doges à la fête de la Sensa.
+- **Tome 2, « Les Cendres du Fondaco »** (s’ouvre quand le tome 1 est terminé) : Venise, hiver 1505. L’incendie du
+  Fondaco des Allemands cache un vol de lingots d’argent. 10 épisodes, du Rialto à l’île de San Giorgio, avec les
+  nouveaux jeux (hashi, takuzu, code secret, futoshiki).
+
+Chaque épisode a un texte, une épreuve (souvent au contenu propre à l’histoire) et la suite du récit.
+Les personnages et les enquêtes sont inventés ; le décor et les faits d’époque sont réels (l’incendie du Fondaco
+dans la nuit du 27 au 28 janvier 1505, sa reconstruction achevée en 1508, les arsenalotti pompiers…).
 
 ## Confort de jeu (v8)
 - **Reprise de partie** : quitter un jeu en cours (ou fermer l’app) garde la partie ; on la retrouve en revenant.
@@ -67,7 +72,8 @@ js/core.js            commun : sauvegarde, points, sons, navigation, icônes
 js/games/*.js         un fichier par jeu, déclaré avec LQ.register({...})
 js/levels.js          parcours : chapitres, niveaux, rangs, badges, carte et profil
 js/daily.js           défi du jour : rotation, graine par date, série, calendrier
-js/story.js           mode histoire : texte des épisodes, épreuves, progression
+js/story.js           mode histoire : tome 1, tomes, épreuves, progression
+js/story2.js          tome 2 « Les Cendres du Fondaco »
 js/share.js           partage du défi, code de transfert entre appareils, statistiques du profil
 js/app.js             menu d’accueil, mises à jour, mode hors ligne
 sw.js                 service worker (cache hors ligne)

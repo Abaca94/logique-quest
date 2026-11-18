@@ -184,7 +184,7 @@ LQ.story = null;
 function levelCfg() { const m = LQ.level || LQ.daily || LQ.story; return m ? m.cfg : null; }
 let currentScreen = "home";
 
-const SCREEN_TITLES = { home: "", map: "Parcours", profile: "Profil", daily: "Défi du jour", story: "Venise, 1500", episode: "" };
+const SCREEN_TITLES = { home: "", map: "Parcours", profile: "Profil", daily: "Défi du jour", story: "Histoire", episode: "" };
 function showScreen(name) {
   currentScreen = name;
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
@@ -249,7 +249,7 @@ function replay() {
    jeu, dans le même contexte (jeu libre de même taille, même niveau, même défi du
    jour ou même épisode), la partie reprend là où on l’avait laissée. */
 function playCtx(extra) {
-  const m = LQ.level ? "L" + LQ.level.n : LQ.daily ? "D" + LQ.daily.key : LQ.story ? "S" + LQ.story.n : "F";
+  const m = LQ.level ? "L" + LQ.level.n : LQ.daily ? "D" + LQ.daily.key : LQ.story ? "S" + (LQ.story.s ? LQ.story.s + "." : "") + LQ.story.n : "F";
   return m + ":" + extra;
 }
 function resumeSave(game, ctx, data) { state.resume[game] = { ctx, data }; save(); }
@@ -325,7 +325,8 @@ function winGame(title, sub, pts, stars) {
       + `<button class="btn ghost" onclick="openMap()">Carte du parcours</button>`
     : LQ.story
     ? (n > 0 && LQ.story.n < STORY.episodes.length ? `<button class="btn" onclick="openEpisode(${LQ.story.n + 1})">Épisode suivant →</button>` : "")
-      + `<button class="btn ${n > 0 && LQ.story.n < STORY.episodes.length ? "ghost" : ""}" onclick="replay()">${n > 0 ? "Rejouer l’épreuve" : "Réessayer"}</button>`
+      + (n > 0 && LQ.story.n === STORY.episodes.length && STORIES[LQ.story.s + 1] ? `<button class="btn" onclick="openStory(${LQ.story.s + 1})">Tome suivant →</button>` : "")
+      + `<button class="btn ${n > 0 && (LQ.story.n < STORY.episodes.length || STORIES[LQ.story.s + 1]) ? "ghost" : ""}" onclick="replay()">${n > 0 ? "Rejouer l’épreuve" : "Réessayer"}</button>`
       + `<button class="btn ghost" onclick="openStory()">Sommaire de l’histoire</button>`
     : LQ.daily
     ? (dailyStars(LQ.daily.key) > 0 ? `<button class="btn" onclick="shareDaily('${LQ.daily.key}')">${ICONS.share} Partager mon résultat</button>` : "")

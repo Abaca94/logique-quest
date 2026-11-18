@@ -1,6 +1,8 @@
 /* ============================================================
    LogiqueQuest — mode histoire
-   « Le Secret du cristal » : Venise, printemps 1500.
+   Tome 1, « Le Secret du cristal » : Venise, printemps 1500.
+   Tome 2, « Les Cendres du Fondaco » : Venise, hiver 1505
+   (ouvert quand le tome 1 est terminé).
    Chaque épisode = un texte, une épreuve (un jeu avec une
    configuration, parfois un contenu propre à l’histoire), puis la
    suite du récit. Un épisode s’ouvre quand le précédent est réussi.
@@ -8,7 +10,9 @@
    cités sont réels.
    ============================================================ */
 
-const STORY = {
+const STORIES = [{
+  id: "cristal",
+  blurb: "10 épisodes à Venise, en 1500",
   title: "Le Secret du cristal",
   era: "Venise, printemps 1500",
   prologue: "La Sérénissime est au sommet de sa puissance. Ses galères dominent la Méditerranée, ses marchands commercent jusqu’à Alexandrie, et les verriers de Murano fabriquent un verre aussi limpide que le cristal, dont la recette est un secret d’État. Une nuit, ce secret disparaît. Le Conseil des Dix vous confie l’enquête : le retrouver avant qu’il ne quitte la lagune.",
@@ -188,28 +192,53 @@ const STORY = {
       outro: "Au large du Lido, le doge jette son anneau d’or dans la mer : « Nous t’épousons, ô mer, en signe de vraie et perpétuelle domination. » Au même instant, les gardes du Conseil des Dix arrêtent Alvise. Le carnet de maître Bortolo retourne à Murano, et Lunardo, simple complice, implore la clémence du Conseil.",
     },
   ],
-};
+}, STORY2];
 
-/* ---------- Progression ---------- */
-function storyStars(n) { return (state.story || {})[n] || 0; }
-function storyTotal() { return STORY.episodes.reduce((a, _, i) => a + storyStars(i + 1), 0); }
-function storyUnlocked(n) { return n === 1 || storyStars(n - 1) > 0; }
-function storyDone() { return STORY.episodes.every((_, i) => storyStars(i + 1) > 0); }
-function storyCurrent() {
-  for (let n = 1; n <= STORY.episodes.length; n++) if (!storyStars(n)) return n;
-  return STORY.episodes.length;
+/* ---------- Progression ----------
+   Tome 1 : étoiles rangées sous la clé n (comme avant) ; tomes suivants : « id:n ». */
+let storyIdx = 0;              // tome affiché
+let STORY = STORIES[0];
+function storyKey(s, n) { return s ? `${STORIES[s].id}:${n}` : String(n); }
+function storyStars(n, s = storyIdx) { return (state.story || {})[storyKey(s, n)] || 0; }
+function storyTotal(s = storyIdx) { return STORIES[s].episodes.reduce((a, _, i) => a + storyStars(i + 1, s), 0); }
+function storyUnlocked(n, s = storyIdx) { return storyOpen(s) && (n === 1 || storyStars(n - 1, s) > 0); }
+function storyDone(s = storyIdx) { return STORIES[s].episodes.every((_, i) => storyStars(i + 1, s) > 0); }
+function storyOpen(s) { return s === 0 || storyDone(s - 1); }
+function storyCurrent(s = storyIdx) {
+  const eps = STORIES[s].episodes;
+  for (let n = 1; n <= eps.length; n++) if (!storyStars(n, s)) return n;
+  return eps.length;
+}
+function selectStory(s) { storyIdx = s; STORY = STORIES[s]; }
+// Tome mis en avant : le premier ouvert qui n’est pas terminé (sinon le dernier ouvert)
+function storyFeatured() {
+  let last = 0;
+  for (let s = 0; s < STORIES.length; s++) { if (!storyOpen(s)) break; last = s; if (!storyDone(s)) return s; }
+  return last;
 }
 
 /* ---------- Écrans ---------- */
-function openStory() {
+function openStory(s) {
   leaveGame();
   LQ.level = null; LQ.daily = null; LQ.story = null;
   currentGame = "story";
+  selectStory(s === undefined ? (LQ.lastStory ?? storyFeatured()) : s);
+  LQ.lastStory = storyIdx;
   renderStory();
   showScreen("story");
 }
+function switchStory(s) {
+  if (!storyOpen(s)) { toast(`Terminez d’abord « ${STORIES[s - 1].title} »`); return; }
+  sfx("tick");
+  selectStory(s); LQ.lastStory = s;
+  renderStory();
+}
 function renderStory() {
   const total = storyTotal(), max = STORY.episodes.length * 3, cur = storyCurrent(), done = storyDone();
+  $("story-tabs").innerHTML = STORIES.map((t, s) => `<button class="story-tab ${s === storyIdx ? "active" : ""} ${storyOpen(s) ? "" : "locked"}" onclick="switchStory(${s})">
+      <span class="stt-k">Tome ${s + 1}${storyOpen(s) ? (storyDone(s) ? " · terminé" : "") : ""}</span>
+      <span class="stt-t">${storyOpen(s) ? "" : ICONS.lock}${t.title}</span>
+    </button>`).join("");
   $("story-head").innerHTML = `
     <p class="st-era">${STORY.era}</p>
     <h2>${STORY.title}</h2>
@@ -227,13 +256,13 @@ function renderStory() {
   }).join("");
 }
 function openEpisode(n) {
-  if (!storyUnlocked(n)) { toast(`Réussissez d’abord l’épisode ${n - 1}`); return; }
+  if (!storyUnlocked(n)) { toast(storyOpen(storyIdx) ? `Réussissez d’abord l’épisode ${n - 1}` : `Terminez d’abord « ${STORIES[storyIdx - 1].title} »`); return; }
   leaveGame();
   LQ.level = null; LQ.daily = null; LQ.story = null;
   currentGame = "episode";
   const ep = STORY.episodes[n - 1], g = LQ.byId[ep.game], info = g.levelInfo(ep.cfg), st = storyStars(n);
   $("episode-body").innerHTML = `
-    <p class="st-era">Épisode ${n} · ${ep.place}</p>
+    <p class="st-era">${STORIES.length > 1 ? `Tome ${storyIdx + 1} · ` : ""}Épisode ${n} · ${ep.place}</p>
     <h2>${ep.title}</h2>
     <div class="ep-text">${ep.text.map(p => `<p>${escapeHtml(p)}</p>`).join("")}</div>
     <div class="ep-trial" style="--hue:${g.hue}">
@@ -249,17 +278,21 @@ function openEpisode(n) {
 function startEpisode(n) {
   const ep = STORY.episodes[n - 1];
   LQ.level = null; LQ.daily = null;
-  LQ.story = { n, cfg: ep.cfg };
+  LQ.story = { s: storyIdx, n, cfg: ep.cfg };
   launchGame(ep.game);
 }
 // Enregistre le résultat ; renvoie la suite du récit et les messages de l’écran de fin.
 function recordStory(n, stars) {
-  const notes = [], prev = storyStars(n), ep = STORY.episodes[n - 1];
+  const s = LQ.story ? LQ.story.s : storyIdx, T = STORIES[s];
+  const notes = [], prev = storyStars(n, s), ep = T.episodes[n - 1];
   state.story = state.story || {};
-  if (stars > prev) state.story[n] = stars;
+  if (stars > prev) state.story[storyKey(s, n)] = stars;
   if (stars > 0) {
     notes.push(`<div class="story-note"><p class="st-era">Suite du récit</p><p>${escapeHtml(ep.outro)}</p></div>`);
-    if (n === STORY.episodes.length && !prev) notes.push(`<span><b>Fin de l’histoire.</b> ${escapeHtml(STORY.epilogue)}</span>`);
+    if (n === T.episodes.length && !prev) {
+      notes.push(`<span><b>Fin de l’histoire.</b> ${escapeHtml(T.epilogue)}</span>`);
+      if (STORIES[s + 1]) notes.push(`<span><b>Un nouveau tome s’ouvre :</b> « ${escapeHtml(STORIES[s + 1].title)} ».</span>`);
+    }
   }
   return notes;
 }
