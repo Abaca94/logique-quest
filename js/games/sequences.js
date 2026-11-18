@@ -113,6 +113,11 @@ LQ.register({
     const n = cfg.items ? cfg.items.length : cfg.ids ? cfg.ids.length : SEQUENCES.filter(s => s.d === cfg.diff + 1).length;
     return { what: `${n} suites, niveau ${SEQ_LEVELS[cfg.diff].toLowerCase()}`, goals: countGoals(n) };
   },
+  rules: [
+    "Trouvez le nombre qui complète la suite parmi les quatre propositions.",
+    "Cherchez la règle : un écart qui se répète ou qui grandit, une multiplication, des carrés, la somme des deux termes précédents…",
+    "L’explication s’affiche après votre réponse ; touchez « Suite suivante » pour continuer.",
+  ],
   screen: `
     <div class="chips lvl-hide">
       ${SEQ_LEVELS.map((l, i) => `<button class="chip" data-b="${i}" onclick="setSeqDiff(${i})">${l}</button>`).join("")}

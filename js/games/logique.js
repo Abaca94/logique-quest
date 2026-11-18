@@ -76,9 +76,10 @@ const LOGIC_PL = [
     solB: [4, 2, 0, 3, 1, 5], solC: [1, 3, 5, 4, 2, 0],
   },
 ];
-let lgIdx = 0, lgLock = false, lgErrors = 0;
+let lgIdx = 0, lgLock = false, lgErrors = 0, lgGen = null, lgGenN = 4;
 // Grille en cours : celle imposée par un épisode de l’histoire (cfg.puzzle), sinon LOGIC_PL[lgIdx].
-function lgP() { const c = levelCfg(); return (c && c.puzzle) || LOGIC_PL[lgIdx]; }
+// Grille générée (cfg.gen en parcours ou défi, ou bouton « Nouvelle grille ») : lgGen.
+function lgP() { const c = levelCfg(); return (c && c.puzzle) || ((c && c.gen) || lgIdx < 0 ? lgGen : LOGIC_PL[lgIdx]); }
 let lgAuto = true; // ✘ automatiques sur la ligne et la colonne d’un ✔
 
 /* Tableau croisé (grille en escalier) :
@@ -91,6 +92,8 @@ let lgAuto = true; // ✘ automatiques sur la ligne et la colonne d’un ✔
 function initLogic(cfg) {
   cfg = cfg || levelCfg();
   if (cfg && cfg.grid !== undefined) lgIdx = cfg.grid;
+  if (cfg && cfg.gen) lgGen = lgGenerate(cfg.gen);
+  else if (!cfg && lgIdx < 0) lgGen = lgGenerate(lgGenN);
   try { lgAuto = localStorage.getItem("lq_lg_auto") !== "0"; } catch (e) {}
   renderLogicChips();
   renderLogic();
@@ -101,9 +104,16 @@ function selectLogic(i) {
   renderLogicChips();
   renderLogic();
 }
+function newLogicGen(n) {
+  navToken++;
+  lgIdx = -1; lgGenN = n; lgGen = lgGenerate(n);
+  renderLogicChips();
+  renderLogic();
+}
 function renderLogicChips() {
   $("lg-chips").innerHTML = LOGIC_PL.map((_, i) =>
-    `<button class="chip ${i === lgIdx ? "active" : ""}" onclick="selectLogic(${i})">Grille ${i + 1}</button>`).join("");
+    `<button class="chip ${i === lgIdx ? "active" : ""}" onclick="selectLogic(${i})">Grille ${i + 1}</button>`).join("")
+    + [4, 5].map(n => `<button class="chip chip-gen ${lgIdx < 0 && lgGenN === n ? "active" : ""}" onclick="newLogicGen(${n})">${ICONS.shuffle} Nouvelle ${n}×${n}</button>`).join("");
 }
 function renderLogic() {
   const P = lgP();
@@ -192,9 +202,10 @@ function checkLogic() {
   const doneB = okBlock(AB, P.solB), doneC = okBlock(AC, P.solC);
   if (doneB && doneC) {
     lgLock = true;
-    const pts = 40 + lgIdx * 10;
+    const gen = !!P.generated;
+    const pts = gen ? (n === 4 ? 50 : 80) : 40 + lgIdx * 10;
     addPoints(pts); state.solved++;
-    if (!levelCfg()) setBest("logique", lgIdx + 1);
+    if (!levelCfg() && !gen) setBest("logique", lgIdx + 1);
     save(); sfx("good");
     fb.className = "feedback show ok";
     fb.innerHTML = `<b>Déductions exactes.</b> +${pts} points`;
@@ -202,6 +213,10 @@ function checkLogic() {
     const stars = lgErrors === 0 ? 3 : lgErrors === 1 ? 2 : 1;
     if (levelCfg()) {
       later(() => winGame("Déductions exactes", `${P.story.replace(/<[^>]+>/g, "").split(".")[0]} : grille résolue${lgErrors ? ` après ${lgErrors} vérification${lgErrors > 1 ? "s" : ""} ratée${lgErrors > 1 ? "s" : ""}` : " du premier coup"}.`, 0, stars), 1200);
+      return;
+    }
+    if (gen) {
+      later(() => winGame("Déductions exactes", `Grille générée ${n}×${n} résolue${lgErrors ? ` après ${lgErrors} vérification${lgErrors > 1 ? "s" : ""} ratée${lgErrors > 1 ? "s" : ""}` : " du premier coup"}. +${pts} points`, pts, stars), 1200);
       return;
     }
     later(() => {
@@ -224,9 +239,16 @@ LQ.register({
   recordLabel: v => `Record : grille ${v}`,
   init: initLogic,
   levelInfo: cfg => ({
-    what: (cfg.puzzle || LOGIC_PL[cfg.grid]).story.replace(/<[^>]+>/g, ""),
+    what: cfg.gen ? `Une grille de déduction ${cfg.gen}×${cfg.gen} inédite, tirée au hasard` : (cfg.puzzle || LOGIC_PL[cfg.grid]).story.replace(/<[^>]+>/g, ""),
     goals: ["Résoudre sans erreur de vérification", "Au plus une vérification ratée", "Résoudre la grille"],
   }),
+  rules: [
+    "Lisez les indices : chaque élément de la première catégorie correspond à exactement un élément de chacune des deux autres.",
+    "Touchez une case une fois pour ✘ (impossible), deux fois pour ✔ (certain), trois fois pour l’effacer.",
+    "Un ✔ exclut le reste de sa ligne et de sa colonne : l’option « croix automatiques » les place pour vous.",
+    "Le bloc du bas croise les deux autres catégories entre elles : il aide à combiner les indices. Touchez <b>Vérifier</b> quand vous pensez avoir trouvé.",
+    "« Nouvelle 4×4 » et « Nouvelle 5×5 » tirent une grille inédite : une seule solution, et aucun indice superflu.",
+  ],
   screen: `
     <div class="chips lvl-hide" id="lg-chips"></div>
     <div class="quiz-card">

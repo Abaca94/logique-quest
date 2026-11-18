@@ -1,6 +1,6 @@
 /* ============================================================
    LogiqueQuest — défi du jour
-   Chaque jour, un jeu différent (rotation sur les 10 jeux) avec une
+   Chaque jour, un jeu différent (rotation sur tous les jeux) avec une
    grille tirée d’une graine qui dépend de la date : tout le monde a
    le même défi le même jour. Réussir le défi (au moins 1 étoile)
    rapporte un bonus et prolonge la série de jours.
@@ -29,6 +29,19 @@ const DAILY_ROTA = [
   { game: "logique", cfg: (rng, k) => ({ grid: k % LOGIC_PL.length }) },
   { game: "taquin", cfg: () => ({ size: 4 }) },
   { game: "memoire", cfg: () => ({ pairs: 10 }) },
+];
+// À partir du 1er décembre 2026, la rotation inclut les jeux de la v9 (14 jours, la déduction y est générée).
+// Les jours précédents gardent l’ancienne rotation pour que le calendrier ne change pas.
+const DAILY_ROTA2_FROM = Math.round(Date.UTC(2026, 11, 1) / 864e5);
+const DAILY_ROTA2 = [
+  ...DAILY_ROTA.slice(0, 5),
+  { game: "takuzu", cfg: () => ({ size: 8 }) },
+  ...DAILY_ROTA.slice(5, 7),
+  { game: "futoshiki", cfg: () => ({ size: 5 }) },
+  { game: "code", cfg: () => ({ mode: 2 }) },
+  { game: "logique", cfg: () => ({ gen: 5 }) },
+  ...DAILY_ROTA.slice(8, 10),
+  { game: "hashi", cfg: () => ({ size: 9 }) },
 ];
 
 /* ---------- Dates et hasard reproductible ---------- */
@@ -62,8 +75,9 @@ function withSeed(seed, fn) {
 // Le défi d’une date donnée.
 function dailyFor(d) {
   const num = dayNumber(d);
-  const slot = DAILY_ROTA[num % DAILY_ROTA.length];
-  const k = Math.floor(num / DAILY_ROTA.length);
+  const rota = num >= DAILY_ROTA2_FROM ? DAILY_ROTA2 : DAILY_ROTA;
+  const slot = rota[num % rota.length];
+  const k = Math.floor(num / rota.length);
   const seed = (num * 2654435761) >>> 0;
   return { key: dayKey(d), date: d, game: slot.game, cfg: slot.cfg(mulberry32(seed), k), seed };
 }
@@ -135,7 +149,10 @@ function renderDaily() {
     <p class="dc-what">${escapeHtml(info.what)}. Le même défi pour tout le monde aujourd’hui.</p>
     <ul class="ls-goals">${info.goals.map((x, i) => `<li><span class="ls-stars">${starsHtml(3 - i)}</span><span>${escapeHtml(x)}</span></li>`).join("")}</ul>
     ${st ? `<div class="dc-done"><span class="ls-stars">${starsHtml(st)}</span><span>Réussi aujourd’hui. Prochain défi dans ${untilTomorrow()}.</span></div>` : ""}
-    <button class="btn dc-play" onclick="startDaily()">${ICONS.play} ${st ? (st < 3 ? "Rejouer pour faire mieux" : "Rejouer") : "Relever le défi"}</button>
+    <div class="dc-btns">
+      <button class="btn dc-play ${st ? "ghost" : ""}" onclick="startDaily()">${ICONS.play} ${st ? (st < 3 ? "Rejouer pour faire mieux" : "Rejouer") : "Relever le défi"}</button>
+      ${st ? `<button class="btn dc-play" onclick="shareDaily('${t.key}')">${ICONS.share} Partager</button>` : ""}
+    </div>
     ${st ? "" : `<p class="dc-bonus">Bonus de ${DAILY_BONUS} points à la première réussite du jour.</p>`}`;
   $("daily-streak").textContent = dailyStreak();
   $("daily-best").textContent = Math.max(state.bestDaily || 0, dailyStreak());

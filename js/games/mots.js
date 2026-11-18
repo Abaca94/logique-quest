@@ -150,6 +150,11 @@ LQ.register({
     const [t3, t2] = WS_TIME[cfg.size];
     return { what: `Une grille de mots mêlés ${cfg.size}×${cfg.size}`, goals: [`Tout trouver en ${t3} s ou moins`, `Tout trouver en ${t2} s ou moins`, "Trouver tous les mots"] };
   },
+  rules: [
+    "Retrouvez tous les mots de la liste cachés dans la grille, dans les huit directions, y compris à l’envers et en diagonale.",
+    "Glissez le doigt de la première à la dernière lettre. Pas besoin de vous arrêter pile : un mot est validé même si vous dépassez.",
+    "Le chronomètre compte pour les étoiles.",
+  ],
   screen: `
     <div class="chips lvl-hide">
       <button class="chip" data-b="8" onclick="setMots(8)">Facile · 8×8</button>

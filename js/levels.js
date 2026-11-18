@@ -11,9 +11,10 @@ const CHAPTERS = [
   { name: "Expertise", roman: "III", need: 45 },
   { name: "Maîtrise", roman: "IV", need: 70 },
   { name: "Virtuose", roman: "V", need: 95 },
+  { name: "Nouveaux horizons", roman: "VI", need: 115 },
 ];
 
-// 10 niveaux par chapitre, dans l’ordre (50 niveaux en 5 chapitres).
+// 10 niveaux par chapitre, dans l’ordre (60 niveaux en 6 chapitres).
 const LEVELS = [
   // Chapitre I
   { game: "enigmes", cfg: { ids: [0, 2, 4] } },
@@ -70,6 +71,17 @@ const LEVELS = [
   { game: "enigmes", cfg: { ids: [24, 43, 50] } },
   { game: "vf", cfg: { ids: [36, 37, 38, 39, 40, 41, 42, 43] } },
   { game: "enigmes", cfg: { ids: [44, 45, 49] } },
+  // Chapitre VI : les nouveaux jeux
+  { game: "takuzu", cfg: { size: 6 } },
+  { game: "futoshiki", cfg: { size: 4 } },
+  { game: "code", cfg: { mode: 1 } },
+  { game: "hashi", cfg: { size: 7 } },
+  { game: "logique", cfg: { gen: 4 } },
+  { game: "takuzu", cfg: { size: 8 } },
+  { game: "futoshiki", cfg: { size: 5 } },
+  { game: "code", cfg: { mode: 2 } },
+  { game: "hashi", cfg: { size: 9 } },
+  { game: "futoshiki", cfg: { size: 6 } },
 ];
 const PER_CHAPTER = 10;
 const MAX_STARS = LEVELS.length * 3;
@@ -82,6 +94,7 @@ const RANKS = [
   { min: 70, name: "Stratège" },
   { min: 100, name: "Maître" },
   { min: 130, name: "Grand maître" },
+  { min: 165, name: "Légende" },
 ];
 
 /* ---------- Calculs de progression ---------- */
@@ -146,11 +159,13 @@ const BADGES = [
   { id: "chap3", name: "Chapitre III", desc: "Valider les 10 niveaux du chapitre III", test: () => chapterDone(2) },
   { id: "chap4", name: "Chapitre IV", desc: "Valider les 10 niveaux du chapitre IV", test: () => chapterDone(3) },
   { id: "chap5", name: "Chapitre V", desc: "Valider les 10 niveaux du chapitre V", test: () => chapterDone(4) },
+  { id: "chap6", name: "Chapitre VI", desc: "Valider les 10 niveaux du chapitre VI", test: () => chapterDone(5) },
   { id: "chapperfect", name: "Perfectionniste", desc: "3 étoiles sur tous les niveaux d’un chapitre", test: () => CHAPTERS.some((_, c) => chapterStars(c) === PER_CHAPTER * 3) },
   { id: "allstars", name: "Grand maître", desc: `Réunir les ${MAX_STARS} étoiles du parcours`, test: () => totalStars() >= MAX_STARS },
   { id: "poly", name: "Touche-à-tout", desc: `Gagner une partie dans chacun des ${LQ.games.length} jeux`, test: () => LQ.games.every(g => (state.wins[g.id] || 0) > 0) },
   { id: "detective", name: "Détective", desc: "3 étoiles sur les 6 grilles de déduction du parcours", test: () => LEVELS.every((l, i) => l.game !== "logique" || levelStars(i + 1) === 3) },
-  { id: "venise", name: "Ami de la Sérénissime", desc: "Terminer l’histoire « Le Secret du cristal »", test: () => storyDone() },
+  { id: "venise", name: "Ami de la Sérénissime", desc: "Terminer l’histoire « Le Secret du cristal »", test: () => storyDone(0) },
+  { id: "venise2", name: "Gardien du Rialto", desc: "Terminer l’histoire « Les Cendres du Fondaco »", test: () => storyDone(1) },
   { id: "daily1", name: "Rendez-vous", desc: "Réussir un premier défi du jour", test: () => Object.values(state.daily).some(v => v > 0) },
   { id: "daily7", name: "Assidu", desc: "Réussir le défi du jour 7 jours d’affilée", test: () => (state.bestDaily || 0) >= 7 },
   { id: "daily30", name: "Fidèle", desc: "Réussir 30 défis du jour", test: () => Object.values(state.daily).filter(v => v > 0).length >= 30 },
@@ -284,18 +299,18 @@ function renderProfile() {
       <div><b>${b.name}</b><p>${b.desc}</p>${got ? `<small>Obtenu le ${got.split("-").reverse().join("/")}</small>` : ""}</div>
     </div>`;
   }).join("");
-  $("wins-list").innerHTML = LQ.games.map(g => `<div class="win-row" style="--hue:${g.hue}"><span class="w-ico">${ICONS[g.id]}</span><span>${g.title}</span><b>${state.wins[g.id] || 0}</b></div>`).join("");
+  renderStats();
 }
 
 /* ---------- Cartes de l’accueil ---------- */
 function storyHomeCard() {
-  const n = storyCurrent(), done = storyDone(), ep = STORY.episodes[n - 1];
-  return `<button class="home-card hc-story" onclick="openStory()">
+  const s = storyFeatured(), T = STORIES[s], n = storyCurrent(s), done = storyDone(s), ep = T.episodes[n - 1];
+  return `<button class="home-card hc-story" onclick="LQ.lastStory = undefined; openStory(${s})">
       <span class="hc-ico">${ICONS.book}</span>
       <span class="hc-body">
-        <span class="hc-kicker">Histoire · ${STORY.era.split(",")[0]}</span>
-        <span class="hc-title">${STORY.title}</span>
-        <span class="hc-sub">${done ? "Histoire terminée · rejouez les épreuves" : storyTotal() ? `Épisode ${n} · ${ep.title}` : "10 épisodes à Venise, en 1500"}</span>
+        <span class="hc-kicker">Histoire${STORIES.length > 1 ? ` · tome ${s + 1}` : ""} · ${T.era}</span>
+        <span class="hc-title">${T.title}</span>
+        <span class="hc-sub">${done ? "Histoire terminée · rejouez les épreuves" : storyTotal(s) ? `Épisode ${n} · ${ep.title}` : T.blurb}</span>
       </span>
     </button>`;
 }
@@ -311,6 +326,7 @@ function dailyHomeCard() {
     </button>`;
 }
 function renderHome() {
+  $("textSizeBtn").innerHTML = `${ICONS.textSize} ${state.bigText ? "Texte normal" : "Agrandir le texte"}`;
   const total = totalStars(), rank = rankFor(total), n = currentLevel();
   const L = LEVELS[n - 1], g = LQ.byId[L.game];
   const allDone = LEVELS.every((_, i) => levelStars(i + 1) > 0);

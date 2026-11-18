@@ -24,6 +24,7 @@
   <div class="hud">
     <div class="pill" title="Points"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span id="hudScore">0</span></div>
     <div class="pill" title="Série en cours"><svg viewBox="0 0 24 24"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5.3 1.8 1.2 2.8 2.2 3.2C11 9 11 6 12 3z"/></svg><span id="hudStreak">0</span></div>
+    <button class="icon-btn small help-btn" id="rulesBtn" onclick="showRules()" aria-label="Règles du jeu"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.6"/><path d="M12 16.8v.1"/></svg></button>
     <button class="icon-btn small" id="soundBtn" onclick="toggleSound()" aria-label="Son"></button>
   </div>
 </header>
@@ -46,9 +47,12 @@
     <div class="menu-grid" id="menu-grid"></div>
 
     <div class="home-foot">
-      <button class="btn ghost small" onclick="resetProgress()">Réinitialiser ma progression</button>
+      <div class="toolbar home-tools">
+        <button class="btn ghost small" id="textSizeBtn" onclick="toggleTextSize()"></button>
+        <button class="btn ghost small" onclick="resetProgress()">Réinitialiser ma progression</button>
+      </div>
       <p class="install-tip">Sur iPhone ou iPad : <b>Partager</b> puis <b>« Sur l’écran d’accueil »</b> pour jouer en plein écran, même hors connexion.</p>
-      <p class="version">LogiqueQuest <span id="verBadge" onclick="forceUpdate()">v7.1</span> · touchez la version pour forcer la mise à jour</p>
+      <p class="version">LogiqueQuest <span id="verBadge" onclick="forceUpdate()">v9.1</span> · touchez la version pour forcer la mise à jour</p>
     </div>
   </section>
 
@@ -60,6 +64,7 @@
 
   <!-- ================= HISTOIRE ================= -->
   <section class="screen" id="screen-story">
+    <div class="story-tabs" id="story-tabs"></div>
     <div class="story-head" id="story-head"></div>
     <div class="story-list" id="story-list"></div>
   </section>
@@ -89,10 +94,28 @@
       <div class="stat-box"><div class="v" id="stat-stars">0</div><div class="l">Étoiles</div></div>
       <div class="stat-box"><div class="v" id="stat-badges">0</div><div class="l">Badges</div></div>
     </div>
+    <h2 class="section-title">Activité des 12 dernières semaines</h2>
+    <div class="stats-row stats-act" id="act-summary"></div>
+    <div class="act-card">
+      <div class="act-wrap">
+        <div class="act-days"><span>L</span><span></span><span>M</span><span></span><span>V</span><span></span><span>D</span></div>
+        <div class="act-grid" id="act-grid" onclick="actTip(event)"></div>
+      </div>
+      <div class="act-foot"><span id="act-tip"></span><span class="act-legend">Moins <i class="act-cell a0"></i><i class="act-cell a1"></i><i class="act-cell a2"></i><i class="act-cell a3"></i><i class="act-cell a4"></i> Plus</span></div>
+    </div>
+    <h2 class="section-title">Bilan par jeu</h2>
+    <p class="section-note">Parties gagnées, record en jeu libre et étoiles du parcours.</p>
+    <div class="wins-list" id="wins-list"></div>
     <h2 class="section-title">Badges</h2>
     <div class="badge-grid" id="badge-grid"></div>
-    <h2 class="section-title">Parties gagnées par jeu</h2>
-    <div class="wins-list" id="wins-list"></div>
+    <h2 class="section-title">Changer d’appareil</h2>
+    <div class="transfer-card">
+      <p>Retrouvez votre progression sur votre iPad ou votre iPhone : envoyez un code depuis cet appareil, puis collez-le sur l’autre. Les deux progressions sont fusionnées.</p>
+      <div class="transfer-btns">
+        <button class="btn small" onclick="openTransfer('export')">Envoyer ma progression</button>
+        <button class="btn ghost small" onclick="openTransfer('import')">Récupérer une progression</button>
+      </div>
+    </div>
   </section>
 
   <!-- Les écrans de chaque jeu sont ajoutés ici par js/games/*.js -->
@@ -125,6 +148,23 @@
   </div>
 </div>
 
+<div class="modal" id="rules-sheet" aria-hidden="true">
+  <div class="modal-card level-card" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+    <div class="ls-top"><span class="ls-ico" id="rules-ico"></span><div><p class="ls-kicker">Comment jouer</p><h3 id="rules-title"></h3></div></div>
+    <ul class="rules-list" id="rules-body"></ul>
+    <div class="modal-actions"><button class="btn small" onclick="closeRules()">J’ai compris</button></div>
+  </div>
+</div>
+
+<div class="modal" id="transfer-sheet" aria-hidden="true">
+  <div class="modal-card transfer-modal" role="dialog" aria-modal="true" aria-labelledby="transfer-title">
+    <h3 id="transfer-title"></h3>
+    <p id="transfer-text"></p>
+    <textarea id="transfer-code" rows="5" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea>
+    <div class="modal-actions" id="transfer-actions"></div>
+  </div>
+</div>
+
 <div class="modal" id="modal" aria-hidden="true">
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <h3 id="modal-title"></h3>
@@ -139,6 +179,7 @@
 <script src="js/core.js"></script>
 <script src="js/games/enigmes.js"></script>
 <script src="js/games/sequences.js"></script>
+<script src="js/games/logique-gen.js"></script>
 <script src="js/games/logique.js"></script>
 <script src="js/games/sudoku.js"></script>
 <script src="js/games/taquin.js"></script>
@@ -147,9 +188,15 @@
 <script src="js/games/vraifaux.js"></script>
 <script src="js/games/nonogram.js"></script>
 <script src="js/games/kakuro.js"></script>
+<script src="js/games/takuzu.js"></script>
+<script src="js/games/futoshiki.js"></script>
+<script src="js/games/hashi.js"></script>
+<script src="js/games/code.js"></script>
 <script src="js/levels.js"></script>
 <script src="js/daily.js"></script>
+<script src="js/story2.js"></script>
 <script src="js/story.js"></script>
+<script src="js/share.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

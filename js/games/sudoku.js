@@ -3,10 +3,10 @@
    ============================================================ */
 const SUD_BOX = { 4: [2, 2], 6: [2, 3], 9: [3, 3] };
 const SUD_PTS = { 4: 40, 6: 100, 9: 200 };
-let sErrors = 0;
+let sErrors = 0, sHints = 0, sNotes = [], sNoteMode = false, sUndo = [];
 let sN = 4, sBr = 2, sBc = 2, sSol = [], sGrid = [], sGiven = [], sSelIdx = -1, sBad = [];
 
-function setSudoku(n) { sN = n; [sBr, sBc] = SUD_BOX[n]; initSudoku(); }
+function setSudoku(n) { sN = n; [sBr, sBc] = SUD_BOX[n]; resumeClear("sudoku"); initSudoku(); }
 function sIdx(i, j) { return Math.floor(i / sBr) * sBc + Math.floor(j / sBc); }
 
 function sudokuFull() {
@@ -70,10 +70,19 @@ function initSudoku(cfg) {
   navToken++;
   cfg = cfg || levelCfg();
   if (cfg) sN = cfg.size;
-  sErrors = 0;
+  else if (resumeFreeSize("sudoku")) sN = resumeFreeSize("sudoku");
+  sErrors = 0; sHints = 0; sUndo = []; sNoteMode = false;
   [sBr, sBc] = SUD_BOX[sN];
   setActiveChips("sudoku", sN);
   sSelIdx = -1;
+  sBad = [];
+  setSudokuNoteBtn();
+  const snap = resumeTake("sudoku", playCtx(sN));
+  if (snap) {
+    ({ sol: sSol, grid: sGrid, given: sGiven, notes: sNotes, errors: sErrors, hints: sHints } = snap);
+    renderSudoku(); renderSudokuKeys();
+    return;
+  }
   sSol = sudokuFull();
   sGrid = [...sSol];
   sBad = [];
@@ -85,8 +94,32 @@ function initSudoku(cfg) {
     if (countSols([...sGrid]) !== 1) sGrid[p] = keep;
   }
   sGiven = sGrid.map(v => v ? 1 : 0);
+  sNotes = new Array(sN * sN).fill(0);
   renderSudoku();
   renderSudokuKeys();
+}
+function saveSudoku() { resumeSave("sudoku", playCtx(sN), { sol: sSol, grid: sGrid, given: sGiven, notes: sNotes, errors: sErrors, hints: sHints }); }
+function newSudoku() { resumeClear("sudoku"); initSudoku(); }
+function pushSudokuUndo() { sUndo.push({ grid: [...sGrid], notes: [...sNotes] }); if (sUndo.length > 200) sUndo.shift(); }
+function undoSudoku() {
+  const u = sUndo.pop();
+  if (!u) { toast("Rien à annuler"); return; }
+  sGrid = u.grid; sNotes = u.notes; sBad = [];
+  sfx("tick"); renderSudoku(); saveSudoku();
+}
+function setSudokuNoteBtn() { const b = $("sudoku-note-btn"); if (b) b.classList.toggle("toggle-on", sNoteMode); }
+function toggleSudokuNotes() { sNoteMode = !sNoteMode; setSudokuNoteBtn(); sfx("tick"); }
+// Indice : la case choisie si elle est vide ou fausse, sinon une case fausse, sinon une case vide.
+function hintSudoku() {
+  let p = sSelIdx >= 0 && !sGiven[sSelIdx] && sGrid[sSelIdx] !== sSol[sSelIdx] ? sSelIdx : -1;
+  if (p < 0) p = sGrid.findIndex((v, i) => v && v !== sSol[i]);
+  if (p < 0) { const empty = sGrid.map((v, i) => v ? -1 : i).filter(i => i >= 0); p = empty.length ? empty[Math.floor(Math.random() * empty.length)] : -1; }
+  if (p < 0) return;
+  pushSudokuUndo();
+  sGrid[p] = sSol[p]; sGiven[p] = 2; sNotes[p] = 0; sBad[p] = 0; sHints++; sSelIdx = p;
+  sfx("good"); toast(`Indice : ${sSol[p]} dans la case surlignée`);
+  renderSudoku(); saveSudoku();
+  if (sGrid.every(x => x)) checkSudoku();
 }
 function sudokuCellSize() {
   const avail = Math.min(document.documentElement.clientWidth, 720) - 32 - 2 * (sN / sBc - 1) * 4 - (sN - 1) * 2 - 8;
@@ -106,14 +139,15 @@ function renderSudoku() {
     const peer = sel >= 0 && p !== sel && (i === si || j === sj || sIdx(i, j) === sIdx(si, sj));
     const same = sel >= 0 && p !== sel && sGrid[sel] && sGrid[p] === sGrid[sel];
     d.className = "sudoku-cell"
-      + (sGiven[p] ? " given" : "")
+      + (sGiven[p] === 1 ? " given" : sGiven[p] === 2 ? " given hinted" : "")
       + (peer ? " peer" : "")
       + (same ? " same" : "")
       + (p === sel ? " sel" : "")
       + (sBad[p] ? " bad" : "");
     if (j % sBc === sBc - 1 && j !== sN - 1) d.style.marginRight = "4px";
     if (i % sBr === sBr - 1 && i !== sN - 1) d.style.marginBottom = "4px";
-    d.textContent = sGrid[p] || "";
+    if (sGrid[p]) d.textContent = sGrid[p];
+    else if (sNotes[p]) d.innerHTML = `<div class="notes">${Array.from({ length: sN }, (_, v) => `<span>${sNotes[p] & (1 << (v + 1)) ? v + 1 : ""}</span>`).join("")}</div>`;
     d.onclick = () => { sSelIdx = p; sfx("tick"); renderSudoku(); };
     b.appendChild(d);
   }
@@ -135,10 +169,26 @@ function renderSudokuKeys() {
 function putSudoku(v) {
   if (sSelIdx < 0) { toast("Choisissez d’abord une case"); return; }
   if (sGiven[sSelIdx]) { sfx("bad"); return; }
-  sGrid[sSelIdx] = v;
+  pushSudokuUndo();
+  if (sNoteMode && v) {
+    if (sGrid[sSelIdx]) { sUndo.pop(); toast("Effacez d’abord le chiffre pour prendre des notes"); return; }
+    sNotes[sSelIdx] ^= 1 << v;
+  } else {
+    sGrid[sSelIdx] = v;
+    sNotes[sSelIdx] = 0;
+    // Un chiffre posé retire cette note des cases de la même ligne, colonne et région.
+    if (v) {
+      const i = Math.floor(sSelIdx / sN), j = sSelIdx % sN;
+      for (let p = 0; p < sN * sN; p++) {
+        const pi = Math.floor(p / sN), pj = p % sN;
+        if (pi === i || pj === j || sIdx(pi, pj) === sIdx(i, j)) sNotes[p] &= ~(1 << v);
+      }
+    }
+  }
   sBad[sSelIdx] = 0;
   sfx("tick");
   renderSudoku();
+  saveSudoku();
   if (sGrid.every(x => x)) checkSudoku();
 }
 function checkSudoku() {
@@ -147,16 +197,17 @@ function checkSudoku() {
   sBad = sGrid.map((v, p) => v !== sSol[p] ? 1 : 0);
   if (sBad.some(Boolean)) {
     sfx("bad"); addPoints(-3); sErrors++;
-    renderSudoku();
+    renderSudoku(); saveSudoku();
     toast("Certaines cases sont fausses");
   } else {
     const pts = SUD_PTS[sN];
+    resumeClear("sudoku");
     addPoints(pts); state.solved++;
     if (!levelCfg()) setBest("sudoku", pts);
     save();
-    // 3 étoiles si la grille est juste du premier coup, 2 après une erreur, 1 au-delà.
-    const stars = sErrors === 0 ? 3 : sErrors === 1 ? 2 : 1;
-    winGame("Grille complète", `Sudoku ${sN}×${sN} terminé${sErrors ? ` après ${sErrors} vérification${sErrors > 1 ? "s" : ""} ratée${sErrors > 1 ? "s" : ""}` : " sans faute"}. +${pts} points`, pts, stars);
+    // 3 étoiles : juste du premier coup et sans indice. 2 : au plus une erreur. 1 au-delà.
+    const stars = sErrors === 0 && !sHints ? 3 : sErrors <= 1 ? 2 : 1;
+    winGame("Grille complète", `Sudoku ${sN}×${sN} terminé${sErrors ? ` après ${sErrors} vérification${sErrors > 1 ? "s" : ""} ratée${sErrors > 1 ? "s" : ""}` : " sans faute"}${sHints ? `, avec ${sHints} indice${sHints > 1 ? "s" : ""}` : ""}. +${pts} points`, pts, stars);
   }
 }
 
@@ -169,8 +220,15 @@ LQ.register({
   init: initSudoku,
   levelInfo: cfg => ({
     what: `Une grille de sudoku ${cfg.size}×${cfg.size}`,
-    goals: ["Grille juste du premier coup", "Au plus une vérification ratée", "Terminer la grille"],
+    goals: ["Grille juste du premier coup, sans indice", "Au plus une vérification ratée", "Terminer la grille"],
   }),
+  rules: [
+    "Remplissez la grille pour que chaque ligne, chaque colonne et chaque région encadrée contienne une seule fois chaque chiffre.",
+    "Touchez une case, puis un chiffre. La gomme efface la case.",
+    "Le <b>crayon</b> permet de noter plusieurs chiffres possibles dans une case, en petit.",
+    "<b>Annuler</b> revient au coup précédent ; <b>Indice</b> révèle une case (3 étoiles seulement sans indice).",
+    "Votre grille est gardée si vous quittez : vous la retrouverez en revenant.",
+  ],
   screen: `
     <div class="chips lvl-hide">
       <button class="chip" data-b="4" onclick="setSudoku(4)">Facile · 4×4</button>
@@ -180,9 +238,14 @@ LQ.register({
     <div class="board-wrap">
       <div class="sudoku-board" id="sudoku-board"></div>
       <div class="keypad" id="sudoku-keys"></div>
-      <div class="toolbar" style="margin-top:14px">
+      <div class="toolbar">
+        <button class="btn ghost small" id="sudoku-note-btn" onclick="toggleSudokuNotes()">${ICONS.pencil} Crayon</button>
+        <button class="btn ghost small" onclick="undoSudoku()">${ICONS.undo} Annuler</button>
+        <button class="btn ghost small" onclick="hintSudoku()">${ICONS.bulb} Indice</button>
+      </div>
+      <div class="toolbar" style="margin-top:10px">
         <button class="btn small" onclick="checkSudoku()">${ICONS.check} Vérifier</button>
-        <button class="btn ghost small" onclick="initSudoku()">${ICONS.refresh} Autre grille</button>
+        <button class="btn ghost small lvl-hide" onclick="newSudoku()">${ICONS.refresh} Autre grille</button>
       </div>
     </div>`,
   setup() {

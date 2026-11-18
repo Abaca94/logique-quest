@@ -6,6 +6,7 @@
    ============================================================ */
 const NG_SIZES = [5, 8, 10];
 const NG_TIME = { 5: [60, 150], 8: [240, 480], 10: [420, 840] }; // secondes : [3 étoiles, 2 étoiles]
+let ngHints = 0, ngUndo = [], ngHinted = new Set();
 let ngN = 5, ngSol = [], ngRows = [], ngCols = [], ngCells = [], ngMode = 1, ngSeconds = 0, ngDone = false, ngDrag = null;
 
 /* ---------- Génération et vérification ---------- */
@@ -85,20 +86,67 @@ function initNonogram(cfg) {
   navToken++;
   cfg = cfg || levelCfg();
   if (cfg) ngN = cfg.size;
+  else if (resumeFreeSize("nonogram")) ngN = resumeFreeSize("nonogram");
   setActiveChips("nonogram", ngN);
+  ngUndo = []; ngHinted = new Set();
+  const snap = resumeTake("nonogram", playCtx(ngN));
+  if (snap) {
+    ({ sol: ngSol, rows: ngRows, cols: ngCols, cells: ngCells, seconds: ngSeconds, hints: ngHints } = snap);
+    ngDone = false;
+    ngStartClock();
+    setNgMode(1);
+    renderNonogram();
+    return;
+  }
   // cfg.image : dessin imposé (histoire), lignes de "#" (noir) et "." (blanc)
   let p = cfg && cfg.image ? ngFromImage(cfg.image) : ngGenerate(ngN);
   while (!p) p = ngGenerate(ngN);
   ngSol = p.sol; ngRows = p.rows; ngCols = p.cols;
   ngCells = Array.from({ length: ngN }, () => new Array(ngN).fill(0)); // 0 vide, 1 noir, 2 croix
-  ngDone = false; ngSeconds = 0;
-  stopTimers();
-  $("ng-time").textContent = "0 s";
-  timers.push(setInterval(() => { ngSeconds++; $("ng-time").textContent = ngSeconds + " s"; }, 1000));
-  const [t3, t2] = NG_TIME[ngN];
-  $("ng-goals").innerHTML = `3 ${ICONS.star} en ${t3} s ou moins · 2 ${ICONS.star} jusqu’à ${t2} s`;
+  ngDone = false; ngSeconds = 0; ngHints = 0;
+  ngStartClock();
   setNgMode(1);
   renderNonogram();
+}
+function ngStartClock() {
+  stopTimers();
+  $("ng-time").textContent = ngSeconds + " s";
+  timers.push(setInterval(() => {
+    ngSeconds++; $("ng-time").textContent = ngSeconds + " s";
+    if (ngSeconds % 5 === 0) saveNonogram(); // garde aussi le chrono
+  }, 1000));
+  const [t3, t2] = NG_TIME[ngN];
+  $("ng-goals").innerHTML = `3 ${ICONS.star} en ${t3} s ou moins, sans indice · 2 ${ICONS.star} jusqu’à ${t2} s`;
+}
+function saveNonogram() { if (!ngDone) resumeSave("nonogram", playCtx(ngN), { sol: ngSol, rows: ngRows, cols: ngCols, cells: ngCells, seconds: ngSeconds, hints: ngHints }); }
+function newNonogram() { resumeClear("nonogram"); initNonogram(); }
+function ngPushUndo() { ngUndo.push(ngCells.map(r => [...r])); if (ngUndo.length > 200) ngUndo.shift(); }
+function undoNonogram() {
+  if (ngDone) return;
+  const u = ngUndo.pop();
+  if (!u) { toast("Rien à annuler"); return; }
+  ngCells = u;
+  for (let r = 0; r < ngN; r++) for (let c = 0; c < ngN; c++) paintNgCell(r, c);
+  sfx("tick"); ngRefreshClues(); saveNonogram();
+}
+// Indice : corrige une case fausse, sinon noircit une case qui doit l’être.
+function hintNonogram() {
+  if (ngDone) return;
+  const wrong = [], missing = [];
+  for (let r = 0; r < ngN; r++) for (let c = 0; c < ngN; c++) {
+    const want = ngSol[r][c] === 1, v = ngCells[r][c];
+    if ((v === 1 && !want) || (v === 2 && want)) wrong.push([r, c]);
+    else if (v === 0 && want) missing.push([r, c]);
+  }
+  const pool = wrong.length ? wrong : missing;
+  if (!pool.length) return;
+  const [r, c] = pool[Math.floor(Math.random() * pool.length)];
+  ngPushUndo();
+  ngCells[r][c] = ngSol[r][c] === 1 ? 1 : 2;
+  ngHints++; ngHinted.add(r + "," + c);
+  paintNgCell(r, c);
+  sfx("good"); toast(wrong.length ? "Indice : une case était fausse, elle est corrigée" : "Indice : une case noire de plus");
+  ngRefreshClues(); saveNonogram(); ngCheckWin();
 }
 function setNgMode(m) {
   ngMode = m;
@@ -135,7 +183,7 @@ function renderNonogram() {
 function ngCellEl(r, c) { return document.querySelector(`#ng-board td[data-r="${r}"][data-c="${c}"]`); }
 function paintNgCell(r, c) {
   const el = ngCellEl(r, c), v = ngCells[r][c];
-  el.className = el.className.replace(/\b(on|x)\b/g, "").trim() + (v === 1 ? " on" : v === 2 ? " x" : "");
+  el.className = el.className.replace(/\b(on|x|hinted)\b/g, "").trim() + (v === 1 ? " on" : v === 2 ? " x" : "") + (ngHinted.has(r + "," + c) ? " hinted" : "");
 }
 function ngRefreshClues() {
   for (let r = 0; r < ngN; r++) {
@@ -162,6 +210,7 @@ function ngEndDrag() {
   if (!ngDrag) return;
   ngDrag = null;
   ngRefreshClues();
+  saveNonogram();
   ngCheckWin();
 }
 function ngCheckWin() {
@@ -169,19 +218,22 @@ function ngCheckWin() {
   for (let r = 0; r < ngN; r++) for (let c = 0; c < ngN; c++) if ((ngCells[r][c] === 1) !== (ngSol[r][c] === 1)) return;
   ngDone = true;
   stopTimers();
+  resumeClear("nonogram");
   for (let r = 0; r < ngN; r++) for (let c = 0; c < ngN; c++) if (ngCells[r][c] !== 1) { ngCells[r][c] = 2; paintNgCell(r, c); }
   const pts = { 5: 30, 8: 80, 10: 150 }[ngN];
   addPoints(pts); state.solved++;
   if (!levelCfg()) setBest("nonogram", ngN);
   save();
   const [t3, t2] = NG_TIME[ngN];
-  const stars = ngSeconds <= t3 ? 3 : ngSeconds <= t2 ? 2 : 1;
+  const stars = ngSeconds <= t3 && !ngHints ? 3 : ngSeconds <= t2 ? 2 : 1;
   later(() => winGame("Image révélée", `Nonogram ${ngN}×${ngN} résolu en ${ngSeconds} s. +${pts} points`, pts, stars), 900);
 }
 function clearNonogram() {
+  ngPushUndo();
   ngCells = Array.from({ length: ngN }, () => new Array(ngN).fill(0));
   for (let r = 0; r < ngN; r++) for (let c = 0; c < ngN; c++) paintNgCell(r, c);
   ngRefreshClues();
+  saveNonogram();
 }
 
 LQ.register({
@@ -193,13 +245,20 @@ LQ.register({
   init: initNonogram,
   levelInfo: cfg => {
     const [t3, t2] = NG_TIME[cfg.size];
-    return { what: cfg.picture ? `Un nonogram ${cfg.size}×${cfg.size} qui révèle ${cfg.picture}` : `Un nonogram ${cfg.size}×${cfg.size}`, goals: [`Résoudre en ${t3} s ou moins`, `Résoudre en ${t2} s ou moins`, "Résoudre la grille"] };
+    return { what: cfg.picture ? `Un nonogram ${cfg.size}×${cfg.size} qui révèle ${cfg.picture}` : `Un nonogram ${cfg.size}×${cfg.size}`, goals: [`Résoudre en ${t3} s ou moins, sans indice`, `Résoudre en ${t2} s ou moins`, "Résoudre la grille"] };
   },
+  rules: [
+    "Les nombres en marge donnent, dans l’ordre, la longueur des blocs de cases noires de chaque ligne (de gauche à droite) et de chaque colonne (de haut en bas).",
+    "Deux blocs sont toujours séparés par au moins une case blanche.",
+    "En mode <b>Noircir</b>, touchez ou glissez pour noircir des cases ; en mode <b>Croix</b>, marquez les cases que vous savez blanches. Touchez une case marquée pour l’effacer.",
+    "Un indice grisé signifie que sa ligne ou sa colonne correspond.",
+    "<b>Annuler</b> revient en arrière ; <b>Indice</b> corrige ou révèle une case (3 étoiles seulement sans indice). La grille est gardée si vous quittez.",
+  ],
   screen: `
     <div class="chips lvl-hide">
-      <button class="chip" data-b="5" onclick="ngN=5;initNonogram()">Facile · 5×5</button>
-      <button class="chip" data-b="8" onclick="ngN=8;initNonogram()">Moyen · 8×8</button>
-      <button class="chip" data-b="10" onclick="ngN=10;initNonogram()">Difficile · 10×10</button>
+      <button class="chip" data-b="5" onclick="ngN=5;newNonogram()">Facile · 5×5</button>
+      <button class="chip" data-b="8" onclick="ngN=8;newNonogram()">Moyen · 8×8</button>
+      <button class="chip" data-b="10" onclick="ngN=10;newNonogram()">Difficile · 10×10</button>
     </div>
     <div class="stat-pills">
       <div class="seg">
@@ -211,8 +270,10 @@ LQ.register({
     <p class="goals" id="ng-goals"></p>
     <div class="board-wrap"><table class="ng-board" id="ng-board"></table></div>
     <div class="toolbar">
+      <button class="btn ghost small" onclick="undoNonogram()">${ICONS.undo} Annuler</button>
+      <button class="btn ghost small" onclick="hintNonogram()">${ICONS.bulb} Indice</button>
       <button class="btn ghost small" onclick="clearNonogram()">${ICONS.erase} Tout effacer</button>
-      <button class="btn ghost small lvl-hide" onclick="initNonogram()">${ICONS.refresh} Nouvelle grille</button>
+      <button class="btn ghost small lvl-hide" onclick="newNonogram()">${ICONS.refresh} Nouvelle grille</button>
     </div>
     <p class="hint-line">Les nombres donnent, dans l’ordre, la longueur des blocs de cases noires de chaque ligne et colonne, séparés par au moins une case blanche. Glissez le doigt pour noircir plusieurs cases d’un coup.</p>`,
   setup() {
@@ -224,6 +285,7 @@ LQ.register({
       e.preventDefault();
       const r = +el.dataset.r, c = +el.dataset.c;
       // Toucher une case déjà marquée dans le mode courant l’efface (et efface en glissant).
+      ngPushUndo();
       ngDrag = { value: ngCells[r][c] === ngMode ? 0 : ngMode, seen: new Set() };
       sfx("tick");
       ngApply(r, c);
