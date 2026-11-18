@@ -113,6 +113,11 @@ LQ.register({
   recordLabel: v => `Record : ${v} bonnes réponses`,
   init: initVF,
   levelInfo: cfg => { const n = (cfg.items || cfg.ids).length; return { what: `${n} affirmations à départager`, goals: countGoals(n) }; },
+  rules: [
+    "Lisez l’affirmation et répondez <b>Vrai</b> ou <b>Faux</b>.",
+    "Une explication s’affiche ensuite ; touchez « Suivante » pour continuer.",
+    "En jeu libre, chaque série tire 12 affirmations au hasard.",
+  ],
   screen: `
     <div class="quiz-card">
       <div class="quiz-progress" id="vf-progress"></div>

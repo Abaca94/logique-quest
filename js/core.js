@@ -37,6 +37,10 @@ const ICONS = {
   map: '<svg viewBox="0 0 24 24"><path d="M9 4L3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>',
   user: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
   play: '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>',
+  undo: '<svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
+  pencil: '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>',
+  help: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.6"/><path d="M12 16.8v.1"/></svg>',
+  textSize: '<svg viewBox="0 0 24 24"><path d="M3 19l5-13 5 13M4.8 14.5h6.4"/><path d="M14 19l3.5-9 3.5 9M15.2 16h4.6"/></svg>',
   shuffle: '<svg viewBox="0 0 24 24"><path d="M3 7h3.5c4 0 6 10 10 10H21M3 17h3.5c1.6 0 2.8-1.5 3.8-3.4M13.7 10.4C14.7 8.5 15.9 7 17.5 7H21"/><path d="M18.5 4.5L21 7l-2.5 2.5M18.5 14.5L21 17l-2.5 2.5"/></svg>',
 };
 
@@ -64,7 +68,7 @@ const SAVE_KEY = "logiquequest_v1";
 function defaultState() {
   // levels : étoiles par niveau du parcours · badges : date d’obtention · wins : parties gagnées par jeu
   // daily : étoiles du défi du jour par date (AAAA-MM-JJ) · bestDaily : plus longue série de jours
-  return { score: 0, solved: 0, bestStreak: 0, streak: 0, sound: true, best: {}, levels: {}, badges: {}, wins: {}, daily: {}, bestDaily: 0, story: {} };
+  return { score: 0, solved: 0, bestStreak: 0, streak: 0, sound: true, best: {}, levels: {}, badges: {}, wins: {}, daily: {}, bestDaily: 0, story: {}, resume: {}, seenRules: {}, bigText: false };
 }
 function loadState() {
   try {
@@ -76,6 +80,8 @@ function loadState() {
     s.wins = { ...(raw.wins || {}) };
     s.daily = { ...(raw.daily || {}) };
     s.story = { ...(raw.story || {}) };
+    s.resume = { ...(raw.resume || {}) };
+    s.seenRules = { ...(raw.seenRules || {}) };
     return s;
   } catch (e) { return defaultState(); }
 }
@@ -176,6 +182,7 @@ function showScreen(name) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   $("screen-" + name).classList.add("active");
   $("btnBack").classList.toggle("show", name !== "home");
+  $("rulesBtn").classList.toggle("show", !!(LQ.byId[name] && LQ.byId[name].rules));
   const g = LQ.byId[currentGame];
   let title = SCREEN_TITLES[name];
   if (title === undefined) {
@@ -221,6 +228,7 @@ function launchGame(id) {
   currentGame = id;
   showScreen(id);
   g.init(levelCfg());
+  if (g.rules && !state.seenRules[id]) showRules(id);
 }
 function replay() {
   if (LQ.level) startLevel(LQ.level.n);
@@ -228,6 +236,52 @@ function replay() {
   else if (LQ.story) startEpisode(LQ.story.n);
   else startGame(currentGame);
 }
+/* ---------- Reprise d’une partie en cours ----------
+   Les jeux à grille enregistrent leur état à chaque coup. En revenant sur le même
+   jeu, dans le même contexte (jeu libre de même taille, même niveau, même défi du
+   jour ou même épisode), la partie reprend là où on l’avait laissée. */
+function playCtx(extra) {
+  const m = LQ.level ? "L" + LQ.level.n : LQ.daily ? "D" + LQ.daily.key : LQ.story ? "S" + LQ.story.n : "F";
+  return m + ":" + extra;
+}
+function resumeSave(game, ctx, data) { state.resume[game] = { ctx, data }; save(); }
+function resumeTake(game, ctx) {
+  const r = state.resume[game];
+  if (!r || r.ctx !== ctx) return null;
+  later(() => toast("Partie reprise là où vous l’aviez laissée"), 150);
+  return r.data;
+}
+// En jeu libre, reprend la taille de la partie gardée (sinon la partie serait ignorée après un redémarrage).
+function resumeFreeSize(game) {
+  const r = state.resume[game];
+  return r && r.ctx.startsWith("F:") ? +r.ctx.slice(2) : 0;
+}
+function resumeClear(game) { if (state.resume[game]) { delete state.resume[game]; save(); } }
+
+/* ---------- Règles des jeux (affichées à la première partie, puis via « ? ») ---------- */
+function showRules(id) {
+  const g = LQ.byId[id || currentGame];
+  if (!g || !g.rules) return;
+  $("rules-ico").innerHTML = ICONS[g.id];
+  $("rules-ico").style.setProperty("--hue", g.hue);
+  $("rules-title").textContent = g.title;
+  $("rules-body").innerHTML = g.rules.map(t => `<li>${t}</li>`).join("");
+  const m = $("rules-sheet");
+  m.onclick = e => { if (e.target === m) closeRules(); };
+  m.classList.add("show");
+  m.setAttribute("aria-hidden", "false");
+  state.seenRules[g.id] = 1; save();
+}
+function closeRules() { const m = $("rules-sheet"); m.classList.remove("show"); m.setAttribute("aria-hidden", "true"); }
+
+/* ---------- Taille du texte ---------- */
+function applyTextSize() { document.body.classList.toggle("big-text", !!state.bigText); }
+function toggleTextSize() {
+  state.bigText = !state.bigText; save(); applyTextSize();
+  toast(state.bigText ? "Texte agrandi" : "Texte normal");
+  if (typeof renderHome === "function") renderHome();
+}
+
 function starsHtml(n, total = 3) {
   return Array.from({ length: total }, (_, i) => ICONS.star.replace("<svg", `<svg class="${i < n ? "on" : ""}"`)).join("");
 }

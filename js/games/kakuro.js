@@ -7,6 +7,7 @@
    ============================================================ */
 const KK_SIZES = [6, 8, 10]; // taille totale, première ligne et première colonne noires
 const KK_PTS = { 6: 50, 8: 120, 10: 220 };
+let kkHints = 0, kkNotes = [], kkNoteMode = false, kkUndo = [];
 let kkN = 6, kkWhite = [], kkSol = [], kkGrid = [], kkGiven = [], kkRuns = [], kkCellRuns = [], kkSel = -1, kkBad = [], kkErrors = 0, kkDone = false;
 
 /* ---------- Génération ---------- */
@@ -169,15 +170,51 @@ function initKakuro(cfg) {
   navToken++;
   cfg = cfg || levelCfg();
   if (cfg) kkN = cfg.size;
+  else if (resumeFreeSize("kakuro")) kkN = resumeFreeSize("kakuro");
   setActiveChips("kakuro", kkN);
+  kkSel = -1; kkBad = []; kkDone = false; kkUndo = []; kkNoteMode = false; setKakuroNoteBtn();
+  const snap = resumeTake("kakuro", playCtx(kkN));
+  if (snap) {
+    ({ w: kkWhite, runs: kkRuns, cellRuns: kkCellRuns, sol: kkSol, given: kkGiven, grid: kkGrid, notes: kkNotes, errors: kkErrors, hints: kkHints } = snap);
+    renderKakuro(); renderKakuroKeys();
+    return;
+  }
   let p = kkGenerate(kkN);
   while (!p) p = kkGenerate(kkN);
   kkWhite = p.w; kkRuns = p.runs; kkCellRuns = p.cellRuns; kkSol = p.sol;
   kkGiven = p.givens.map(v => v ? 1 : 0);
   kkGrid = [...p.givens];
-  kkSel = -1; kkBad = []; kkErrors = 0; kkDone = false;
+  kkErrors = 0; kkHints = 0;
+  kkNotes = new Array(kkN * kkN).fill(0);
   renderKakuro();
   renderKakuroKeys();
+}
+function saveKakuro() {
+  resumeSave("kakuro", playCtx(kkN), { w: kkWhite, runs: kkRuns, cellRuns: kkCellRuns, sol: kkSol, given: kkGiven, grid: kkGrid, notes: kkNotes, errors: kkErrors, hints: kkHints });
+}
+function newKakuro() { resumeClear("kakuro"); initKakuro(); }
+function pushKakuroUndo() { kkUndo.push({ grid: [...kkGrid], notes: [...kkNotes] }); if (kkUndo.length > 200) kkUndo.shift(); }
+function undoKakuro() {
+  if (kkDone) return;
+  const u = kkUndo.pop();
+  if (!u) { toast("Rien à annuler"); return; }
+  kkGrid = u.grid; kkNotes = u.notes; kkBad = [];
+  sfx("tick"); renderKakuro(); saveKakuro();
+}
+function setKakuroNoteBtn() { const b = $("kk-note-btn"); if (b) b.classList.toggle("toggle-on", kkNoteMode); }
+function toggleKakuroNotes() { kkNoteMode = !kkNoteMode; setKakuroNoteBtn(); sfx("tick"); }
+function hintKakuro() {
+  if (kkDone) return;
+  const whites = kkWhite.reduce((a, w, i) => w ? [...a, i] : a, []);
+  let i = kkSel >= 0 && !kkGiven[kkSel] && kkGrid[kkSel] !== kkSol[kkSel] ? kkSel : -1;
+  if (i < 0) i = whites.find(j => kkGrid[j] && kkGrid[j] !== kkSol[j]) ?? -1;
+  if (i < 0) { const empty = whites.filter(j => !kkGrid[j]); i = empty.length ? empty[Math.floor(Math.random() * empty.length)] : -1; }
+  if (i < 0) return;
+  pushKakuroUndo();
+  kkGrid[i] = kkSol[i]; kkGiven[i] = 2; kkNotes[i] = 0; kkBad[i] = 0; kkHints++; kkSel = i;
+  sfx("good"); toast(`Indice : ${kkSol[i]} dans la case surlignée`);
+  renderKakuro(); saveKakuro();
+  if (whites.every(j => kkGrid[j])) checkKakuro();
 }
 function kkCellSize() {
   const avail = Math.min(document.documentElement.clientWidth - 32, 640);
@@ -196,8 +233,9 @@ function renderKakuro() {
       const hl = selRuns.some(ri => kkRuns[ri].head === i);
       h += `<div class="kk-black ${a || d ? "clue" : ""} ${hl ? "hl" : ""}">${a ? `<span class="ka">${a.sum}</span>` : ""}${d ? `<span class="kd">${d.sum}</span>` : ""}</div>`;
     } else {
-      const cls = ["kk-cell", kkGiven[i] ? "given" : "", inSel.has(i) ? "peer" : "", i === kkSel ? "sel" : "", kkBad[i] ? "bad" : ""].join(" ");
-      h += `<div class="${cls}" data-i="${i}">${kkGrid[i] || ""}</div>`;
+      const cls = ["kk-cell", kkGiven[i] === 1 ? "given" : kkGiven[i] === 2 ? "given hinted" : "", inSel.has(i) ? "peer" : "", i === kkSel ? "sel" : "", kkBad[i] ? "bad" : ""].join(" ");
+      const inner = kkGrid[i] ? kkGrid[i] : kkNotes[i] ? `<div class="notes">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(v => `<span>${kkNotes[i] & (1 << v) ? v : ""}</span>`).join("")}</div>` : "";
+      h += `<div class="${cls}" data-i="${i}">${inner}</div>`;
     }
   }
   b.innerHTML = h;
@@ -226,10 +264,19 @@ function putKakuro(v) {
   if (kkDone) return;
   if (kkSel < 0) { toast("Choisissez d’abord une case"); return; }
   if (kkGiven[kkSel]) { sfx("bad"); return; }
-  kkGrid[kkSel] = v;
+  pushKakuroUndo();
+  if (kkNoteMode && v) {
+    if (kkGrid[kkSel]) { kkUndo.pop(); toast("Effacez d’abord le chiffre pour prendre des notes"); return; }
+    kkNotes[kkSel] ^= 1 << v;
+  } else {
+    kkGrid[kkSel] = v;
+    kkNotes[kkSel] = 0;
+    if (v) kkCellRuns[kkSel].forEach(ri => kkRuns[ri].cells.forEach(j => { kkNotes[j] &= ~(1 << v); }));
+  }
   kkBad[kkSel] = 0;
   sfx("tick");
   renderKakuro();
+  saveKakuro();
   const whites = kkWhite.reduce((a, w, i) => w ? [...a, i] : a, []);
   if (whites.every(i => kkGrid[i])) checkKakuro();
 }
@@ -249,17 +296,18 @@ function checkKakuro() {
   if (runBad.some(Boolean)) {
     kkErrors++;
     sfx("bad"); addPoints(-3);
-    renderKakuro();
+    renderKakuro(); saveKakuro();
     toast("Certains blocs sont faux");
     return;
   }
   kkDone = true;
+  resumeClear("kakuro");
   const pts = KK_PTS[kkN];
   addPoints(pts); state.solved++;
   if (!levelCfg()) setBest("kakuro", kkN);
   save();
-  const stars = kkErrors === 0 ? 3 : kkErrors === 1 ? 2 : 1;
-  winGame("Kakuro résolu", `Grille ${kkN}×${kkN} terminée${kkErrors ? ` après ${kkErrors} vérification${kkErrors > 1 ? "s" : ""} ratée${kkErrors > 1 ? "s" : ""}` : " sans faute"}. +${pts} points`, pts, stars);
+  const stars = kkErrors === 0 && !kkHints ? 3 : kkErrors <= 1 ? 2 : 1;
+  winGame("Kakuro résolu", `Grille ${kkN}×${kkN} terminée${kkErrors ? ` après ${kkErrors} vérification${kkErrors > 1 ? "s" : ""} ratée${kkErrors > 1 ? "s" : ""}` : " sans faute"}${kkHints ? `, avec ${kkHints} indice${kkHints > 1 ? "s" : ""}` : ""}. +${pts} points`, pts, stars);
 }
 
 LQ.register({
@@ -271,21 +319,33 @@ LQ.register({
   init: initKakuro,
   levelInfo: cfg => ({
     what: `Une grille de kakuro ${cfg.size}×${cfg.size}`,
-    goals: ["Grille juste du premier coup", "Au plus une vérification ratée", "Terminer la grille"],
+    goals: ["Grille juste du premier coup, sans indice", "Au plus une vérification ratée", "Terminer la grille"],
   }),
+  rules: [
+    "Chaque bloc de cases blanches doit totaliser la somme indiquée dans la case grise qui le précède : en haut à droite pour le bloc horizontal, en bas à gauche pour le bloc vertical.",
+    "Dans un même bloc, on n’utilise que les chiffres de 1 à 9, et jamais deux fois le même.",
+    "Touchez une case : ses blocs s’éclairent et la somme qui reste à placer s’affiche sous la grille.",
+    "Le <b>crayon</b> note les chiffres possibles ; <b>Annuler</b> revient en arrière ; <b>Indice</b> révèle une case (3 étoiles seulement sans indice).",
+    "Votre grille est gardée si vous quittez : vous la retrouverez en revenant.",
+  ],
   screen: `
     <div class="chips lvl-hide">
-      <button class="chip" data-b="6" onclick="kkN=6;initKakuro()">Facile · 6×6</button>
-      <button class="chip" data-b="8" onclick="kkN=8;initKakuro()">Moyen · 8×8</button>
-      <button class="chip" data-b="10" onclick="kkN=10;initKakuro()">Difficile · 10×10</button>
+      <button class="chip" data-b="6" onclick="kkN=6;newKakuro()">Facile · 6×6</button>
+      <button class="chip" data-b="8" onclick="kkN=8;newKakuro()">Moyen · 8×8</button>
+      <button class="chip" data-b="10" onclick="kkN=10;newKakuro()">Difficile · 10×10</button>
     </div>
     <div class="board-wrap">
       <div class="kk-board" id="kk-board"></div>
       <div class="kk-info" id="kk-info"></div>
       <div class="keypad" id="kk-keys"></div>
-      <div class="toolbar" style="margin-top:14px">
+      <div class="toolbar">
+        <button class="btn ghost small" id="kk-note-btn" onclick="toggleKakuroNotes()">${ICONS.pencil} Crayon</button>
+        <button class="btn ghost small" onclick="undoKakuro()">${ICONS.undo} Annuler</button>
+        <button class="btn ghost small" onclick="hintKakuro()">${ICONS.bulb} Indice</button>
+      </div>
+      <div class="toolbar" style="margin-top:10px">
         <button class="btn small" onclick="checkKakuro()">${ICONS.check} Vérifier</button>
-        <button class="btn ghost small lvl-hide" onclick="initKakuro()">${ICONS.refresh} Autre grille</button>
+        <button class="btn ghost small lvl-hide" onclick="newKakuro()">${ICONS.refresh} Autre grille</button>
       </div>
     </div>
     <p class="hint-line">Le nombre en haut à droite d’une case grise est la somme du bloc à sa droite ; celui en bas à gauche, la somme du bloc en dessous. Dans un bloc, chaque chiffre de 1 à 9 n’apparaît qu’une fois.</p>`,

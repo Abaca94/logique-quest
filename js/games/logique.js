@@ -227,6 +227,12 @@ LQ.register({
     what: (cfg.puzzle || LOGIC_PL[cfg.grid]).story.replace(/<[^>]+>/g, ""),
     goals: ["Résoudre sans erreur de vérification", "Au plus une vérification ratée", "Résoudre la grille"],
   }),
+  rules: [
+    "Lisez les indices : chaque élément de la première catégorie correspond à exactement un élément de chacune des deux autres.",
+    "Touchez une case une fois pour ✘ (impossible), deux fois pour ✔ (certain), trois fois pour l’effacer.",
+    "Un ✔ exclut le reste de sa ligne et de sa colonne : l’option « croix automatiques » les place pour vous.",
+    "Le bloc du bas croise les deux autres catégories entre elles : il aide à combiner les indices. Touchez <b>Vérifier</b> quand vous pensez avoir trouvé.",
+  ],
   screen: `
     <div class="chips lvl-hide" id="lg-chips"></div>
     <div class="quiz-card">

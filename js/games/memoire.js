@@ -97,6 +97,11 @@ LQ.register({
     what: `${cfg.pairs} paires à retrouver`,
     goals: [`Terminer en ${Math.ceil(cfg.pairs * 1.5)} essais ou moins`, `Terminer en ${cfg.pairs * 2} essais ou moins`, "Retrouver toutes les paires"],
   }),
+  rules: [
+    "Retournez deux cartes à la fois pour retrouver les paires identiques.",
+    "Si elles ne vont pas ensemble, elles se retournent : retenez leur place.",
+    "Moins vous faites d’essais, plus vous gagnez d’étoiles.",
+  ],
   screen: `
     <div class="chips lvl-hide">
       <button class="chip" data-b="8" onclick="setMemLevel(8)">8 paires</button>

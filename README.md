@@ -24,6 +24,15 @@ des Doges à la fête de la Sensa, chacun avec un texte, une épreuve (parfois a
 l’histoire : énigmes, tableau croisé, mots mêlés, nonogram dessiné, vrai ou faux sur Venise) et la suite
 du récit. Les personnages sont inventés, le décor et les faits d’époque sont réels.
 
+## Confort de jeu (v8)
+- **Reprise de partie** : quitter un jeu en cours (ou fermer l’app) garde la partie ; on la retrouve en revenant.
+- **Annuler** : sudoku, kakuro et nonogram.
+- **Mode crayon** : petites notes de candidats au sudoku et au kakuro, effacées automatiquement quand un chiffre est posé.
+- **Indices** : sudoku, kakuro, nonogram et taquin. Au taquin, l’indice indique quelle tuile placer et laquelle bouger
+  (méthode rangée par rangée puis colonne par colonne). Un indice utilisé retire la 3ᵉ étoile.
+- **Règles** de chaque jeu : affichées à la première ouverture, puis via le bouton « ? » en haut.
+- **Texte agrandi** (bouton sur l’accueil) et clavier numérique pour les énigmes à réponse chiffrée.
+
 ## Jeux libres (10)
 Chaque jeu reste jouable seul, avec le choix de la difficulté.
 | Jeu | Contenu |

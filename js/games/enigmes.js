@@ -266,6 +266,8 @@ function renderEnigme() {
   $("enig-fill").style.width = (enigIndex / enigList.length * 100) + "%";
   $("enig-question").textContent = e.q;
   $("enig-input").value = "";
+  // Clavier numérique pour les réponses chiffrées
+  $("enig-input").setAttribute("inputmode", e.num !== undefined ? "decimal" : "text");
   $("enig-hint").classList.remove("show");
   $("enig-feedback").className = "feedback";
   $("enig-actions").style.display = "";
@@ -355,6 +357,12 @@ LQ.register({
     what: `${(cfg.items || cfg.ids).length} énigmes à résoudre`,
     goals: ["Tout résoudre sans indice, avec au plus une erreur", "Tout résoudre sans voir de réponse", "Résoudre au moins une énigme"],
   }),
+  rules: [
+    "Lisez le problème, puis tapez votre réponse et validez. Pour une réponse chiffrée, le clavier numérique s’ouvre tout seul : un nombre suffit.",
+    "Chaque énigme a une seule bonne réponse. Une explication s’affiche ensuite.",
+    "<b>Indice</b> aide sans tout dévoiler ; <b>Voir la réponse</b> passe à la suite sans points.",
+    "Dans le parcours : 3 étoiles si tout est résolu sans indice, avec au plus une erreur.",
+  ],
   screen: `
     <div class="quiz-card">
       <div class="quiz-progress" id="enig-progress"></div>

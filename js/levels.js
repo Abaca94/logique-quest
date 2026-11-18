@@ -311,6 +311,7 @@ function dailyHomeCard() {
     </button>`;
 }
 function renderHome() {
+  $("textSizeBtn").innerHTML = `${ICONS.textSize} ${state.bigText ? "Texte normal" : "Agrandir le texte"}`;
   const total = totalStars(), rank = rankFor(total), n = currentLevel();
   const L = LEVELS[n - 1], g = LQ.byId[L.game];
   const allDone = LEVELS.every((_, i) => levelStars(i + 1) > 0);
