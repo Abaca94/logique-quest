@@ -39,7 +39,7 @@ const DAILY_ROTA2 = [
   ...DAILY_ROTA.slice(5, 7),
   { game: "futoshiki", cfg: () => ({ size: 5 }) },
   { game: "code", cfg: () => ({ mode: 2 }) },
-  { game: "logique", cfg: () => ({ gen: 5 }) },
+  { game: "logique", cfg: () => ({ gen: 6 }) },
   ...DAILY_ROTA.slice(8, 10),
   { game: "hashi", cfg: () => ({ size: 9 }) },
 ];

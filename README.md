@@ -51,7 +51,7 @@ Chaque jeu reste jouable seul, avec le choix de la difficulté.
 |---|---|
 | Énigmes | 60 problèmes de logique à réponse unique, avec indice et explication |
 | Séquences | 30 suites logiques, 3 niveaux |
-| Déduction | 6 tableaux croisés « qui fait quoi » (✘ / ✔), jusqu’à 6×6, et des grilles 4×4 / 5×5 générées à volonté (6 thèmes, solution unique, aucun indice superflu) |
+| Déduction | 6 tableaux croisés « qui fait quoi » (✘ / ✔), jusqu’à 6×6, et des grilles générées à volonté en 4×4, 5×5, 6×6 et Expert 6×6 sans indice direct (6 thèmes, solution unique, aucun indice superflu) |
 | Sudoku | 4×4, 6×6, 9×9, grilles à solution unique générées à la volée |
 | Taquin | 3×3, 4×4, 5×5, mélanges toujours solvables, chronomètre |
 | Mémoire | 8, 10 ou 12 paires, étoiles selon le nombre d’essais |
