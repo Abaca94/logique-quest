@@ -76,7 +76,7 @@ const LEVELS = [
   { game: "futoshiki", cfg: { size: 4 } },
   { game: "code", cfg: { mode: 1 } },
   { game: "hashi", cfg: { size: 7 } },
-  { game: "logique", cfg: { gen: 4 } },
+  { game: "logique", cfg: { gen: 5 } },
   { game: "takuzu", cfg: { size: 8 } },
   { game: "futoshiki", cfg: { size: 5 } },
   { game: "code", cfg: { mode: 2 } },
