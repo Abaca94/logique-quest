@@ -2,15 +2,31 @@
    LogiqueQuest — démarrage : menu d’accueil, mises à jour, hors-ligne
    ============================================================ */
 
-/* ---------- Menu des jeux libres (construit depuis le registre) ---------- */
+/* ---------- Menu des jeux libres, regroupés par famille ---------- */
+const MENU_FAMILIES = [
+  ["Raisonner", ["enigmes", "logique", "sequences", "vf", "code"]],
+  ["Grilles de chiffres", ["sudoku", "kakuro", "futoshiki", "takuzu"]],
+  ["Formes et liaisons", ["nonogram", "hashi", "taquin"]],
+  ["Mots et mémoire", ["mots", "memoire"]],
+];
 function renderMenu() {
-  $("menu-grid").innerHTML = LQ.games.map(g => `
+  const card = g => `
     <button class="menu-card" style="--hue:${g.hue}" onclick="startGame('${g.id}')">
       <span class="ico">${ICONS[g.id] || ICONS.star}</span>
       <h3>${g.title}</h3>
       <p>${g.desc}</p>
       <span class="rec" id="rec-${g.id}"></span>
-    </button>`).join("");
+    </button>`;
+  const placed = new Set();
+  const groups = MENU_FAMILIES.map(([name, ids]) => {
+    const games = ids.map(id => LQ.byId[id]).filter(Boolean);
+    games.forEach(g => placed.add(g.id));
+    return [name, games];
+  });
+  const rest = LQ.games.filter(g => !placed.has(g.id)); // un jeu oublié reste accessible
+  if (rest.length) groups[groups.length - 1][1].push(...rest);
+  $("menu-grid").innerHTML = groups.filter(([, gs]) => gs.length).map(([name, gs]) => `
+    <div class="menu-family"><h3>${name}</h3><div class="menu-grid">${gs.map(card).join("")}</div></div>`).join("");
 }
 
 /* ---------- Confort tactile ---------- */
@@ -21,7 +37,7 @@ window.addEventListener("scroll", () => document.body.classList.toggle("scrolled
 /* ---------- Mises à jour ----------
    1) compare la version en ligne (badge de index.html) à la version locale ;
    2) si elle diffère : purge service worker et caches, puis recharge.        */
-const LOCAL_VERSION = "v9.2";
+const LOCAL_VERSION = "v9.3";
 function canReloadNow() { // garde anti-boucle : au plus un rechargement automatique toutes les 20 s
   try { return Date.now() - Number(localStorage.getItem("lq_last_reload") || 0) > 20000; }
   catch (e) { return true; }
