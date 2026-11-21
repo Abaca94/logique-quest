@@ -1,8 +1,18 @@
 /* ============================================================
    LogiqueQuest — feuille de style
-   Thème sombre sobre, typographie Apple (SF / New York),
-   pensé pour iPhone et iPad (zones sûres, tactile).
+   Thème sombre sobre. Titres en EB Garamond (héritage des
+   imprimeurs vénitiens), texte courant en police système.
+   Pensé pour iPhone et iPad (zones sûres, tactile).
    ============================================================ */
+
+@font-face {
+  font-family: "EB Garamond"; font-style: normal; font-weight: 400 800; font-display: swap;
+  src: url("../fonts/ebgaramond.woff2") format("woff2");
+}
+@font-face {
+  font-family: "EB Garamond"; font-style: italic; font-weight: 400; font-display: swap;
+  src: url("../fonts/ebgaramond-italic.woff2") format("woff2");
+}
 
 :root {
   --bg: #333948;
@@ -25,7 +35,7 @@
   --radius: 18px;
   --radius-sm: 12px;
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-  --font-display: ui-serif, "New York", "Iowan Old Style", Georgia, serif;
+  --font-display: "EB Garamond", ui-serif, "New York", "Iowan Old Style", Georgia, serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -808,3 +818,103 @@ body.big-text .gs-meta, body.big-text .act-foot { font-size: 14px; }
 .stt-t { font-family: var(--font-display); font-size: 15.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; line-height: 1.25; }
 .stt-t svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--muted); }
 .chips-break { flex-basis: 100%; height: 0; }
+
+/* ============================================================
+   Refonte v9.3 — identité « imprimerie vénitienne »
+   Une seule audace : les titres en Garamond avec la feuille de
+   lierre (hedera) des imprimeurs aldins. Le reste reste sobre.
+   ============================================================ */
+:root {
+  /* Feuille de lierre dessinée (le glyphe ❦ manque à la police) */
+  --hedera: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21c-.6-2.6-2.5-4-5.2-5.7C3.9 13.5 2.6 11 3.3 8.6 4 6.3 6.6 5.4 8.6 6.4c1.5.7 2.6 2.1 3.4 3.8.8-1.7 1.9-3.1 3.4-3.8 2-1 4.6-.1 5.3 2.2.7 2.4-.6 4.9-3.5 6.7C14.5 17 12.6 18.4 12 21z'/%3E%3Cpath d='M12 10.2C11 6.5 8.5 3.5 5 3' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* Titres de section : minuscules, italique, fleuron en tête */
+.section-title {
+  font-family: var(--font-display); font-style: italic; font-weight: 400;
+  font-size: 22px; letter-spacing: 0; text-transform: none; color: var(--text);
+  display: flex; align-items: center; gap: 10px; margin: 34px 2px 12px;
+}
+.section-title::before {
+  content: ""; width: 18px; height: 18px; flex-shrink: 0; background: var(--accent);
+  -webkit-mask: var(--hedera) center / contain no-repeat; mask: var(--hedera) center / contain no-repeat;
+  transform: rotate(-90deg);
+}
+.section-title::after { content: ""; flex: 1; height: 1px; background: var(--line); margin-left: 4px; }
+
+/* Étiquettes : plus de capitales espacées, une italique de Garamond */
+.ch-kicker, .st-era, .stt-k, .ls-kicker, .rk-kicker {
+  font-family: var(--font-display); font-style: italic; font-weight: 400;
+  font-size: 15.5px; letter-spacing: 0; text-transform: none;
+}
+.rk-kicker { color: var(--muted); }
+.ep-place { font-size: 13px; letter-spacing: 0; text-transform: none; font-weight: 500; }
+.lg th.grp, .lg th.grp-row span {
+  font-family: var(--font-display); font-style: italic; font-weight: 400;
+  font-size: 14px; letter-spacing: 0; text-transform: none;
+}
+.hc-kicker, .dc-kicker { letter-spacing: 0; font-weight: 500; font-size: 12.5px; }
+.dc-date { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: 16px; letter-spacing: 0; }
+
+/* Garamond a un petit œil : on le grandit légèrement */
+.screen-title { font-size: 23px; font-weight: 600; letter-spacing: 0; }
+.hc-title { font-size: 23px; }
+.ch-head h3 { font-size: 26px; }
+.dc-head h2 { font-size: 29px; line-height: 1.1; }
+.win-banner h2 { font-size: 33px; }
+.modal-card h3 { font-size: 23px; }
+.rank-card h2 { font-size: 32px; }
+.story-head h2, .episode h2 { font-size: 30px; }
+.question-txt { font-size: clamp(20px, 4.9vw, 24px); }
+.st-pro { font-size: 16.5px; }
+
+/* Accueil : en-tête compact, aligné à gauche */
+.hero { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; text-align: left; padding: 10px 2px 0; }
+.hero-mark { width: 50px; height: 50px; margin: 0; border-radius: 14px; grid-row: span 2; }
+.hero-mark svg { width: 30px; height: 30px; }
+.hero h1 { font-size: clamp(30px, 6.4vw, 40px); line-height: 1; letter-spacing: 0; }
+.hero p { margin: 4px 0 0; max-width: none; font-size: 15px; }
+#screen-home .home-cards { margin-top: 18px; }
+
+/* Jeux libres regroupés par famille */
+.menu-family + .menu-family { margin-top: 18px; }
+.menu-family > h3 {
+  font-family: var(--font-display); font-size: 18px; font-weight: 500; color: var(--muted);
+  margin: 0 2px 8px;
+}
+.menu-card h3 { font-size: 16px; }
+@media (max-width: 699px) {
+  .menu-grid { gap: 10px; }
+  .menu-card { min-height: 0; padding: 12px; gap: 2px; }
+  .menu-card .ico { width: 36px; height: 36px; border-radius: 10px; margin-bottom: 6px; }
+  .menu-card .ico svg { width: 21px; height: 21px; }
+  .menu-card .rec { padding-top: 6px; min-height: 18px; }
+  .menu-card .rec:empty { display: none; }
+}
+
+/* Série en cours : masquée tant qu’elle vaut 0 */
+.pill.is-zero { display: none; }
+
+/* Défi du jour : boutons empilés, jamais de libellé sur 3 lignes */
+.dc-btns { flex-direction: column; gap: 0; }
+.dc-btns .dc-play + .dc-play { margin-top: 10px; }
+
+/* Écran de victoire : notes de même largeur */
+.win-notes { align-items: stretch; max-width: 440px; margin-left: auto; margin-right: auto; }
+.win-notes .note { max-width: none; }
+
+/* Focus clavier visible (iPad avec clavier, accessibilité) */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn:focus-visible, .chip:focus-visible, .menu-card:focus-visible, .home-card:focus-visible { outline-offset: 3px; }
+:focus:not(:focus-visible) { outline: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .screen.active { animation: none; }
+  html { scroll-behavior: auto; }
+}
+
+/* Accessibilité (audit WCAG 2.1 AA) */
+.version { opacity: 1; }
+.icon-btn { position: relative; }
+.icon-btn::after { content: ""; position: absolute; inset: -4px; } /* zone tactile ≥ 44 px */
+.icon-btn.small::after { inset: -5px; }

@@ -105,6 +105,7 @@ function setBest(game, value) {
 function refreshHUD() {
   $("hudScore").textContent = state.score;
   $("hudStreak").textContent = state.streak;
+  $("hudStreak").parentElement.classList.toggle("is-zero", !state.streak);
   $("stat-score").textContent = state.score;
   $("stat-solved").textContent = state.solved;
   $("stat-best").textContent = state.bestStreak;
