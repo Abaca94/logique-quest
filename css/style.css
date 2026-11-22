@@ -24,6 +24,8 @@
   --line-strong: rgba(255, 255, 255, .2);
   --text: #ece8df;
   --muted: #b6bac7;
+  --text-story: #e3dccf;      /* texte de récit, légèrement chaud */
+  --text-story-soft: #cfc6b8;
   --accent: #d8a657;          /* laiton */
   --accent-soft: rgba(216, 166, 87, .14);
   --accent-ink: #1b1408;
@@ -80,7 +82,7 @@ body.scrolled .topbar { border-bottom-color: var(--line); }
   color: var(--text); display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer; transition: transform .12s, background .2s;
 }
-.icon-btn.small { width: 36px; height: 36px; border-radius: 11px; }
+.icon-btn.small { width: 36px; height: 36px; border-radius: 12px; }
 .icon-btn:active { transform: scale(.92); }
 #btnBack { display: none; }
 #btnBack.show { display: inline-flex; }
@@ -207,8 +209,8 @@ main {
   margin: 12px auto 0; max-width: 700px; box-shadow: var(--shadow);
 }
 .quiz-progress { color: var(--muted); font-size: 13px; font-weight: 600; margin-bottom: 8px; letter-spacing: .3px; }
-.progress-track { height: 4px; background: var(--surface-3); border-radius: 99px; overflow: hidden; margin-bottom: 20px; }
-.progress-fill { height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .35s ease; }
+.progress-track { height: 4px; background: var(--surface-3); border-radius: 999px; overflow: hidden; margin-bottom: 20px; }
+.progress-fill { height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width .35s ease; }
 .question-txt { font-family: var(--font-display); font-size: clamp(19px, 4.6vw, 23px); line-height: 1.45; font-weight: 500; margin-bottom: 20px; }
 .question-txt .seq { display: block; margin-top: 12px; font-family: var(--font-mono); font-size: clamp(20px, 5.4vw, 26px); color: var(--cool); letter-spacing: .5px; }
 .answers { display: grid; gap: 10px; }
@@ -482,7 +484,7 @@ main {
 .node .disc svg { width: 28px; height: 28px; }
 .node .num {
   position: absolute; right: -4px; top: -4px; min-width: 22px; height: 22px; padding: 0 5px;
-  border-radius: 11px; background: var(--surface-3); border: 1px solid var(--line-strong);
+  border-radius: 12px; background: var(--surface-3); border: 1px solid var(--line-strong);
   font-size: 12px; font-weight: 700; color: var(--text); display: flex; align-items: center; justify-content: center;
 }
 .node .nstars { display: flex; gap: 2px; min-height: 16px; }
@@ -635,7 +637,7 @@ td.ngc.x::after { content: "✕"; position: absolute; inset: 0; display: flex; a
 }
 .st-era { font-size: 12.5px; color: var(--accent); font-weight: 650; letter-spacing: .6px; text-transform: uppercase; }
 .story-head h2, .episode h2 { font-family: var(--font-display); font-size: 28px; font-weight: 600; margin-top: 6px; line-height: 1.15; }
-.st-pro { color: #cfc6b8; font-size: 15px; line-height: 1.6; margin-top: 12px; font-family: var(--font-display); font-style: italic; }
+.st-pro { color: var(--text-story-soft); font-size: 15px; line-height: 1.6; margin-top: 12px; font-family: var(--font-display); font-style: italic; }
 .st-meta { display: flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 13.5px; color: var(--muted); }
 .st-meta svg { width: 15px; height: 15px; color: var(--accent); fill: var(--accent); }
 .st-meta b { color: var(--text); }
@@ -659,13 +661,13 @@ td.ngc.x::after { content: "✕"; position: absolute; inset: 0; display: flex; a
 .ep-side > svg { width: 18px; height: 18px; }
 .ep-ico svg { width: 22px; height: 22px; color: var(--hue); }
 .ep-text { margin-top: 14px; display: grid; gap: 12px; }
-.ep-text p { font-family: var(--font-display); font-size: 17px; line-height: 1.6; color: #e3dccf; }
+.ep-text p { font-family: var(--font-display); font-size: 17px; line-height: 1.6; color: var(--text-story); }
 .ep-trial { --hue: var(--accent); display: flex; align-items: center; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
 .ep-trial .dc-ico { width: 46px; height: 46px; border-radius: 13px; }
 .ep-trial .dc-ico svg { width: 24px; height: 24px; }
 .ep-what { font-size: 14.5px; color: var(--text); margin-top: 2px; }
 .story-note { text-align: left; }
-.story-note p:last-child { font-family: var(--font-display); font-size: 16px; line-height: 1.55; margin-top: 4px; color: #e3dccf; }
+.story-note p:last-child { font-family: var(--font-display); font-size: 16px; line-height: 1.55; margin-top: 4px; color: var(--text-story); }
 .win-notes .note:has(.story-note) { max-width: 560px; }
 
 /* ===== Ergonomie (v8) ===== */
@@ -918,3 +920,15 @@ body.big-text .gs-meta, body.big-text .act-foot { font-size: 14px; }
 .icon-btn { position: relative; }
 .icon-btn::after { content: ""; position: absolute; inset: -4px; } /* zone tactile ≥ 44 px */
 .icon-btn.small::after { inset: -5px; }
+
+/* ============ v9.4 : revue des écrans de jeu ============ */
+/* Garamond dessine des chiffres elzéviriens : on force les chiffres alignés */
+body { font-variant-numeric: lining-nums; }
+.tile, .ep-num { font-variant-numeric: lining-nums tabular-nums; }
+/* Vrai / Faux : libellés en minuscules, un peu plus grands */
+.vf-btn { letter-spacing: 0; font-size: 18px; }
+/* Compteurs au-dessus du plateau, actions en dessous (taquin, mémoire) */
+#screen-taquin .stat-pills, #screen-memoire .stat-pills { margin-bottom: 10px; }
+.mem-grid + .toolbar { margin-top: 16px; }
+/* Bouton bascule « Croix automatiques » */
+.chip[aria-pressed="true"]::before { content: "✓ "; }

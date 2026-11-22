@@ -243,10 +243,10 @@ LQ.register({
       <div class="toolbar">
         <button class="btn ghost small" onclick="undoHashi()">${ICONS.undo} Annuler</button>
         <button class="btn ghost small" onclick="hintHashi()">${ICONS.bulb} Indice</button>
-        <button class="btn ghost small lvl-hide" onclick="newHashi()">${ICONS.refresh} Autre archipel</button>
+        <button class="btn ghost small lvl-hide" onclick="newHashi()">${ICONS.refresh} Nouvel archipel</button>
       </div>
     </div>
-    <p class="hint-line">Touchez une île puis sa voisine pour poser un pont. Toucher à nouveau le double, puis l’enlève.</p>`,
+    <p class="hint-line">Touchez une île puis sa voisine pour poser un pont. Recommencez pour le doubler, puis une troisième fois pour l’enlever.</p>`,
   setup() {
     $("hs-board").addEventListener("click", e => {
       const g = e.target.closest(".hs-isl");

@@ -123,7 +123,7 @@ function renderLogic() {
   $("lg-clues").innerHTML = "<ul>" + P.clues.map((c, i) => `<li><span class="n">${i + 1}.</span><span>${c}</span></li>`).join("") + "</ul>";
   $("lg-grids").innerHTML = logicCrossTable(P);
   $("lg-feedback").className = "feedback";
-  $("lg-auto").classList.toggle("active", lgAuto);
+  $("lg-auto").classList.toggle("active", lgAuto); $("lg-auto").setAttribute("aria-pressed", String(lgAuto));
 }
 function logicCrossTable(P) {
   const n = P.labelA.length;
@@ -180,7 +180,7 @@ function cycleLogicCell(el) {
 function toggleLogicAuto() {
   lgAuto = !lgAuto;
   try { localStorage.setItem("lq_lg_auto", lgAuto ? "1" : "0"); } catch (e) {}
-  $("lg-auto").classList.toggle("active", lgAuto);
+  $("lg-auto").classList.toggle("active", lgAuto); $("lg-auto").setAttribute("aria-pressed", String(lgAuto));
   toast(lgAuto ? "Croix automatiques activées" : "Croix automatiques désactivées");
 }
 function clearLogic() {
@@ -259,7 +259,7 @@ LQ.register({
       <div class="feedback" id="lg-feedback"></div>
       <div class="actions-row">
         <button class="btn small" onclick="checkLogic()">${ICONS.check} Vérifier</button>
-        <button class="chip" id="lg-auto" onclick="toggleLogicAuto()">Croix automatiques</button>
+        <button class="chip" id="lg-auto" aria-pressed="true" onclick="toggleLogicAuto()">Croix automatiques</button>
         <button class="btn ghost small" onclick="clearLogic()">${ICONS.erase} Tout effacer</button>
       </div>
     </div>

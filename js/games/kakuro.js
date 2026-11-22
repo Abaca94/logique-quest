@@ -297,7 +297,7 @@ function checkKakuro() {
     kkErrors++;
     sfx("bad"); addPoints(-3);
     renderKakuro(); saveKakuro();
-    toast("Certains blocs sont faux");
+    toast("Les blocs en rouge ne tombent pas juste : corrigez-les puis vérifiez à nouveau");
     return;
   }
   kkDone = true;
@@ -345,7 +345,7 @@ LQ.register({
       </div>
       <div class="toolbar" style="margin-top:10px">
         <button class="btn small" onclick="checkKakuro()">${ICONS.check} Vérifier</button>
-        <button class="btn ghost small lvl-hide" onclick="newKakuro()">${ICONS.refresh} Autre grille</button>
+        <button class="btn ghost small lvl-hide" onclick="newKakuro()">${ICONS.refresh} Nouvelle grille</button>
       </div>
     </div>
     <p class="hint-line">Le nombre en haut à droite d’une case grise est la somme du bloc à sa droite ; celui en bas à gauche, la somme du bloc en dessous. Dans un bloc, chaque chiffre de 1 à 9 n’apparaît qu’une fois.</p>`,

@@ -151,7 +151,7 @@ LQ.register({
         <button class="btn small" onclick="submitCode()">${ICONS.check} Valider</button>
         <button class="btn ghost small" onclick="clearCodeRow()">${ICONS.erase} Vider</button>
         <button class="btn ghost small" onclick="hintCode()">${ICONS.bulb} Indice</button>
-        <button class="btn ghost small lvl-hide" onclick="newCode()">${ICONS.refresh} Autre code</button>
+        <button class="btn ghost small lvl-hide" onclick="newCode()">${ICONS.refresh} Nouveau code</button>
       </div>
     </div>
     <p class="hint-line">● bien placée · ○ présente mais mal placée.</p>`,

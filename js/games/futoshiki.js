@@ -223,7 +223,7 @@ function checkFutoshiki() {
   if (left) { toast(`Il reste ${left} case${left > 1 ? "s" : ""} à remplir`); return; }
   if (ftConflicts().some(Boolean)) {
     ftErrors++; addPoints(-3); sfx("bad"); saveFutoshiki();
-    toast("Certaines cases ne respectent pas les règles");
+    toast("Les cases en rouge enfreignent une règle : corrigez-les");
     return;
   }
   ftDone = true;
@@ -266,7 +266,7 @@ LQ.register({
         <button class="btn ghost small" id="ft-note-btn" onclick="toggleFutoshikiNotes()">${ICONS.pencil} Crayon</button>
         <button class="btn ghost small" onclick="undoFutoshiki()">${ICONS.undo} Annuler</button>
         <button class="btn ghost small" onclick="hintFutoshiki()">${ICONS.bulb} Indice</button>
-        <button class="btn ghost small lvl-hide" onclick="newFutoshiki()">${ICONS.refresh} Autre grille</button>
+        <button class="btn ghost small lvl-hide" onclick="newFutoshiki()">${ICONS.refresh} Nouvelle grille</button>
       </div>
     </div>
     <p class="hint-line">Chaque chiffre une fois par ligne et par colonne. La pointe d’un signe désigne la case la plus petite.</p>`,

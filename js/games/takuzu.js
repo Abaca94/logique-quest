@@ -230,7 +230,7 @@ LQ.register({
       <div class="toolbar">
         <button class="btn ghost small" onclick="undoTakuzu()">${ICONS.undo} Annuler</button>
         <button class="btn ghost small" onclick="hintTakuzu()">${ICONS.bulb} Indice</button>
-        <button class="btn ghost small lvl-hide" onclick="newTakuzu()">${ICONS.refresh} Autre grille</button>
+        <button class="btn ghost small lvl-hide" onclick="newTakuzu()">${ICONS.refresh} Nouvelle grille</button>
       </div>
     </div>
     <p class="hint-line">Autant de 0 que de 1 sur chaque ligne et chaque colonne, jamais trois pareils à la suite, pas deux lignes identiques.</p>`,

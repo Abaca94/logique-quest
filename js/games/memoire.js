@@ -111,10 +111,10 @@ LQ.register({
     <div class="stat-pills">
       <div class="pill">Paires <b><span id="mem-found">0</span>/<span id="mem-total">8</span></b></div>
       <div class="pill">Essais <b id="mem-moves">0</b></div>
-      <button class="btn ghost small" onclick="initMemoire()">${ICONS.refresh} Nouvelle partie</button>
     </div>
     <p class="goals" id="mem-goals"></p>
-    <div class="mem-grid" id="mem-board"></div>`,
+    <div class="mem-grid" id="mem-board"></div>
+    <div class="toolbar"><button class="btn ghost small" onclick="initMemoire()">${ICONS.refresh} Nouvelle partie</button></div>`,
   setup() {
     window.addEventListener("resize", sizeMemBoard);
   },
