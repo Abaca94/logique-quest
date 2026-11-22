@@ -355,7 +355,9 @@ function sfx(kind) {
   if (state.sound === false) return;
   try {
     audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
+    // Safari (iPhone, iPad) met le son en état « interrupted » après un appel, une alarme
+    // ou un passage en arrière-plan : on relance dans tous les cas où il ne joue pas.
+    if (audioCtx.state !== "running") audioCtx.resume();
     const t0 = audioCtx.currentTime;
     const tone = (f, at, dur = .12, type = "sine", vol = .12) => {
       const o = audioCtx.createOscillator(), g = audioCtx.createGain();
@@ -422,6 +424,10 @@ function kbLabel(el) {
   return v;
 }
 function kbPrepare(root) {
+  // Safari (Mac, iPad avec clavier) saute les boutons à la touche Tab tant que
+  // l’option « Tab pour sélectionner chaque élément » est désactivée ; un tabindex
+  // explicite les remet dans l’ordre de tabulation, sans rien changer ailleurs.
+  (root || document).querySelectorAll("button:not([tabindex])").forEach(b => b.setAttribute("tabindex", "0"));
   (root || document).querySelectorAll(KB_CELLS).forEach(el => {
     if (el.tagName !== "BUTTON") {
       if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "0");
@@ -432,6 +438,7 @@ function kbPrepare(root) {
   });
 }
 let kbQueued = false;
+kbPrepare(document);
 new MutationObserver(() => { if (kbQueued) return; kbQueued = true; requestAnimationFrame(() => { kbQueued = false; kbPrepare($("main")); }); }).observe(document.getElementById("main"), { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class"] });
 document.addEventListener("keydown", e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
