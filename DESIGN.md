@@ -15,7 +15,7 @@ Ce document fixe les règles de design de l'app pour que chaque nouveau jeu ou �
 | `--bg` | `#333948` | Fond de page |
 | `--surface` / `-2` / `-3` | `#3b4252` / `#444b5d` / `#4f5769` | Cartes, boutons secondaires, cases |
 | `--text` | `#ece8df` | Texte principal |
-| `--muted` | `#b6bac7` | Texte secondaire (contraste ≥ 4,5:1 sur toutes les surfaces) |
+| `--muted` | `#bcc0cc` | Texte secondaire (contraste ≥ 4,5:1 sur toutes les surfaces) |
 | `--text-story`, `--text-story-soft` | `#e3dccf`, `#cfc6b8` | Texte de récit (mode Histoire) |
 | `--accent` | `#d8a657` | Laiton : action principale, sélection, étoiles |
 | `--accent-soft` | laiton à 14 % | Fond d'un élément actif |
@@ -70,7 +70,16 @@ Garamond dessine par défaut des chiffres elzéviriens (de hauteurs variables). 
 
 ## Accessibilité
 
-- Contraste du texte ≥ 4,5:1 (vérifié automatiquement pour v9.3).
+- Contraste du texte ≥ 4,5:1 (vérifié avec axe-core en v9.5).
 - Zones tactiles d'au moins 44 px (les boutons-icônes ont une zone élargie invisible).
 - Focus clavier visible (`:focus-visible`, contour laiton) et `prefers-reduced-motion` respecté.
 - Les boutons-icônes ont un `aria-label`.
+- Au clavier (iPad avec clavier) : les cases des grilles se parcourent avec Tab et se jouent avec Entrée ou Espace ; les chiffres 1 à 9 et Effacer passent par le pavé ; Échap ferme une fenêtre. Une nouvelle grille ajoute sa classe de case à `KB_CELLS` (js/core.js) et son libellé dans `kbLabel`.
+- Le nom lu par VoiceOver commence par le contenu visible de la case (« 5, ligne 2, colonne 3 »).
+- Une fenêtre (`.modal`) reçoit le focus à l'ouverture et le rend à la fermeture.
+
+## Performances
+
+- Les polices sont préchargées dans `index.html`.
+- Tout ce que le JavaScript construit au chargement doit éviter de pousser le contenu déjà affiché (le pied de l'accueil attend `body.ready`).
+- Repères mesurés en v9.5 (iPhone simulé, réseau lent, processeur ralenti) : affichage principal 2,1 s, décalage 0,04, réactivité 136 ms.

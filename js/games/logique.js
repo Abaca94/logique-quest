@@ -131,9 +131,9 @@ function logicCrossTable(P) {
   const sp = '<td class="sp"></td>';
   let h = `<table class="lg lg-cross lg-n${n}">`;
   // Titres des groupes de colonnes
-  h += `<tr><th colspan="2"></th><th class="grp" colspan="${n}">${P.qB}</th>${sp}<th class="grp" colspan="${n}">${P.qC}</th></tr>`;
+  h += `<tr><td colspan="2"></td><th class="grp" colspan="${n}">${P.qB}</th>${sp}<th class="grp" colspan="${n}">${P.qC}</th></tr>`;
   // Noms des colonnes (verticaux)
-  h += `<tr><th colspan="2"></th>${P.labelB.map(l => `<th class="col"><span>${l}</span></th>`).join("")}${sp}${P.labelC.map(l => `<th class="col"><span>${l}</span></th>`).join("")}</tr>`;
+  h += `<tr><td colspan="2"></td>${P.labelB.map(l => `<th class="col"><span>${l}</span></th>`).join("")}${sp}${P.labelC.map(l => `<th class="col"><span>${l}</span></th>`).join("")}</tr>`;
   // Bloc A : A×B puis A×C
   for (let a = 0; a < n; a++) {
     h += "<tr>";

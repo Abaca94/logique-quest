@@ -165,7 +165,7 @@ function renderNonogram() {
   const cs = ngCellSize();
   const t = $("ng-board");
   t.style.setProperty("--ngc", cs + "px");
-  let h = "<tr><th></th>";
+  let h = "<tr><td></td>";
   ngCols.forEach((col, c) => { h += `<th class="ng-colclue" data-c="${c}">${col.map(v => `<span>${v}</span>`).join("")}</th>`; });
   h += "</tr>";
   for (let r = 0; r < ngN; r++) {

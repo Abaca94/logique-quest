@@ -201,6 +201,8 @@ function showScreen(name) {
     else title = name === "win" ? "Résultat" : (g ? g.title : "");
   }
   $("screenTitle").textContent = title;
+  if (title) { $("screenTitle").setAttribute("role", "heading"); $("screenTitle").setAttribute("aria-level", "1"); }
+  else { $("screenTitle").removeAttribute("role"); $("screenTitle").removeAttribute("aria-level"); }
   document.body.classList.toggle("in-level", !!(LQ.level || LQ.daily || LQ.story) && name !== "win");
   window.scrollTo(0, 0);
 }
@@ -395,3 +397,82 @@ function normalize(s) {
     .normalize("NFD").replace(/[̀-ͯ]/g, "")
     .replace(/[’']/g, " ").replace(/[^a-z0-9 -]/g, " ").replace(/\s+/g, " ").trim();
 }
+
+/* ---------- Clavier (iPad avec clavier, accessibilité) ----------
+   Les cases des grilles deviennent atteignables avec Tab et se jouent avec
+   Entrée ou Espace ; les chiffres et la touche Effacer passent par le pavé. */
+const KB_CELLS = ".sudoku-cell, .kk-cell, .ft-cell, .mem-card, .tile, .lgc, .hs-isl";
+function kbLabel(el) {
+  const v = el.classList.contains("mem-card") ? "" : (el.querySelector(".notes") ? "" : el.textContent.trim());
+  const rc = (i, n) => `ligne ${Math.floor(i / n) + 1}, colonne ${i % n + 1}`;
+  const sibs = el.parentElement ? [...el.parentElement.children] : [], idx = sibs.indexOf(el);
+  if (el.matches(".sudoku-cell")) return `${v || "vide"}, ${rc(idx, Math.round(Math.sqrt(sibs.length)))}`;
+  if (el.matches(".kk-cell")) return `${v || "vide"}, ${rc(+el.dataset.i, kkN)}`;
+  if (el.matches(".ft-cell")) return `${v || "vide"}, ${rc(+el.dataset.i, ftN)}`;
+  if (el.matches(".tile")) return v ? `${v}` : "Case vide";
+  if (el.matches(".mem-card")) return `Carte ${idx + 1}, ${el.matches(".matched") ? "paire trouvée " + el.dataset.e : el.matches(".open") ? el.dataset.e : "cachée"}`;
+  if (el.matches(".lgc")) {
+    const tr = el.closest("tr"), row = tr && tr.querySelector("td.a");
+    const cols = [...el.closest("table").querySelectorAll("th.col")], pos = [...tr.querySelectorAll(".lgc")].indexOf(el);
+    const col = cols[pos] || null;
+    const st = v === "✔" ? "oui" : v === "✘" ? "non" : "vide";
+    return `${st}, ${row ? row.textContent.trim() : ""} et ${col ? col.textContent.trim() : ""}`;
+  }
+  if (el.matches(".hs-isl")) return `Île ${el.textContent.trim()}`;
+  return v;
+}
+function kbPrepare(root) {
+  (root || document).querySelectorAll(KB_CELLS).forEach(el => {
+    if (el.tagName !== "BUTTON") {
+      if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "0");
+      if (!el.hasAttribute("role")) el.setAttribute("role", "button");
+    }
+    const l = kbLabel(el);
+    if (l && el.getAttribute("aria-label") !== l) el.setAttribute("aria-label", l);
+  });
+}
+let kbQueued = false;
+new MutationObserver(() => { if (kbQueued) return; kbQueued = true; requestAnimationFrame(() => { kbQueued = false; kbPrepare($("main")); }); }).observe(document.getElementById("main"), { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class"] });
+document.addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const t = e.target;
+  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
+  if (e.key === "Escape") {
+    const open = document.querySelector(".modal.show");
+    if (open) { e.preventDefault(); open.id === "rules-sheet" ? closeRules() : open.id === "transfer-sheet" ? closeTransfer() : (open.classList.remove("show"), open.setAttribute("aria-hidden", "true")); }
+    return;
+  }
+  if ((e.key === "Enter" || e.key === " ") && t && t.matches && t.matches(KB_CELLS)) {
+    e.preventDefault();
+    const board = t.parentElement && t.closest("[id]"), list = board ? [...board.querySelectorAll(KB_CELLS)] : [], i = list.indexOf(t);
+    t.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    requestAnimationFrame(() => { // une grille redessinée perd le focus : on le rend à la même case
+      if (board && i >= 0 && !board.contains(document.activeElement)) { const n = document.getElementById(board.id); if (n) kbPrepare(n); const c = n && n.querySelectorAll(KB_CELLS)[i]; c && c.focus(); }
+    });
+    return;
+  }
+  const scr = document.querySelector(".screen.active");
+  if (!scr) return;
+  if (/^[1-9]$/.test(e.key)) {
+    const k = [...scr.querySelectorAll(".key")].find(b => b.textContent.trim() === e.key && b.offsetParent);
+    if (k) { e.preventDefault(); k.click(); }
+  } else if (e.key === "Backspace" || e.key === "Delete") {
+    const k = scr.querySelector('.key[aria-label="Effacer"]');
+    if (k && k.offsetParent) { e.preventDefault(); k.click(); }
+  }
+});
+
+/* ---------- Fenêtres : le focus entre dans la fenêtre et revient ensuite ---------- */
+let modalReturn = null;
+new MutationObserver(muts => {
+  for (const m of muts) {
+    const el = m.target;
+    if (!el.classList || !el.classList.contains("modal")) continue;
+    if (el.classList.contains("show") && !el.contains(document.activeElement)) {
+      modalReturn = document.activeElement;
+      setTimeout(() => { if (el.contains(document.activeElement)) return; const f = el.querySelector(".modal-actions .btn:not(.ghost), .modal-actions .btn, button, textarea"); f && f.focus({ preventScroll: true }); }, 80);
+    } else if (!el.classList.contains("show") && modalReturn && !document.querySelector(".modal.show")) {
+      const r = modalReturn; modalReturn = null; if (r && r.isConnected && r.focus) r.focus({ preventScroll: true });
+    }
+  }
+}).observe(document.body, { attributes: true, attributeFilter: ["class"], subtree: true });
