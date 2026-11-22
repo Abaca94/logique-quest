@@ -259,7 +259,7 @@ function renderMap() {
     const miss = ch.need - total;
     return `<section class="chapter ${open ? "" : "closed"}">
       <div class="ch-head">
-        <div><p class="ch-kicker">Chapitre ${ch.roman}</p><h3>${ch.name}</h3></div>
+        <div><p class="ch-kicker">Chapitre ${ch.roman}</p><h2>${ch.name}</h2></div>
         <div class="ch-stars">${open ? `${ICONS.star}<b>${chapterStars(c)}</b>/${PER_CHAPTER * 3}` : `${ICONS.lock}<span>${ch.need} ${ICONS.star} requises<br><small>encore ${miss}</small></span>`}</div>
       </div>
       <div class="path" style="height:${h}px">

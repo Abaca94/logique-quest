@@ -142,7 +142,7 @@ function renderTakuzu() {
   const b = $("tz-board"), n = tzN, bad = tzConflicts();
   b.style.setProperty("--tzc", tzCellSize() + "px");
   b.style.gridTemplateColumns = `repeat(${n}, var(--tzc))`;
-  b.innerHTML = tzGrid.map((v, i) => `<button class="tz-cell ${v === 0 ? "z" : v === 1 ? "o" : ""} ${tzGiven[i] === 1 ? "given" : tzGiven[i] === 2 ? "given hinted" : ""} ${bad[i] ? "bad" : ""} ${i === tzHinted ? "pulse" : ""}" data-i="${i}" aria-label="Case ${Math.floor(i / n) + 1}-${i % n + 1}">${v >= 0 ? v : ""}</button>`).join("");
+  b.innerHTML = tzGrid.map((v, i) => `<button class="tz-cell ${v === 0 ? "z" : v === 1 ? "o" : ""} ${tzGiven[i] === 1 ? "given" : tzGiven[i] === 2 ? "given hinted" : ""} ${bad[i] ? "bad" : ""} ${i === tzHinted ? "pulse" : ""}" data-i="${i}" aria-label="${v >= 0 ? v + ", " : ""}ligne ${Math.floor(i / n) + 1}, colonne ${i % n + 1}">${v >= 0 ? v : ""}</button>`).join("");
   const left = tzGrid.filter(v => v < 0).length;
   $("tz-info").textContent = left ? `${left} case${left > 1 ? "s" : ""} à remplir` : "";
 }
