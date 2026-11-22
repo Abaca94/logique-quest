@@ -77,8 +77,16 @@ function wsCellAt(x, y) {
 function sizeWs() {
   const b = $("ws-board");
   requestAnimationFrame(() => {
-    const w = b.clientWidth;
+    b.style.maxWidth = "";
+    let w = b.clientWidth;
     if (!w) return;
+    // Sur tablette, la grille tient entière à l’écran : on ne peut pas faire défiler
+    // la page en glissant sur la grille, et le bas de la grille serait hors d’atteinte.
+    if (document.documentElement.clientWidth >= 600) {
+      const top = b.getBoundingClientRect().top + window.scrollY;
+      const fit = Math.floor(window.innerHeight - top - 16);
+      if (fit >= 320 && fit < w) { b.style.maxWidth = fit + "px"; w = fit; }
+    }
     const cw = Math.floor((w - 3 * (wsS - 1)) / wsS);
     b.style.gridAutoRows = cw + "px";
     b.style.setProperty("--wsf", Math.max(12, Math.floor(cw * .5)) + "px");
