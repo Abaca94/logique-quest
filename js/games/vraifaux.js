@@ -124,8 +124,8 @@ LQ.register({
       <div class="progress-track"><div class="progress-fill" id="vf-fill"></div></div>
       <div class="question-txt" id="vf-question" style="text-align:center"></div>
       <div class="vf-row">
-        <button class="vf-btn v" onclick="answerVF(true)">${ICONS.check} VRAI</button>
-        <button class="vf-btn f" onclick="answerVF(false)">${ICONS.cross} FAUX</button>
+        <button class="vf-btn v" onclick="answerVF(true)">${ICONS.check} Vrai</button>
+        <button class="vf-btn f" onclick="answerVF(false)">${ICONS.cross} Faux</button>
       </div>
       <div class="feedback" id="vf-feedback"></div>
       <div class="actions-row" id="vf-next" style="display:none">

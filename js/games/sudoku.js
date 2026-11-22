@@ -198,7 +198,7 @@ function checkSudoku() {
   if (sBad.some(Boolean)) {
     sfx("bad"); addPoints(-3); sErrors++;
     renderSudoku(); saveSudoku();
-    toast("Certaines cases sont fausses");
+    toast("Les cases en rouge sont fausses : corrigez-les puis vérifiez à nouveau");
   } else {
     const pts = SUD_PTS[sN];
     resumeClear("sudoku");
@@ -245,7 +245,7 @@ LQ.register({
       </div>
       <div class="toolbar" style="margin-top:10px">
         <button class="btn small" onclick="checkSudoku()">${ICONS.check} Vérifier</button>
-        <button class="btn ghost small lvl-hide" onclick="newSudoku()">${ICONS.refresh} Autre grille</button>
+        <button class="btn ghost small lvl-hide" onclick="newSudoku()">${ICONS.refresh} Nouvelle grille</button>
       </div>
     </div>`,
   setup() {

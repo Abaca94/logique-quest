@@ -192,11 +192,13 @@ LQ.register({
       <button class="chip" data-b="5" onclick="setTaquinSize(5)">5×5</button>
     </div>
     <div class="board-wrap">
+      <div class="stat-pills">
+        <div class="pill">Coups <b id="taquin-moves">0</b></div>
+        <div class="pill">Temps <b id="taquin-time">0 s</b></div>
+      </div>
       <p class="goals" id="taquin-goals"></p>
       <div class="board" id="taquin-board"></div>
       <div class="toolbar">
-        <div class="pill">Coups <b id="taquin-moves">0</b></div>
-        <div class="pill">Temps <b id="taquin-time">0 s</b></div>
         <button class="btn ghost small" onclick="hintTaquin()">${ICONS.bulb} Indice</button>
         <button class="btn ghost small lvl-hide" onclick="newTaquin()">${ICONS.shuffle} Mélanger</button>
       </div>
