@@ -47,6 +47,11 @@ const ICONS = {
   futoshiki: '<svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="8" height="10" rx="2"/><rect x="13.5" y="7" width="8" height="10" rx="2"/><path d="M13 9.5L11.2 12 13 14.5" /><path d="M5.5 10.5h2.5l-2 3h2.5"/></svg>',
   hashi: '<svg viewBox="0 0 24 24"><circle cx="5" cy="5" r="3"/><circle cx="19" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><path d="M8 4h8M8 6h8M5 8v8"/></svg>',
   code: '<svg viewBox="0 0 24 24"><circle cx="5" cy="8" r="2.4"/><circle cx="12" cy="8" r="2.4"/><circle cx="19" cy="8" r="2.4"/><path d="M4 16h.01M9 16h.01"/><circle cx="16" cy="16" r="1.6"/><circle cx="20" cy="16" r="1.6"/></svg>',
+  cages: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M3 12h9v9M12 3v9"/><path d="M5.5 7.5h3.5M7.25 5.75v3.5M15 16.5h3.5"/></svg>',
+  etoiles: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M3 13h7v8"/><path d="M15.5 5.6l1.1 2.3 2.5.35-1.8 1.75.42 2.5-2.22-1.18-2.22 1.18.42-2.5-1.8-1.75 2.5-.35z"/></svg>',
+  boucle: '<svg viewBox="0 0 24 24"><path d="M4.5 4.5h9v6h6v9h-15z"/><path d="M9 12h.01M15 15h.01M19.5 4.5h.01"/></svg>',
+  iles: '<svg viewBox="0 0 24 24"><path d="M2.5 18c1.6-1.3 3.2-1.3 4.8 0s3.2 1.3 4.8 0 3.2-1.3 4.8 0 3.2 1.3 4.6 0"/><path d="M5.5 14.5c.8-4.5 3.6-8 6.5-8s5.7 3.5 6.5 8"/><path d="M11 10.5h.01"/></svg>',
+  mines: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>',
   shuffle: '<svg viewBox="0 0 24 24"><path d="M3 7h3.5c4 0 6 10 10 10H21M3 17h3.5c1.6 0 2.8-1.5 3.8-3.4M13.7 10.4C14.7 8.5 15.9 7 17.5 7H21"/><path d="M18.5 4.5L21 7l-2.5 2.5M18.5 14.5L21 17l-2.5 2.5"/></svg>',
 };
 
@@ -450,8 +455,9 @@ function frList(a) { a = a.map(String); return a.length < 2 ? a.join("") : a.sli
 /* ---------- Clavier (iPad avec clavier, accessibilité) ----------
    Les cases des grilles deviennent atteignables avec Tab et se jouent avec
    Entrée ou Espace ; les chiffres et la touche Effacer passent par le pavé. */
-const KB_CELLS = ".sudoku-cell, .kk-cell, .ft-cell, .mem-card, .tile, .lgc, .hs-isl";
+const KB_CELLS = ".sudoku-cell, .kk-cell, .ft-cell, .mem-card, .tile, .lgc, .hs-isl, .cg-cell, .et-cell, .il-cell, .mn-cell, .bc-hit";
 function kbLabel(el) {
+  if (el.dataset && el.dataset.label) return el.dataset.label;
   const v = el.classList.contains("mem-card") ? "" : (el.querySelector(".notes") ? "" : el.textContent.trim());
   const rc = (i, n) => `ligne ${Math.floor(i / n) + 1}, colonne ${i % n + 1}`;
   const sibs = el.parentElement ? [...el.parentElement.children] : [], idx = sibs.indexOf(el);

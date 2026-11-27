@@ -12,9 +12,10 @@ const CHAPTERS = [
   { name: "Maîtrise", roman: "IV", need: 70 },
   { name: "Virtuose", roman: "V", need: 95 },
   { name: "Nouveaux horizons", roman: "VI", need: 115 },
+  { name: "Terres inconnues", roman: "VII", need: 140 },
 ];
 
-// 10 niveaux par chapitre, dans l’ordre (60 niveaux en 6 chapitres).
+// 10 niveaux par chapitre, dans l’ordre (70 niveaux en 7 chapitres).
 const LEVELS = [
   // Chapitre I
   { game: "enigmes", cfg: { ids: [0, 2, 4] } },
@@ -82,6 +83,17 @@ const LEVELS = [
   { game: "code", cfg: { mode: 2 } },
   { game: "hashi", cfg: { size: 9 } },
   { game: "futoshiki", cfg: { size: 6 } },
+  // Chapitre VII : cinq jeux de plus
+  { game: "cages", cfg: { size: 4 } },
+  { game: "mines", cfg: { size: 6 } },
+  { game: "etoiles", cfg: { size: 5 } },
+  { game: "iles", cfg: { size: 5 } },
+  { game: "boucle", cfg: { size: 5 } },
+  { game: "cages", cfg: { size: 5 } },
+  { game: "mines", cfg: { size: 8 } },
+  { game: "etoiles", cfg: { size: 6 } },
+  { game: "iles", cfg: { size: 7 } },
+  { game: "boucle", cfg: { size: 6 } },
 ];
 const PER_CHAPTER = 10;
 const MAX_STARS = LEVELS.length * 3;
@@ -160,6 +172,7 @@ const BADGES = [
   { id: "chap4", name: "Chapitre IV", desc: "Valider les 10 niveaux du chapitre IV", test: () => chapterDone(3) },
   { id: "chap5", name: "Chapitre V", desc: "Valider les 10 niveaux du chapitre V", test: () => chapterDone(4) },
   { id: "chap6", name: "Chapitre VI", desc: "Valider les 10 niveaux du chapitre VI", test: () => chapterDone(5) },
+  { id: "chap7", name: "Chapitre VII", desc: "Valider les 10 niveaux du chapitre VII", test: () => chapterDone(6) },
   { id: "chapperfect", name: "Perfectionniste", desc: "3 étoiles sur tous les niveaux d’un chapitre", test: () => CHAPTERS.some((_, c) => chapterStars(c) === PER_CHAPTER * 3) },
   { id: "allstars", name: "Grand maître", desc: `Réunir les ${MAX_STARS} étoiles du parcours`, test: () => totalStars() >= MAX_STARS },
   { id: "poly", name: "Touche-à-tout", desc: `Gagner une partie dans chacun des ${LQ.games.length} jeux`, test: () => LQ.games.every(g => (state.wins[g.id] || 0) > 0) },
