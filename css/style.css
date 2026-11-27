@@ -810,7 +810,7 @@ body.big-text .hint-explain, body.big-text .tz-explain { font-size: 17px; }
 .bc-line { stroke: var(--accent); stroke-width: 5; stroke-linecap: round; pointer-events: none; }
 .bc-x { stroke: var(--muted); stroke-width: 1.8; stroke-linecap: round; fill: none; pointer-events: none; }
 .bc-hit { stroke: transparent; stroke-width: 22; cursor: pointer; pointer-events: stroke; }
-.bc-num { fill: var(--text); font: 700 19px var(--font); font-variant-numeric: lining-nums; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.bc-num { fill: var(--text); font: 600 19px var(--font); font-variant-numeric: lining-nums; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 .bc-num.ok { fill: var(--muted); opacity: .7; }
 .bc-num.over { fill: var(--bad); }
 .bc-hint { stroke: var(--accent); stroke-width: 11; stroke-opacity: .35; stroke-linecap: round; pointer-events: none; animation: hintPulse 1s ease 2; }

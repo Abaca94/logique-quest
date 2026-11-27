@@ -209,7 +209,10 @@ function renderBoucle() {
     if (bcEd[e] === 1) lines += `<line class="bc-line" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
     if (bcEd[e] === 2) crosses += `<path class="bc-x" d="M${mx - 4} ${my - 4}l8 8M${mx + 4} ${my - 4}l-8 8"/>`;
     if (hk) marks += `<line class="bc-hint${hk.includes("wrong") ? " wrong" : hk.includes("why") ? " why" : ""}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
-    hits += `<line class="bc-hit" data-e="${e}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+    const Hn = (n + 1) * n, side = e < Hn
+      ? (Math.floor(e / n) < n ? `côté haut, ligne ${Math.floor(e / n) + 1}, colonne ${e % n + 1}` : `côté bas, ligne ${n}, colonne ${e % n + 1}`)
+      : ((e - Hn) % (n + 1) < n ? `côté gauche, ligne ${Math.floor((e - Hn) / (n + 1)) + 1}, colonne ${(e - Hn) % (n + 1) + 1}` : `côté droit, ligne ${Math.floor((e - Hn) / (n + 1)) + 1}, colonne ${n}`);
+    hits += `<line class="bc-hit" data-e="${e}" data-label="${bcEd[e] === 1 ? "trait" : bcEd[e] === 2 ? "croix" : "vide"}, ${side}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
   }
   let nums = "";
   for (let c = 0; c < n * n; c++) {

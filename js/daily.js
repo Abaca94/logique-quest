@@ -30,7 +30,7 @@ const DAILY_ROTA = [
   { game: "taquin", cfg: () => ({ size: 4 }) },
   { game: "memoire", cfg: () => ({ pairs: 10 }) },
 ];
-// À partir du 1er décembre 2026, la rotation inclut les jeux de la v9 (14 jours, la déduction y est générée).
+// À partir du 1er décembre 2026, la rotation inclut les jeux des v9 et v10 (19 jours, la déduction y est générée).
 // Les jours précédents gardent l’ancienne rotation pour que le calendrier ne change pas.
 const DAILY_ROTA2_FROM = Math.round(Date.UTC(2026, 11, 1) / 864e5);
 const DAILY_ROTA2 = [
@@ -42,6 +42,11 @@ const DAILY_ROTA2 = [
   { game: "logique", cfg: () => ({ gen: 6 }) },
   ...DAILY_ROTA.slice(8, 10),
   { game: "hashi", cfg: () => ({ size: 9 }) },
+  { game: "cages", cfg: () => ({ size: 5 }) },
+  { game: "boucle", cfg: () => ({ size: 6 }) },
+  { game: "mines", cfg: () => ({ size: 8 }) },
+  { game: "etoiles", cfg: () => ({ size: 6 }) },
+  { game: "iles", cfg: () => ({ size: 7 }) },
 ];
 
 /* ---------- Dates et hasard reproductible ---------- */

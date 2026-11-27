@@ -4,9 +4,9 @@
 
 /* ---------- Menu des jeux libres, regroupés par famille ---------- */
 const MENU_FAMILIES = [
-  ["Raisonner", ["enigmes", "logique", "sequences", "vf", "code"]],
-  ["Grilles de chiffres", ["sudoku", "kakuro", "futoshiki", "takuzu"]],
-  ["Formes et liaisons", ["nonogram", "hashi", "taquin"]],
+  ["Raisonner", ["enigmes", "logique", "sequences", "vf", "code", "mines"]],
+  ["Grilles de chiffres", ["sudoku", "kakuro", "futoshiki", "cages", "takuzu"]],
+  ["Formes et liaisons", ["nonogram", "hashi", "boucle", "iles", "etoiles", "taquin"]],
   ["Mots et mémoire", ["mots", "memoire"]],
 ];
 function renderMenu() {
@@ -37,7 +37,7 @@ window.addEventListener("scroll", () => document.body.classList.toggle("scrolled
 /* ---------- Mises à jour ----------
    1) compare la version en ligne (badge de index.html) à la version locale ;
    2) si elle diffère : purge service worker et caches, puis recharge.        */
-const LOCAL_VERSION = "v9.8";
+const LOCAL_VERSION = "v10.0";
 function canReloadNow() { // garde anti-boucle : au plus un rechargement automatique toutes les 20 s
   try { return Date.now() - Number(localStorage.getItem("lq_last_reload") || 0) > 20000; }
   catch (e) { return true; }
