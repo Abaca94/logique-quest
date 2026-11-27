@@ -749,10 +749,11 @@ body.big-text .gs-meta, body.big-text .act-foot { font-size: 14px; }
 /* Takuzu */
 .tz-board { display: grid; gap: 3px; background: #646d83; padding: 4px; border-radius: 12px; margin: 16px auto 4px; box-shadow: var(--shadow); }
 .tz-cell { width: var(--tzc); height: var(--tzc); border: 0; border-radius: 6px; background: var(--bg); color: var(--text); font: 700 calc(var(--tzc) * .5) var(--font); font-variant-numeric: tabular-nums; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
-.tz-cell.z { background: #3d5a73; color: #d7ecff; }
+.tz-cell.z { background: #d6cfc0; color: #2b2f3a; } /* 0 : pierre claire, repos pour les yeux */
 .tz-cell.o { background: #7a5a33; color: #ffe9c7; }
 .tz-cell.given { cursor: default; box-shadow: inset 0 0 0 2px rgba(255,255,255,.22); }
-.tz-cell.given.z { background: #2f4a61; }
+.tz-cell.given.z { box-shadow: inset 0 0 0 2px rgba(43,47,58,.28); }
+.tz-cell.given.z { background: #c4bcab; }
 .tz-cell.given.o { background: #684b29; }
 .tz-cell.hinted { box-shadow: inset 0 0 0 2px var(--good); }
 .tz-cell.bad { box-shadow: inset 0 0 0 3px var(--bad); }

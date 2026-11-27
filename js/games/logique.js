@@ -81,6 +81,7 @@ let lgIdx = 0, lgLock = false, lgErrors = 0, lgGen = null, lgGenN = 4, lgGenX = 
 // Grille générée (cfg.gen en parcours ou défi, ou bouton « Nouvelle grille ») : lgGen.
 function lgP() { const c = levelCfg(); return (c && c.puzzle) || ((c && c.gen) || lgIdx < 0 ? lgGen : LOGIC_PL[lgIdx]); }
 let lgAuto = true; // ✘ automatiques sur la ligne et la colonne d’un ✔
+let lgUndo = []; // états précédents de la grille, pour « Annuler »
 
 /* Tableau croisé (grille en escalier) :
             | B (colonnes) | C (colonnes)
@@ -118,7 +119,7 @@ function renderLogicChips() {
 }
 function renderLogic() {
   const P = lgP();
-  lgLock = false; lgErrors = 0;
+  lgLock = false; lgErrors = 0; lgUndo = [];
   $("lg-story").innerHTML = P.story;
   $("lg-clues").innerHTML = "<ul>" + P.clues.map((c, i) => `<li><span class="n">${i + 1}.</span><span>${c}</span></li>`).join("") + "</ul>";
   $("lg-grids").innerHTML = logicCrossTable(P);
@@ -163,18 +164,43 @@ function setLogicMark(el, mark) {
   el.classList.toggle("x", mark === "✘");
   el.classList.toggle("v", mark === "✔");
 }
+function lgSnapshot() { return [...document.querySelectorAll("#lg-grids .lgc")].map(el => [el.textContent, el.dataset.auto || ""]); }
+function lgRestore(s) {
+  document.querySelectorAll("#lg-grids .lgc").forEach((el, i) => {
+    setLogicMark(el, s[i][0]);
+    if (s[i][1]) el.dataset.auto = s[i][1]; else delete el.dataset.auto;
+  });
+}
 function cycleLogicCell(el) {
-  const next = el.textContent === "" ? "✘" : el.textContent === "✘" ? "✔" : "";
+  if (lgLock) return;
+  lgUndo.push(lgSnapshot());
+  if (lgUndo.length > 200) lgUndo.shift();
+  const was = el.textContent;
+  const next = was === "" ? "✘" : was === "✘" ? "✔" : "";
   setLogicMark(el, next);
-  if (next === "✔" && lgAuto) {
-    // Un seul ✔ par ligne et par colonne dans un bloc : on barre le reste automatiquement.
-    const g = el.dataset.g, r = +el.dataset.r, c = +el.dataset.c;
-    const n = lgP().labelA.length;
-    for (let k = 0; k < n; k++) {
-      if (k !== c) { const o = lgCell(g, r, k); if (o.textContent === "") setLogicMark(o, "✘"); }
-      if (k !== r) { const o = lgCell(g, k, c); if (o.textContent === "") setLogicMark(o, "✘"); }
+  delete el.dataset.auto;
+  const g = el.dataset.g, r = +el.dataset.r, c = +el.dataset.c, key = `${r},${c}`;
+  const n = lgP().labelA.length;
+  if (was === "✔") {
+    // Le ✔ est retiré : ses croix automatiques disparaissent avec lui.
+    for (let k = 0; k < n; k++) for (const o of [lgCell(g, r, k), lgCell(g, k, c)]) {
+      if (o.dataset.auto === key) { setLogicMark(o, ""); delete o.dataset.auto; }
     }
   }
+  if (next === "✔" && lgAuto) {
+    // Un seul ✔ par ligne et par colonne dans un bloc : on barre le reste automatiquement.
+    for (let k = 0; k < n; k++) {
+      if (k !== c) { const o = lgCell(g, r, k); if (o.textContent === "") { setLogicMark(o, "✘"); o.dataset.auto = key; } }
+      if (k !== r) { const o = lgCell(g, k, c); if (o.textContent === "") { setLogicMark(o, "✘"); o.dataset.auto = key; } }
+    }
+  }
+  sfx("tick");
+}
+function undoLogic() {
+  if (lgLock) return;
+  if (!lgUndo.length) { toast("Rien à annuler"); return; }
+  lgRestore(lgUndo.pop());
+  $("lg-feedback").className = "feedback";
   sfx("tick");
 }
 function toggleLogicAuto() {
@@ -184,7 +210,8 @@ function toggleLogicAuto() {
   toast(lgAuto ? "Croix automatiques activées" : "Croix automatiques désactivées");
 }
 function clearLogic() {
-  document.querySelectorAll("#lg-grids .lgc").forEach(el => setLogicMark(el, ""));
+  lgUndo.push(lgSnapshot());
+  document.querySelectorAll("#lg-grids .lgc").forEach(el => { setLogicMark(el, ""); delete el.dataset.auto; });
   $("lg-feedback").className = "feedback";
 }
 function checkLogic() {
@@ -245,8 +272,8 @@ LQ.register({
   }),
   rules: [
     "Lisez les indices : chaque élément de la première catégorie correspond à exactement un élément de chacune des deux autres.",
-    "Touchez une case une fois pour ✘ (impossible), deux fois pour ✔ (certain), trois fois pour l’effacer.",
-    "Un ✔ exclut le reste de sa ligne et de sa colonne : l’option « croix automatiques » les place pour vous.",
+    "Touchez une case une fois pour ✘ (impossible), deux fois pour ✔ (certain), trois fois pour l’effacer. <b>Annuler</b> revient au coup précédent.",
+    "Un ✔ exclut le reste de sa ligne et de sa colonne : l’option « croix automatiques » les place pour vous, et les retire si vous effacez ce ✔.",
     "Le bloc du bas croise les deux autres catégories entre elles : il aide à combiner les indices. Touchez <b>Vérifier</b> quand vous pensez avoir trouvé.",
     "Les boutons du bas tirent une grille inédite, de 4×4 à 6×6 : une seule solution, et aucun indice superflu. En <b>Expert</b>, aucun indice ne donne directement une réponse : tout se croise.",
   ],
@@ -259,6 +286,7 @@ LQ.register({
       <div class="feedback" id="lg-feedback"></div>
       <div class="actions-row">
         <button class="btn small" onclick="checkLogic()">${ICONS.check} Vérifier</button>
+        <button class="btn ghost small" onclick="undoLogic()">${ICONS.undo} Annuler</button>
         <button class="chip" id="lg-auto" aria-pressed="true" onclick="toggleLogicAuto()">Croix automatiques</button>
         <button class="btn ghost small" onclick="clearLogic()">${ICONS.erase} Tout effacer</button>
       </div>
