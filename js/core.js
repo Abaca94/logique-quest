@@ -400,6 +400,53 @@ function normalize(s) {
     .replace(/[’']/g, " ").replace(/[^a-z0-9 -]/g, " ").replace(/\s+/g, " ").trim();
 }
 
+/* ---------- Indices en trois temps ----------
+   1er appui : on montre la prochaine case (ou le prochain pont) à déduire.
+   2e appui : on explique pourquoi, et on entoure les éléments qui le prouvent.
+   3e appui : on place la réponse. Une erreur du joueur passe toujours en premier :
+   montrée au 1er appui, effacée au 2e.
+   Chaque jeu fournit : valid(h) (l’indice tient-il encore ?), wrong(), find(),
+   fallback(), clear(h), place(h), count(), render(). */
+const HINTS = {};
+const HINT_NEXT = ' <span class="hint-next">Touchez encore Indice pour placer la réponse.</span>';
+function hintFlow(game, o) {
+  const h = HINTS[game];
+  if (h && o.valid(h)) {
+    if (h.stage === 1 && h.wrong) { HINTS[game] = null; o.clear(h); sfx("tick"); toast("Erreur effacée"); o.render(); return; }
+    if (h.stage === 1) { h.stage = 2; sfx("tick"); o.render(); return; }
+    HINTS[game] = null; sfx("good"); o.place(h); o.render(); return;
+  }
+  HINTS[game] = null;
+  const w = o.wrong();
+  if (w) {
+    HINTS[game] = Object.assign({ stage: 1, wrong: true, why: [], text: "" }, w);
+    o.count(); sfx("bad"); toast(w.msg || "Cette case est fausse. Touchez encore Indice pour l’effacer."); o.render(); return;
+  }
+  const r = o.find() || o.fallback();
+  if (!r) return;
+  HINTS[game] = Object.assign({ stage: 1, wrong: false, why: [] }, r, { text: r.text + HINT_NEXT });
+  o.count(); sfx("tick"); toast(r.msg || "Cette case se déduit maintenant. Touchez encore Indice pour l’explication."); o.render();
+}
+function hintGet(game) { return HINTS[game] || null; }
+function hintReset(game) { HINTS[game] = null; }
+// Classe CSS d’un élément : cible de l’indice, erreur montrée, ou élément de la preuve.
+function hintCls(game, key) {
+  const h = HINTS[game];
+  if (!h) return "";
+  if (h.key === key) return h.wrong ? " hint-wrong" : " hint-target";
+  return h.stage >= 2 && h.why.includes(key) ? " hint-why" : "";
+}
+// Panneau d’explication sous la grille ; l’indice est oublié s’il ne tient plus.
+function hintPanel(game, id, valid) {
+  if (HINTS[game] && !valid(HINTS[game])) HINTS[game] = null;
+  const el = $(id), h = HINTS[game];
+  if (!el) return;
+  if (h && h.stage >= 2 && h.text) { el.innerHTML = h.text; el.classList.add("show"); }
+  else { el.innerHTML = ""; el.classList.remove("show"); }
+}
+// « 1, 2 et 5 »
+function frList(a) { a = a.map(String); return a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " et " + a[a.length - 1]; }
+
 /* ---------- Clavier (iPad avec clavier, accessibilité) ----------
    Les cases des grilles deviennent atteignables avec Tab et se jouent avec
    Entrée ou Espace ; les chiffres et la touche Effacer passent par le pavé. */

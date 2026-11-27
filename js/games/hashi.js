@@ -117,7 +117,7 @@ function initHashi(cfg) {
   if (cfg) hsN = cfg.size;
   else if (resumeFreeSize("hashi")) hsN = resumeFreeSize("hashi");
   setActiveChips("hashi", hsN);
-  hsSel = -1; hsDone = false; hsUndo = []; hsFlash = -1;
+  hsSel = -1; hsDone = false; hsUndo = []; hsFlash = -1; hintReset("hashi");
   const snap = resumeTake("hashi", playCtx(hsN));
   if (snap) ({ isl: hsIsl, edges: hsEdges, sol: hsSol, cur: hsCur, hints: hsHints, errors: hsErrors } = snap);
   else {
@@ -145,10 +145,13 @@ function renderHashi() {
     }
     if (v) hits += `<line class="hs-hit" data-e="${i}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
   });
+  hintPanel("hashi", "hs-explain", hsHintValid);
+  const H = hintGet("hashi");
+  if (H) { const e = hsEdges[+H.key.slice(1)], [x1, y1] = px(hsIsl[e.a]), [x2, y2] = px(hsIsl[e.b]); lines += `<line class="hs-hint ${H.wrong ? "wrong" : ""}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`; }
   const dots = Array.from({ length: n * n }, (_, k) => `<circle class="hs-dot" cx="${(k % n) * S + S / 2}" cy="${Math.floor(k / n) * S + S / 2}" r="1.6"/>`).join("");
   const islands = hsIsl.map((s, i) => {
     const [x, y] = px(s), st = sums[i] === s.n ? "ok" : sums[i] > s.n ? "over" : "";
-    return `<g class="hs-isl ${st} ${i === hsSel ? "sel" : ""} ${near.has(i) ? "near" : ""}" data-i="${i}"><circle cx="${x}" cy="${y}" r="${S * .4}"/><text x="${x}" y="${y}">${s.n}</text></g>`;
+    return `<g class="hs-isl ${st} ${i === hsSel ? "sel" : ""} ${near.has(i) ? "near" : ""}${hintCls("hashi", "i" + i)}" data-i="${i}"><circle cx="${x}" cy="${y}" r="${S * .4}"/><text x="${x}" y="${y}">${s.n}</text></g>`;
   }).join("");
   $("hs-board").innerHTML = `<svg viewBox="0 0 ${W} ${W}" style="width:min(100%, ${Math.min(560, n * 52)}px)">${dots}${lines}${hits}${islands}</svg>`;
   const left = hsIsl.filter((s, i) => sums[i] !== s.n).length;
@@ -176,21 +179,67 @@ function undoHashi() {
   if (!u) { toast("Rien à annuler"); return; }
   hsCur = u; hsFlash = -1; sfx("tick"); renderHashi(); saveHashi();
 }
+/* ---------- Indice expliqué ----------
+   Pour une île, on compare les ponts qui lui manquent à ce que ses voisines
+   peuvent encore recevoir. Si sans une voisine le compte n’y est pas, au moins
+   un pont va forcément vers elle. */
+function hsDir(e, i) {
+  const o = hsIsl[e.a === i ? e.b : e.a], s = hsIsl[i];
+  return o.r < s.r ? "en haut" : o.r > s.r ? "en bas" : o.c < s.c ? "à gauche" : "à droite";
+}
+function hashiReason() {
+  const sums = hsSums(), need = hsIsl.map((s, i) => s.n - sums[i]), found = [];
+  const extra = (k, i) => {
+    const e = hsEdges[k], o = e.a === i ? e.b : e.a;
+    if (hsCur[k] === 0 && e.cross.some(j => hsCur[j] > 0)) return 0;
+    return Math.max(0, Math.min(2 - hsCur[k], need[o]));
+  };
+  hsIsl.forEach((s, i) => {
+    if (need[i] <= 0) return;
+    const inc = hsEdges.map((e, k) => k).filter(k => hsEdges[k].a === i || hsEdges[k].b === i);
+    const cap = inc.reduce((t, k) => t + extra(k, i), 0);
+    inc.forEach(k => {
+      const x = extra(k, i), add = need[i] - (cap - x);
+      if (x <= 0 || add <= 0) return;
+      const val = hsCur[k] + add;
+      if (val > hsSol[k]) return;
+      const e = hsEdges[k], o = e.a === i ? e.b : e.a, dir = hsDir(e, i);
+      const what = add === 2 ? "deux ponts" : "un pont";
+      const besoin = need[i] > 1 ? `de ${need[i]} ponts` : "d’un pont";
+      const text = cap === x
+        ? `L’île ${s.n} entourée en bleu a encore besoin ${besoin}, et il ne lui reste qu’une voisine possible : l’île ${hsIsl[o].n} ${dir}. Il faut donc ${what} vers elle (en pointillés).`
+        : cap === need[i]
+        ? `L’île ${s.n} entourée en bleu a encore besoin ${besoin}, et ses voisines ne peuvent pas lui en donner plus de ${cap} en tout. Il faut donc prendre tous les ponts possibles, dont ${what} vers l’île ${hsIsl[o].n} ${dir} (en pointillés).`
+        : `L’île ${s.n} entourée en bleu a encore besoin ${besoin}. Sans l’île ${hsIsl[o].n} ${dir}, ses autres voisines ne peuvent lui en donner que ${cap - x > 1 ? cap - x : "un"} au plus. Il faut donc au moins ${what} vers l’île ${hsIsl[o].n} (en pointillés).`;
+      found.push({ rank: cap === need[i] ? 0 : 1, key: "e" + k, val, why: ["i" + i], text });
+    });
+  });
+  if (!found.length) return null;
+  const best = Math.min(...found.map(f => f.rank)), pool = found.filter(f => f.rank === best);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function hsHintValid(h) { const k = +h.key.slice(1); return h.wrong ? hsCur[k] > hsSol[k] : hsCur[k] < h.val; }
 function hintHashi() {
   if (hsDone) return;
-  // Un pont en trop d’abord, sinon un pont qui manque
-  let i = hsCur.findIndex((v, k) => v > hsSol[k]);
-  if (i < 0) i = hsCur.findIndex((v, k) => v < hsSol[k]);
-  if (i < 0) return;
-  hsUndo.push(hsCur.slice());
-  const was = hsCur[i];
-  // Libère les ponts faux qui croiseraient celui de la solution
-  hsEdges[i].cross.forEach(j => { if (hsCur[j] > hsSol[j]) hsCur[j] = hsSol[j]; });
-  hsCur[i] = hsSol[i]; hsHints++; hsFlash = i; hsSel = -1;
-  const e = hsEdges[i];
-  sfx("good");
-  toast(was > hsSol[i] ? "Indice : ce pont était de trop, il a été corrigé" : `Indice : ${hsSol[i] === 2 ? "un pont double" : "un pont"} entre le ${hsIsl[e.a].n} et le ${hsIsl[e.b].n}`);
-  renderHashi(); saveHashi(); checkHashi();
+  hintFlow("hashi", {
+    valid: hsHintValid,
+    wrong: () => { const k = hsCur.findIndex((v, q) => v > hsSol[q]); return k < 0 ? null : { key: "e" + k, msg: "Ce pont est de trop. Touchez encore Indice pour le retirer." }; },
+    find: hashiReason,
+    fallback: () => {
+      const k = hsCur.findIndex((v, q) => v < hsSol[q]);
+      if (k < 0) return null;
+      return { key: "e" + k, val: hsSol[k], why: [], text: "Ce pont se déduit en combinant plusieurs îles, et la règle qui veut que tout l’archipel forme un seul réseau : sans lui, un groupe d’îles resterait isolé." };
+    },
+    clear: h => { hsUndo.push(hsCur.slice()); hsCur[+h.key.slice(1)] = 0; saveHashi(); },
+    place: h => {
+      const k = +h.key.slice(1);
+      hsUndo.push(hsCur.slice());
+      hsEdges[k].cross.forEach(j => { if (hsCur[j] > hsSol[j]) hsCur[j] = hsSol[j]; });
+      hsCur[k] = h.val; hsFlash = k; hsSel = -1; saveHashi();
+    },
+    count: () => { hsHints++; saveHashi(); },
+    render: () => { renderHashi(); checkHashi(); },
+  });
 }
 function checkHashi() {
   if (hsDone) return;
@@ -230,6 +279,7 @@ LQ.register({
     "Les ponts sont droits, horizontaux ou verticaux, et relient deux îles voisines. Entre deux îles, il y a 0, 1 ou 2 ponts.",
     "Les ponts ne se croisent jamais, et à la fin toutes les îles doivent être reliées en un seul réseau.",
     "Touchez une île, puis une île voisine : 1 pont, puis 2, puis aucun. Toucher un pont le fait aussi changer. Une île complète passe au vert.",
+    "<b>Indice</b> montre d’abord le prochain pont à déduire, en pointillés ; touchez-le encore pour l’explication, puis une troisième fois pour le poser.",
   ],
   screen: `
     <div class="chips lvl-hide">
@@ -240,6 +290,7 @@ LQ.register({
     <div class="board-wrap">
       <div class="hs-board" id="hs-board"></div>
       <p class="hint-line" id="hs-info"></p>
+      <p class="hint-explain" id="hs-explain" aria-live="polite"></p>
       <div class="toolbar">
         <button class="btn ghost small" onclick="undoHashi()">${ICONS.undo} Annuler</button>
         <button class="btn ghost small" onclick="hintHashi()">${ICONS.bulb} Indice</button>
