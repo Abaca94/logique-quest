@@ -9,6 +9,8 @@
 const TZ_SIZES = [6, 8, 10];
 const TZ_PTS = { 6: 40, 8: 90, 10: 160 };
 let tzN = 6, tzSol = [], tzGrid = [], tzGiven = [], tzErrors = 0, tzHints = 0, tzUndo = [], tzDone = false, tzHinted = -1;
+// Indice en trois temps : 1) montrer la case, 2) expliquer, 3) placer le chiffre.
+let tzHint = null; // { i, stage, wrong, why: [cases à surligner], text }
 
 /* ---------- Génération ---------- */
 // Toutes les lignes valides de longueur n (autant de 0 que de 1, pas de triple)
@@ -107,7 +109,7 @@ function initTakuzu(cfg) {
   if (cfg) tzN = cfg.size;
   else if (resumeFreeSize("takuzu")) tzN = resumeFreeSize("takuzu");
   setActiveChips("takuzu", tzN);
-  tzDone = false; tzUndo = []; tzHinted = -1;
+  tzDone = false; tzUndo = []; tzHinted = -1; tzHint = null;
   const snap = resumeTake("takuzu", playCtx(tzN));
   if (snap) ({ sol: tzSol, grid: tzGrid, given: tzGiven, errors: tzErrors, hints: tzHints } = snap);
   else {
@@ -142,15 +144,19 @@ function renderTakuzu() {
   const b = $("tz-board"), n = tzN, bad = tzConflicts();
   b.style.setProperty("--tzc", tzCellSize() + "px");
   b.style.gridTemplateColumns = `repeat(${n}, var(--tzc))`;
-  b.innerHTML = tzGrid.map((v, i) => `<button class="tz-cell ${v === 0 ? "z" : v === 1 ? "o" : ""} ${tzGiven[i] === 1 ? "given" : tzGiven[i] === 2 ? "given hinted" : ""} ${bad[i] ? "bad" : ""} ${i === tzHinted ? "pulse" : ""}" data-i="${i}" aria-label="${v >= 0 ? v + ", " : ""}ligne ${Math.floor(i / n) + 1}, colonne ${i % n + 1}">${v >= 0 ? v : ""}</button>`).join("");
+  b.innerHTML = tzGrid.map((v, i) => `<button class="tz-cell ${v === 0 ? "z" : v === 1 ? "o" : ""} ${tzGiven[i] === 1 ? "given" : tzGiven[i] === 2 ? "given hinted" : ""} ${bad[i] ? "bad" : ""} ${i === tzHinted ? "pulse" : ""} ${tzHint && tzHint.i === i ? (tzHint.wrong ? "hint-wrong" : "hint-target") : ""} ${tzHint && tzHint.stage >= 2 && tzHint.why.includes(i) ? "hint-why" : ""}" data-i="${i}" aria-label="${v >= 0 ? v + ", " : ""}ligne ${Math.floor(i / n) + 1}, colonne ${i % n + 1}">${v >= 0 ? v : ""}</button>`).join("");
   const left = tzGrid.filter(v => v < 0).length;
   $("tz-info").textContent = left ? `${left} case${left > 1 ? "s" : ""} à remplir` : "";
+  const ex = $("tz-explain");
+  if (tzHint && tzHint.stage >= 2) { ex.innerHTML = tzHint.text; ex.classList.add("show"); }
+  else { ex.innerHTML = ""; ex.classList.remove("show"); }
 }
 function tapTakuzu(i) {
   if (tzDone || tzGiven[i]) return;
   tzUndo.push(tzGrid.slice()); if (tzUndo.length > 300) tzUndo.shift();
   tzGrid[i] = tzGrid[i] === -1 ? 0 : tzGrid[i] === 0 ? 1 : -1;
   tzHinted = -1;
+  if (tzHint && tzHint.i === i) tzHint = null; // la case montrée vient d’être jouée
   sfx("tick"); renderTakuzu(); saveTakuzu();
   if (!tzGrid.includes(-1)) checkTakuzu();
 }
@@ -158,25 +164,104 @@ function undoTakuzu() {
   if (tzDone) return;
   const u = tzUndo.pop();
   if (!u) { toast("Rien à annuler"); return; }
-  tzGrid = u; tzHinted = -1; sfx("tick"); renderTakuzu(); saveTakuzu();
+  tzGrid = u; tzHinted = -1; tzHint = null; sfx("tick"); renderTakuzu(); saveTakuzu();
+}
+/* ---------- Indice expliqué ----------
+   Cherche une case vide que l’on peut déduire tout de suite, avec la raison la
+   plus simple : paire (00 → 1 à côté), case encadrée (0_0), compte atteint
+   (déjà n/2 fois le même chiffre), essai sur la ligne, puis lignes identiques. */
+function tzLines(n) {
+  const L = [];
+  for (let r = 0; r < n; r++) L.push({ name: `ligne ${r + 1}`, Name: `Ligne ${r + 1}`, idx: Array.from({ length: n }, (_, c) => r * n + c), row: true });
+  for (let c = 0; c < n; c++) L.push({ name: `colonne ${c + 1}`, Name: `Colonne ${c + 1}`, idx: Array.from({ length: n }, (_, r) => r * n + c), row: false });
+  return L;
+}
+function tzFindReason() {
+  const n = tzN, g = tzGrid, lines = tzLines(n), found = [];
+  const add = (rank, i, v, why, text) => { if (v === tzSol[i]) found.push({ rank, i, v, why, text }); };
+  for (const L of lines) {
+    const cur = L.idx.map(i => g[i]);
+    if (!cur.includes(-1)) continue;
+    for (let k = 0; k < n; k++) {
+      if (cur[k] !== -1) continue;
+      const i = L.idx[k];
+      for (const d of [-1, 1]) { // paire juste à côté
+        const a = k + d, b = k + 2 * d;
+        if (b < 0 || b >= n || cur[a] === -1 || cur[a] !== cur[b]) continue;
+        const u = cur[a];
+        add(0, i, 1 - u, [L.idx[a], L.idx[b]], `${L.Name} : les deux <b>${u}</b> côte à côte ne peuvent pas avoir un troisième <b>${u}</b> pour voisin, sinon on aurait ${u}${u}${u}. La case entourée est donc un <b>${1 - u}</b>.`);
+      }
+      if (k > 0 && k < n - 1 && cur[k - 1] !== -1 && cur[k - 1] === cur[k + 1]) { // case encadrée
+        const u = cur[k - 1];
+        add(1, i, 1 - u, [L.idx[k - 1], L.idx[k + 1]], `${L.Name} : la case entourée est encadrée par deux <b>${u}</b>. Un ${u} ici donnerait ${u}${u}${u} : c’est donc un <b>${1 - u}</b>.`);
+      }
+      for (const u of [0, 1]) { // compte atteint
+        const have = cur.filter(x => x === u).length;
+        if (have === n / 2) add(2, i, 1 - u, L.idx.filter((_, q) => cur[q] === u), `${L.Name} : elle contient déjà ${have} fois le <b>${u}</b>, le maximum pour ${n} cases (autant de 0 que de 1). Les cases vides restantes sont donc des <b>${1 - u}</b>.`);
+      }
+    }
+    // Essai sur toute la ligne : quelles complétions restent possibles ?
+    const rows = tzRows(n).filter(row => row.every((v, q) => cur[q] === -1 || cur[q] === v));
+    const full = lines.filter(M => M.row === L.row && M !== L && M.idx.every(i => g[i] !== -1));
+    const fullStr = full.map(M => M.idx.map(i => g[i]).join(""));
+    const ok = rows.filter(row => !fullStr.includes(row.join("")));
+    if (!ok.length) continue;
+    for (let k = 0; k < n; k++) {
+      if (cur[k] !== -1) continue;
+      const v = ok[0][k];
+      if (!ok.every(row => row[k] === v)) continue;
+      const i = L.idx[k], z = n / 2 - cur.filter(x => x === 0).length, o = n / 2 - cur.filter(x => x === 1).length;
+      const rest = `il reste ${z} <b>0</b> et ${o} <b>1</b> à placer`;
+      if (rows.every(row => row[k] === v)) {
+        add(3, i, v, L.idx.filter((_, q) => cur[q] !== -1), `${L.Name} : ${rest}. Essayez un <b>${1 - v}</b> ici : les autres cases vides ne peuvent plus être remplies sans aligner trois chiffres identiques. La case entourée est donc un <b>${v}</b>.`);
+      } else {
+        const twin = full.find(M => rows.some(row => row[k] !== v && row.join("") === M.idx.map(q => g[q]).join("")));
+        if (twin) add(4, i, v, twin.idx, `${L.Name} : ${rest}. Avec un <b>${1 - v}</b> ici, la seule façon de la compléter la rendrait identique à la ${twin.name}, déjà pleine. Deux ${L.row ? "lignes" : "colonnes"} ne peuvent pas être identiques : c’est donc un <b>${v}</b>.`);
+      }
+    }
+  }
+  if (!found.length) return null;
+  const best = Math.min(...found.map(f => f.rank)), pool = found.filter(f => f.rank === best);
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 function hintTakuzu() {
   if (tzDone) return;
-  // D’abord une erreur, sinon une case que la déduction permet de remplir maintenant
-  let i = tzGrid.findIndex((v, k) => v >= 0 && v !== tzSol[k]);
-  let msg;
-  if (i >= 0) msg = "Cette case est fausse : elle a été corrigée";
-  else {
-    const s = tzLineSolve(tzN, tzGrid);
-    const cand = s ? [...s.keys()].filter(k => tzGrid[k] === -1 && s[k] !== -1) : [];
-    i = cand.length ? cand[Math.floor(Math.random() * cand.length)] : tzGrid.indexOf(-1);
-    msg = "Indice : cette case se déduit de sa ligne ou de sa colonne";
+  // Un indice déjà montré et toujours valable : on passe à l’étape suivante.
+  if (tzHint && (tzHint.wrong ? tzGrid[tzHint.i] >= 0 && tzGrid[tzHint.i] !== tzSol[tzHint.i] : tzGrid[tzHint.i] === -1)) {
+    const h = tzHint;
+    if (h.stage === 1) {
+      h.stage = 2;
+      if (h.wrong) { // on efface la case fausse
+        tzUndo.push(tzGrid.slice()); tzGrid[h.i] = -1; tzHint = null; tzHinted = h.i;
+        sfx("tick"); toast("Case fausse effacée"); renderTakuzu(); saveTakuzu(); return;
+      }
+      sfx("tick"); renderTakuzu();
+      return;
+    }
+    // Troisième demande : on place le chiffre.
+    tzUndo.push(tzGrid.slice());
+    tzGrid[h.i] = tzSol[h.i]; tzGiven[h.i] = 2; tzHinted = h.i; tzHint = null;
+    sfx("good"); renderTakuzu(); saveTakuzu();
+    if (!tzGrid.includes(-1)) checkTakuzu();
+    return;
   }
-  if (i < 0) return;
-  tzUndo.push(tzGrid.slice());
-  tzGrid[i] = tzSol[i]; tzGiven[i] = 2; tzHints++; tzHinted = i;
-  sfx("good"); toast(msg); renderTakuzu(); saveTakuzu();
-  if (!tzGrid.includes(-1)) checkTakuzu();
+  tzHint = null;
+  // D’abord une erreur : toute déduction partirait d’une case fausse.
+  const bad = tzGrid.findIndex((v, k) => v >= 0 && v !== tzSol[k] && !tzGiven[k]);
+  if (bad >= 0) {
+    tzHint = { i: bad, stage: 1, wrong: true, why: [], text: "" };
+    tzHints++; sfx("bad"); toast("Cette case est fausse. Touchez encore Indice pour l’effacer."); renderTakuzu(); saveTakuzu();
+    return;
+  }
+  const r = tzFindReason();
+  if (r) tzHint = { i: r.i, stage: 1, wrong: false, why: r.why, text: r.text + " <span class=\"tz-next\">Touchez encore Indice pour placer le chiffre.</span>" };
+  else {
+    const i = tzGrid.indexOf(-1);
+    if (i < 0) return;
+    tzHint = { i, stage: 1, wrong: false, why: [], text: "Cette case se déduit en croisant plusieurs lignes et colonnes. <span class=\"tz-next\">Touchez encore Indice pour placer le chiffre.</span>" };
+  }
+  tzHints++;
+  sfx("tick"); toast("Cette case se déduit maintenant. Touchez encore Indice pour l’explication."); renderTakuzu(); saveTakuzu();
 }
 function checkTakuzu() {
   if (tzDone) return;
@@ -217,6 +302,7 @@ LQ.register({
     "Jamais plus de deux chiffres identiques côte à côte (pas de 000 ni de 111), en ligne comme en colonne.",
     "Deux lignes ne peuvent pas être identiques, deux colonnes non plus.",
     "Touchez une case pour passer de vide à 0, puis à 1, puis à vide. Les fautes visibles s’affichent en rouge. La grille se résout toujours sans deviner.",
+    "<b>Indice</b> montre d’abord la prochaine case à déduire, sans son chiffre. Touchez-le une deuxième fois pour l’explication, une troisième pour placer le chiffre.",
   ],
   screen: `
     <div class="chips lvl-hide">
@@ -227,6 +313,7 @@ LQ.register({
     <div class="board-wrap">
       <div class="tz-board" id="tz-board"></div>
       <p class="hint-line" id="tz-info"></p>
+      <p class="tz-explain" id="tz-explain" aria-live="polite"></p>
       <div class="toolbar">
         <button class="btn ghost small" onclick="undoTakuzu()">${ICONS.undo} Annuler</button>
         <button class="btn ghost small" onclick="hintTakuzu()">${ICONS.bulb} Indice</button>
