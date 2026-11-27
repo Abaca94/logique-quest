@@ -758,6 +758,17 @@ body.big-text .gs-meta, body.big-text .act-foot { font-size: 14px; }
 .tz-cell.hinted { box-shadow: inset 0 0 0 2px var(--good); }
 .tz-cell.bad { box-shadow: inset 0 0 0 3px var(--bad); }
 .tz-cell.pulse { animation: hintPulse .5s ease 2; }
+/* Indices en trois temps (tous les jeux à grille) */
+.hint-target { box-shadow: inset 0 0 0 3px var(--accent) !important; animation: hintPulse 1s ease-in-out 2; }
+.hint-wrong { box-shadow: inset 0 0 0 3px var(--bad) !important; animation: hintPulse 1s ease-in-out 2; }
+.hint-why { box-shadow: inset 0 0 0 3px var(--cool) !important; }
+.hs-isl.hint-why circle { stroke: var(--cool); stroke-width: 3; }
+.hs-hint { stroke: var(--accent); stroke-width: 3; stroke-dasharray: 5 4; stroke-linecap: round; pointer-events: none; }
+.hs-hint.wrong { stroke: var(--bad); }
+.hint-explain, .tz-explain { display: none; max-width: 520px; margin: 10px auto 0; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--line); color: var(--text); font-size: 15px; line-height: 1.5; text-align: left; }
+.hint-explain.show, .tz-explain.show { display: block; }
+.hint-explain .hint-next, .tz-explain .tz-next { display: block; margin-top: 6px; color: var(--muted); font-size: 13.5px; }
+body.big-text .hint-explain, body.big-text .tz-explain { font-size: 17px; }
 /* Futoshiki */
 .ft-board { display: grid; gap: 0; align-items: center; justify-items: center; margin: 16px auto 4px; }
 .ft-cell { width: var(--ftc); height: var(--ftc); border-radius: 8px; background: var(--bg); border: 1px solid var(--line-strong); display: flex; align-items: center; justify-content: center; font-size: calc(var(--ftc) * .5); font-weight: 600; color: var(--cool); cursor: pointer; font-variant-numeric: tabular-nums; }

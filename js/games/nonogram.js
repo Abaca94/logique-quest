@@ -88,7 +88,7 @@ function initNonogram(cfg) {
   if (cfg) ngN = cfg.size;
   else if (resumeFreeSize("nonogram")) ngN = resumeFreeSize("nonogram");
   setActiveChips("nonogram", ngN);
-  ngUndo = []; ngHinted = new Set();
+  ngUndo = []; ngHinted = new Set(); hintReset("nonogram");
   const snap = resumeTake("nonogram", playCtx(ngN));
   if (snap) {
     ({ sol: ngSol, rows: ngRows, cols: ngCols, cells: ngCells, seconds: ngSeconds, hints: ngHints } = snap);
@@ -129,24 +129,71 @@ function undoNonogram() {
   for (let r = 0; r < ngN; r++) for (let c = 0; c < ngN; c++) paintNgCell(r, c);
   sfx("tick"); ngRefreshClues(); saveNonogram();
 }
-// Indice : corrige une case fausse, sinon noircit une case qui doit l’être.
+/* ---------- Indice expliqué ----------
+   Une case que sa ligne (ou sa colonne) suffit à décider, compte tenu des
+   cases déjà connues : noire dans toutes les dispositions possibles des blocs,
+   ou blanche dans toutes. */
+function ngKnown(r, c) { const v = ngCells[r][c]; return v === 1 ? 1 : v === 2 ? 0 : -1; }
+function ngIsWrong(r, c) { const v = ngCells[r][c], want = ngSol[r][c] === 1; return (v === 1 && !want) || (v === 2 && want); }
+function nonogramReason() {
+  const n = ngN, found = [];
+  for (let k = 0; k < 2 * n; k++) {
+    const isRow = k < n, idx = isRow ? k : k - n;
+    const pos = q => isRow ? [idx, q] : [q, idx];
+    const clue = isRow ? ngRows[idx] : ngCols[idx], cur = [...Array(n)].map((_, q) => ngKnown(...pos(q)));
+    const res = ngSolveLine(clue, cur);
+    if (!res) continue;
+    const Name = `${isRow ? "Ligne" : "Colonne"} ${idx + 1}`, cl = clue.join(" "), ind = clue.length > 1 ? "indices" : "indice";
+    const known = [...Array(n)].map((_, q) => q).filter(q => cur[q] !== -1).map(q => pos(q).join(","));
+    const blacks = cur.filter(v => v === 1).length, total = clue.reduce((a, x) => a + x, 0);
+    for (let q = 0; q < n; q++) {
+      if (cur[q] !== -1 || res[q] === -1) continue;
+      const [r, c] = pos(q), v = res[q];
+      if ((ngSol[r][c] === 1 ? 1 : 0) !== v) continue;
+      let rank, text;
+      if (clue[0] === 0) { rank = 0; text = `${Name} : l’indice est 0, elle n’a aucune case noire. La case entourée est donc <b>blanche</b> (une croix).`; }
+      else if (v === 0 && blacks === total) { rank = 0; text = `${Name} (${ind} ${cl}) : toutes ses cases noires sont déjà placées. Les autres, dont la case entourée, sont <b>blanches</b> (une croix).`; }
+      else if (v === 1) { rank = 1; text = `${Name} (${ind} ${cl}) : essayez toutes les façons de placer ces blocs${known.length ? ", en respectant les cases déjà connues (en bleu)" : ""}. La case entourée est noire à chaque fois : elle est donc <b>noire</b>.`; }
+      else { rank = 2; text = `${Name} (${ind} ${cl}) : essayez toutes les façons de placer ces blocs${known.length ? ", en respectant les cases déjà connues (en bleu)" : ""}. Aucun bloc ne peut couvrir la case entourée : elle est donc <b>blanche</b> (une croix).`; }
+      found.push({ rank, key: r + "," + c, why: known, text });
+    }
+  }
+  if (!found.length) return null;
+  const best = Math.min(...found.map(f => f.rank)), pool = found.filter(f => f.rank === best);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function ngHintValid(h) { const [r, c] = h.key.split(",").map(Number); return h.wrong ? ngIsWrong(r, c) : ngCells[r][c] === 0; }
+function ngHintSync() {
+  const had = hintGet("nonogram");
+  hintPanel("nonogram", "ng-explain", ngHintValid);
+  if (had && !hintGet("nonogram")) for (let r = 0; r < ngN; r++) for (let c = 0; c < ngN; c++) paintNgCell(r, c);
+}
 function hintNonogram() {
   if (ngDone) return;
-  const wrong = [], missing = [];
-  for (let r = 0; r < ngN; r++) for (let c = 0; c < ngN; c++) {
-    const want = ngSol[r][c] === 1, v = ngCells[r][c];
-    if ((v === 1 && !want) || (v === 2 && want)) wrong.push([r, c]);
-    else if (v === 0 && want) missing.push([r, c]);
-  }
-  const pool = wrong.length ? wrong : missing;
-  if (!pool.length) return;
-  const [r, c] = pool[Math.floor(Math.random() * pool.length)];
-  ngPushUndo();
-  ngCells[r][c] = ngSol[r][c] === 1 ? 1 : 2;
-  ngHints++; ngHinted.add(r + "," + c);
-  paintNgCell(r, c);
-  sfx("good"); toast(wrong.length ? "Indice : une case était fausse, elle est corrigée" : "Indice : une case noire de plus");
-  ngRefreshClues(); saveNonogram(); ngCheckWin();
+  hintFlow("nonogram", {
+    valid: ngHintValid,
+    wrong: () => {
+      for (let r = 0; r < ngN; r++) for (let c = 0; c < ngN; c++) if (ngIsWrong(r, c)) return { key: r + "," + c, msg: ngCells[r][c] === 1 ? "Cette case ne doit pas être noire. Touchez encore Indice pour l’effacer." : "Cette croix est fausse. Touchez encore Indice pour l’effacer." };
+      return null;
+    },
+    find: nonogramReason,
+    fallback: () => {
+      for (let r = 0; r < ngN; r++) for (let c = 0; c < ngN; c++) if (ngCells[r][c] === 0 && ngSol[r][c] === 1) return { key: r + "," + c, why: [], text: "Cette case se déduit en croisant plusieurs lignes et colonnes." };
+      return null;
+    },
+    clear: h => { const [r, c] = h.key.split(",").map(Number); ngPushUndo(); ngCells[r][c] = 0; saveNonogram(); },
+    place: h => {
+      const [r, c] = h.key.split(",").map(Number);
+      ngPushUndo();
+      ngCells[r][c] = ngSol[r][c] === 1 ? 1 : 2; ngHinted.add(h.key);
+      saveNonogram();
+    },
+    count: () => { ngHints++; saveNonogram(); },
+    render: () => {
+      for (let r = 0; r < ngN; r++) for (let c = 0; c < ngN; c++) paintNgCell(r, c);
+      ngRefreshClues(); ngCheckWin();
+    },
+  });
 }
 function setNgMode(m) {
   ngMode = m;
@@ -183,9 +230,10 @@ function renderNonogram() {
 function ngCellEl(r, c) { return document.querySelector(`#ng-board td[data-r="${r}"][data-c="${c}"]`); }
 function paintNgCell(r, c) {
   const el = ngCellEl(r, c), v = ngCells[r][c];
-  el.className = el.className.replace(/\b(on|x|hinted)\b/g, "").trim() + (v === 1 ? " on" : v === 2 ? " x" : "") + (ngHinted.has(r + "," + c) ? " hinted" : "");
+  el.className = el.className.replace(/\b(on|x|hinted|hint-target|hint-wrong|hint-why)\b/g, "").trim() + (v === 1 ? " on" : v === 2 ? " x" : "") + (ngHinted.has(r + "," + c) ? " hinted" : "") + hintCls("nonogram", r + "," + c);
 }
 function ngRefreshClues() {
+  ngHintSync();
   for (let r = 0; r < ngN; r++) {
     const ok = ngClues(ngCells[r].map(v => v === 1 ? 1 : 0)).join() === ngRows[r].join();
     document.querySelector(`.ng-rowclue[data-r="${r}"]`).classList.toggle("ok", ok);
@@ -252,7 +300,7 @@ LQ.register({
     "Deux blocs sont toujours séparés par au moins une case blanche.",
     "En mode <b>Noircir</b>, touchez ou glissez pour noircir des cases ; en mode <b>Croix</b>, marquez les cases que vous savez blanches. Touchez une case marquée pour l’effacer.",
     "Un indice grisé signifie que sa ligne ou sa colonne correspond.",
-    "<b>Annuler</b> revient en arrière ; <b>Indice</b> corrige ou révèle une case (3 étoiles seulement sans indice). La grille est gardée si vous quittez.",
+    "<b>Annuler</b> revient en arrière. <b>Indice</b> montre d’abord la prochaine case à déduire ; touchez-le encore pour l’explication, puis une troisième fois pour la noircir ou la barrer (3 étoiles seulement sans indice). La grille est gardée si vous quittez.",
   ],
   screen: `
     <div class="chips lvl-hide">
@@ -269,6 +317,7 @@ LQ.register({
     </div>
     <p class="goals" id="ng-goals"></p>
     <div class="board-wrap"><table class="ng-board" id="ng-board"></table></div>
+    <p class="hint-explain" id="ng-explain" aria-live="polite"></p>
     <div class="toolbar">
       <button class="btn ghost small" onclick="undoNonogram()">${ICONS.undo} Annuler</button>
       <button class="btn ghost small" onclick="hintNonogram()">${ICONS.bulb} Indice</button>

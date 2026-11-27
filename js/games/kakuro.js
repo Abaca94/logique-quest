@@ -172,7 +172,7 @@ function initKakuro(cfg) {
   if (cfg) kkN = cfg.size;
   else if (resumeFreeSize("kakuro")) kkN = resumeFreeSize("kakuro");
   setActiveChips("kakuro", kkN);
-  kkSel = -1; kkBad = []; kkDone = false; kkUndo = []; kkNoteMode = false; setKakuroNoteBtn();
+  kkSel = -1; kkBad = []; kkDone = false; kkUndo = []; hintReset("kakuro"); kkNoteMode = false; setKakuroNoteBtn();
   const snap = resumeTake("kakuro", playCtx(kkN));
   if (snap) {
     ({ w: kkWhite, runs: kkRuns, cellRuns: kkCellRuns, sol: kkSol, given: kkGiven, grid: kkGrid, notes: kkNotes, errors: kkErrors, hints: kkHints } = snap);
@@ -203,18 +203,79 @@ function undoKakuro() {
 }
 function setKakuroNoteBtn() { const b = $("kk-note-btn"); if (b) b.classList.toggle("toggle-on", kkNoteMode); }
 function toggleKakuroNotes() { kkNoteMode = !kkNoteMode; setKakuroNoteBtn(); sfx("tick"); }
+/* ---------- Indice expliqué ---------- */
+function kkDigits(m) { const o = []; for (let v = 1; v <= 9; v++) if (m & (1 << v)) o.push(v); return o; }
+// Ce que permet un bloc : chiffres possibles dans ses cases vides, chiffres obligatoires.
+function kkRunInfo(ri) {
+  const run = kkRuns[ri];
+  let used = 0;
+  const placed = [];
+  for (const j of run.cells) if (kkGrid[j]) { used |= 1 << kkGrid[j]; placed.push(kkGrid[j]); }
+  const combos = (KK_COMBOS[run.cells.length + "," + run.sum] || []).filter(c => (c & used) === used);
+  let any = 0, all = 1022;
+  combos.forEach(c => { any |= c; all &= c; });
+  return { run, placed, empty: run.cells.filter(j => !kkGrid[j]), poss: any & ~used, need: combos.length ? all & ~used : 0, combos };
+}
+function kkRunName(run) { return `le bloc ${run.dir === "a" ? "horizontal" : "vertical"} de somme ${run.sum} en ${run.cells.length} cases`; }
+function kkRunSays(I) {
+  const d = kkDigits(I.poss);
+  return `${kkRunName(I.run)}${I.placed.length ? ` (déjà ${frList(I.placed)})` : ""} n’accepte que ${d.length > 1 ? "les chiffres " + frList(d) : "le " + d[0]}`;
+}
+function kakuroReason() {
+  const info = kkRuns.map((_, ri) => kkRunInfo(ri)), found = [];
+  const mask = i => kkCellRuns[i].reduce((m, ri) => m & info[ri].poss, 1022);
+  const add = (rank, key, why, text) => { if (mask(key) & (1 << kkSol[key])) found.push({ rank, key, why: [...new Set(why)], text }); };
+  kkWhite.forEach((w, i) => {
+    if (!w || kkGrid[i]) return;
+    const d = kkDigits(mask(i));
+    if (d.length !== 1) return;
+    const v = d[0], rs = kkCellRuns[i].map(ri => info[ri]);
+    const solo = rs.find(I => I.empty.length === 1);
+    if (solo) {
+      const s = solo.placed.reduce((a, x) => a + x, 0);
+      add(0, i, solo.run.cells.filter(j => j !== i), `C’est la dernière case vide ${kkRunName(solo.run).replace(/^le /, "du ")} : ${solo.placed.length === 1 ? `le ${solo.placed[0]} est déjà placé` : `${frList(solo.placed)} font déjà ${s}`}, il manque ${solo.run.sum - s}. C’est donc un <b>${v}</b>.`);
+      return;
+    }
+    const one = rs.find(I => kkDigits(I.poss).length === 1);
+    if (one) { add(1, i, one.run.cells.filter(j => j !== i && kkGrid[j]), `${kkRunSays(one).replace(/^l/, "L")}. C’est donc un <b>${v}</b>.`); return; }
+    add(2, i, rs.flatMap(I => I.run.cells.filter(j => j !== i && kkGrid[j])), `Pour la case entourée, ${rs.map(kkRunSays).join(", et ")}. Le seul chiffre commun est le <b>${v}</b>.`);
+  });
+  info.forEach(I => {
+    for (const v of kkDigits(I.need)) {
+      const spots = I.empty.filter(j => mask(j) & (1 << v));
+      if (spots.length !== 1 || I.empty.length < 2) continue;
+      const p = spots[0], others = I.empty.filter(j => j !== p);
+      add(3, p, others, `${kkRunName(I.run).replace(/^l/, "L")}${I.placed.length ? ` (déjà ${frList(I.placed)})` : ""} contient forcément un <b>${v}</b> : toutes ses combinaisons possibles en ont un. Dans les autres cases vides du bloc (en bleu), l’autre bloc qui les traverse interdit le ${v}. Il va donc dans la case entourée.`);
+    }
+  });
+  if (!found.length) return null;
+  const best = Math.min(...found.map(f => f.rank)), pool = found.filter(f => f.rank === best);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 function hintKakuro() {
   if (kkDone) return;
   const whites = kkWhite.reduce((a, w, i) => w ? [...a, i] : a, []);
-  let i = kkSel >= 0 && !kkGiven[kkSel] && kkGrid[kkSel] !== kkSol[kkSel] ? kkSel : -1;
-  if (i < 0) i = whites.find(j => kkGrid[j] && kkGrid[j] !== kkSol[j]) ?? -1;
-  if (i < 0) { const empty = whites.filter(j => !kkGrid[j]); i = empty.length ? empty[Math.floor(Math.random() * empty.length)] : -1; }
-  if (i < 0) return;
-  pushKakuroUndo();
-  kkGrid[i] = kkSol[i]; kkGiven[i] = 2; kkNotes[i] = 0; kkBad[i] = 0; kkHints++; kkSel = i;
-  sfx("good"); toast(`Indice : ${kkSol[i]} dans la case surlignée`);
-  renderKakuro(); saveKakuro();
-  if (whites.every(j => kkGrid[j])) checkKakuro();
+  hintFlow("kakuro", {
+    valid: h => h.wrong ? kkGrid[h.key] && kkGrid[h.key] !== kkSol[h.key] : !kkGrid[h.key],
+    wrong: () => { const i = whites.find(j => kkGrid[j] && !kkGiven[j] && kkGrid[j] !== kkSol[j]); return i === undefined ? null : { key: i }; },
+    find: kakuroReason,
+    fallback: () => {
+      const e = whites.filter(j => !kkGrid[j]);
+      if (!e.length) return null;
+      const info = kkRuns.map((_, ri) => kkRunInfo(ri)), m = i => kkDigits(kkCellRuns[i].reduce((a, ri) => a & info[ri].poss, 1022));
+      const i = e.reduce((a, j) => m(j).length < m(a).length ? j : a);
+      return { key: i, why: [], text: `Pas de déduction directe ici : il faut essayer les combinaisons de plusieurs blocs à la fois. Chiffres encore possibles dans la case entourée : ${frList(m(i))}.` };
+    },
+    clear: h => { pushKakuroUndo(); kkGrid[h.key] = 0; kkBad[h.key] = 0; kkSel = h.key; saveKakuro(); },
+    place: h => {
+      pushKakuroUndo();
+      const i = h.key;
+      kkGrid[i] = kkSol[i]; kkGiven[i] = 2; kkNotes[i] = 0; kkBad[i] = 0; kkSel = i; saveKakuro();
+      if (whites.every(j => kkGrid[j])) later(checkKakuro, 300);
+    },
+    count: () => { kkHints++; saveKakuro(); },
+    render: () => renderKakuro(),
+  });
 }
 function kkCellSize() {
   const avail = Math.min(document.documentElement.clientWidth - 32, 640);
@@ -222,6 +283,7 @@ function kkCellSize() {
 }
 function renderKakuro() {
   const b = $("kk-board");
+  hintPanel("kakuro", "kk-explain", h => h.wrong ? kkGrid[h.key] && kkGrid[h.key] !== kkSol[h.key] : !kkGrid[h.key]);
   b.style.gridTemplateColumns = `repeat(${kkN}, var(--kkc))`;
   b.style.setProperty("--kkc", kkCellSize() + "px");
   const selRuns = kkSel >= 0 ? kkCellRuns[kkSel] : [];
@@ -233,7 +295,7 @@ function renderKakuro() {
       const hl = selRuns.some(ri => kkRuns[ri].head === i);
       h += `<div class="kk-black ${a || d ? "clue" : ""} ${hl ? "hl" : ""}">${a ? `<span class="ka">${a.sum}</span>` : ""}${d ? `<span class="kd">${d.sum}</span>` : ""}</div>`;
     } else {
-      const cls = ["kk-cell", kkGiven[i] === 1 ? "given" : kkGiven[i] === 2 ? "given hinted" : "", inSel.has(i) ? "peer" : "", i === kkSel ? "sel" : "", kkBad[i] ? "bad" : ""].join(" ");
+      const cls = ["kk-cell", kkGiven[i] === 1 ? "given" : kkGiven[i] === 2 ? "given hinted" : "", inSel.has(i) ? "peer" : "", i === kkSel ? "sel" : "", kkBad[i] ? "bad" : ""].join(" ") + hintCls("kakuro", i);
       const inner = kkGrid[i] ? kkGrid[i] : kkNotes[i] ? `<div class="notes">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(v => `<span>${kkNotes[i] & (1 << v) ? v : ""}</span>`).join("")}</div>` : "";
       h += `<div class="${cls}" data-i="${i}">${inner}</div>`;
     }
@@ -325,7 +387,7 @@ LQ.register({
     "Chaque bloc de cases blanches doit totaliser la somme indiquée dans la case grise qui le précède : en haut à droite pour le bloc horizontal, en bas à gauche pour le bloc vertical.",
     "Dans un même bloc, on n’utilise que les chiffres de 1 à 9, et jamais deux fois le même.",
     "Touchez une case : ses blocs s’éclairent et la somme qui reste à placer s’affiche sous la grille.",
-    "Le <b>crayon</b> note les chiffres possibles ; <b>Annuler</b> revient en arrière ; <b>Indice</b> révèle une case (3 étoiles seulement sans indice).",
+    "Le <b>crayon</b> note les chiffres possibles ; <b>Annuler</b> revient en arrière. <b>Indice</b> montre d’abord la prochaine case à déduire ; touchez-le encore pour l’explication, puis une troisième fois pour le chiffre (3 étoiles seulement sans indice).",
     "Votre grille est gardée si vous quittez : vous la retrouverez en revenant.",
   ],
   screen: `
@@ -336,6 +398,7 @@ LQ.register({
     </div>
     <div class="board-wrap">
       <div class="kk-board" id="kk-board"></div>
+      <p class="hint-explain" id="kk-explain" aria-live="polite"></p>
       <div class="kk-info" id="kk-info"></div>
       <div class="keypad" id="kk-keys"></div>
       <div class="toolbar">

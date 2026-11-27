@@ -109,7 +109,7 @@ function initFutoshiki(cfg) {
   if (cfg) ftN = cfg.size;
   else if (resumeFreeSize("futoshiki")) ftN = resumeFreeSize("futoshiki");
   setActiveChips("futoshiki", ftN);
-  ftSel = -1; ftDone = false; ftUndo = []; ftNoteMode = false; setFutoshikiNoteBtn();
+  ftSel = -1; ftDone = false; ftUndo = []; hintReset("futoshiki"); ftNoteMode = false; setFutoshikiNoteBtn();
   const snap = resumeTake("futoshiki", playCtx(ftN));
   if (snap) ({ sol: ftSol, grid: ftGrid, given: ftGiven, H: ftH, V: ftV, notes: ftNotes, errors: ftErrors, hints: ftHints } = snap);
   else {
@@ -150,6 +150,7 @@ function ftCellSize() {
 }
 function renderFutoshiki() {
   const n = ftN, b = $("ft-board"), bad = ftConflicts(), cs = ftCellSize();
+  hintPanel("futoshiki", "ft-explain", h => h.wrong ? ftGrid[h.key] && ftGrid[h.key] !== ftSol[h.key] : !ftGrid[h.key]);
   b.style.setProperty("--ftc", cs + "px");
   b.style.gridTemplateColumns = Array.from({ length: 2 * n - 1 }, (_, k) => k % 2 ? "18px" : "var(--ftc)").join(" ");
   const sel = ftSel, sr = Math.floor(sel / n), sc = sel % n;
@@ -158,7 +159,7 @@ function renderFutoshiki() {
     const r = R >> 1, c = C >> 1;
     if (R % 2 === 0 && C % 2 === 0) {
       const i = r * n + c, v = ftGrid[i];
-      const cls = ["ft-cell", ftGiven[i] === 1 ? "given" : ftGiven[i] === 2 ? "given hinted" : "", i === sel ? "sel" : sel >= 0 && (r === sr || c === sc) ? "peer" : "", bad[i] ? "bad" : ""].join(" ");
+      const cls = ["ft-cell", ftGiven[i] === 1 ? "given" : ftGiven[i] === 2 ? "given hinted" : "", i === sel ? "sel" : sel >= 0 && (r === sr || c === sc) ? "peer" : "", bad[i] ? "bad" : ""].join(" ") + hintCls("futoshiki", i);
       const inner = v ? v : ftNotes[i] ? `<div class="notes ft-notes">${[...Array(n)].map((_, k) => `<span>${ftNotes[i] & (1 << (k + 1)) ? k + 1 : ""}</span>`).join("")}</div>` : "";
       h += `<div class="${cls}" data-i="${i}">${inner}</div>`;
     } else if (R % 2 === 0) {
@@ -205,17 +206,96 @@ function undoFutoshiki() {
   if (!u) { toast("Rien à annuler"); return; }
   ftGrid = u.grid; ftNotes = u.notes; sfx("tick"); renderFutoshiki(); saveFutoshiki();
 }
+/* ---------- Indice expliqué ---------- */
+// Voisins reliés par un signe : rel « < » si la case doit être plus petite que le voisin.
+function ftLinks(i) {
+  const n = ftN, r = Math.floor(i / n), c = i % n, out = [];
+  if (c < n - 1) { const s = ftH[r * (n - 1) + c]; if (s) out.push({ j: i + 1, rel: s === 1 ? "<" : ">", where: "de droite" }); }
+  if (c > 0) { const s = ftH[r * (n - 1) + c - 1]; if (s) out.push({ j: i - 1, rel: s === 1 ? ">" : "<", where: "de gauche" }); }
+  if (r < n - 1) { const s = ftV[r * n + c]; if (s) out.push({ j: i + n, rel: s === 1 ? "<" : ">", where: "du dessous" }); }
+  if (r > 0) { const s = ftV[(r - 1) * n + c]; if (s) out.push({ j: i - n, rel: s === 1 ? ">" : "<", where: "du dessus" }); }
+  return out;
+}
+function ftLineVals(i) {
+  const n = ftN, r = Math.floor(i / n), c = i % n, row = [], col = [];
+  for (let k = 0; k < n; k++) { if (k !== c && ftGrid[r * n + k]) row.push(r * n + k); if (k !== r && ftGrid[k * n + c]) col.push(k * n + c); }
+  return { row, col };
+}
+function ftBase(i) { const { row, col } = ftLineVals(i), used = new Set([...row, ...col].map(q => ftGrid[q])); return [...Array(ftN)].map((_, k) => k + 1).filter(v => !used.has(v)); }
+// Candidats avec les signes, et ce qui a servi à les réduire
+function ftDomain(i) {
+  let D = ftBase(i);
+  const bounds = [];
+  for (const L of ftLinks(i)) {
+    const w = ftGrid[L.j], B = w ? [w] : ftBase(L.j);
+    if (!B.length) continue;
+    const lim = L.rel === "<" ? Math.max(...B) : Math.min(...B);
+    const keep = D.filter(v => L.rel === "<" ? v < lim : v > lim);
+    if (keep.length < D.length) bounds.push({ L, lim, exact: !!w }); 
+    D = keep;
+  }
+  return { D, bounds };
+}
+function futoshikiReason() {
+  const n = ftN, found = [], dom = ftGrid.map((v, i) => v ? null : ftDomain(i));
+  const add = (rank, key, why, text) => { if (dom[key] && dom[key].D.includes(ftSol[key])) found.push({ rank, key, why: [...new Set(why)], text }); };
+  dom.forEach((d, i) => {
+    if (!d || d.D.length !== 1) return;
+    const v = d.D[0], { row, col } = ftLineVals(i), parts = [];
+    const rv = row.map(q => ftGrid[q]).sort((x, y) => x - y), cv = col.map(q => ftGrid[q]).filter(x => !rv.includes(x)).sort((x, y) => x - y);
+    if (rv.length) parts.push(`sa ligne ${frList(rv)}`);
+    if (cv.length) parts.push(`sa colonne ${frList(cv)}`);
+    const why = [...row, ...col];
+    let txt = parts.length ? `Pour la case entourée, ${parts.map((x, k) => k ? x : x.replace(/^(sa ligne|sa colonne|son bloc) /, "$1 contient déjà ")).join(", ")}.` : "";
+    for (const b of d.bounds) {
+      why.push(b.L.j);
+      txt += ` Le signe l’oblige à être ${b.L.rel === "<" ? "plus petite" : "plus grande"} que la case ${b.L.where}, qui ${b.exact ? "vaut" : b.L.rel === "<" ? "vaut au plus" : "vaut au moins"} ${b.lim}.`;
+    }
+    add(d.bounds.length ? 1 : 0, i, why, `${txt.trim()} Il ne reste que le <b>${v}</b>.`);
+  });
+  for (let k = 0; k < 2 * n; k++) {
+    const cells = [...Array(n)].map((_, q) => k < n ? k * n + q : q * n + (k - n)), name = k < n ? `la ligne ${k + 1}` : `la colonne ${k - n + 1}`;
+    for (let v = 1; v <= n; v++) {
+      if (cells.some(q => ftGrid[q] === v)) continue;
+      const spots = cells.filter(q => dom[q] && dom[q].D.includes(v));
+      if (spots.length !== 1) continue;
+      const p = spots[0], why = [];
+      cells.filter(q => q !== p && !ftGrid[q]).forEach(q => {
+        const { row, col } = ftLineVals(q), blk = [...row, ...col].find(x => ftGrid[x] === v);
+        if (blk !== undefined) why.push(blk); else ftLinks(q).forEach(L => why.push(L.j));
+      });
+      add(2, p, why, `Dans ${name}, le <b>${v}</b> ne peut aller que dans la case entourée : dans les autres cases vides, il est exclu par un ${v} déjà placé sur leur ${k < n ? "colonne" : "ligne"} ou par un signe (cases entourées en bleu).`);
+    }
+  }
+  if (!found.length) return null;
+  const best = Math.min(...found.map(f => f.rank)), pool = found.filter(f => f.rank === best);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 function hintFutoshiki() {
   if (ftDone) return;
-  let i = ftSel >= 0 && !ftGiven[ftSel] && ftGrid[ftSel] !== ftSol[ftSel] ? ftSel : -1;
-  if (i < 0) i = ftGrid.findIndex((v, k) => v && v !== ftSol[k]);
-  if (i < 0) { const e = [...ftGrid.keys()].filter(k => !ftGrid[k]); i = e.length ? e[Math.floor(Math.random() * e.length)] : -1; }
-  if (i < 0) return;
-  ftUndo.push({ grid: ftGrid.slice(), notes: ftNotes.slice() });
-  ftGrid[i] = ftSol[i]; ftGiven[i] = 2; ftNotes[i] = 0; ftHints++; ftSel = i;
-  sfx("good"); toast(`Indice : ${ftSol[i]} dans la case surlignée`);
-  renderFutoshiki(); saveFutoshiki();
-  if (ftGrid.every(Boolean)) checkFutoshiki();
+  const ok = h => h.wrong ? ftGrid[h.key] && ftGrid[h.key] !== ftSol[h.key] : !ftGrid[h.key];
+  hintFlow("futoshiki", {
+    valid: ok,
+    wrong: () => { const i = ftGrid.findIndex((v, k) => v && !ftGiven[k] && v !== ftSol[k]); return i < 0 ? null : { key: i }; },
+    find: futoshikiReason,
+    fallback: () => {
+      const e = [...ftGrid.keys()].filter(k => !ftGrid[k]);
+      if (!e.length) return null;
+      const i = e.reduce((a, k) => ftDomain(k).D.length < ftDomain(a).D.length ? k : a);
+      return { key: i, why: ftLinks(i).map(L => L.j), text: `Pas de déduction directe ici : il faut enchaîner plusieurs signes. Chiffres encore possibles dans la case entourée : ${frList(ftDomain(i).D)}.` };
+    },
+    clear: h => { ftUndo.push({ grid: ftGrid.slice(), notes: ftNotes.slice() }); ftGrid[h.key] = 0; ftSel = h.key; saveFutoshiki(); },
+    place: h => {
+      ftUndo.push({ grid: ftGrid.slice(), notes: ftNotes.slice() });
+      const i = h.key, n = ftN, r = Math.floor(i / n), c = i % n, v = ftSol[i];
+      ftGrid[i] = v; ftGiven[i] = 2; ftNotes[i] = 0; ftSel = i;
+      for (let k = 0; k < n; k++) { ftNotes[r * n + k] &= ~(1 << v); ftNotes[k * n + c] &= ~(1 << v); }
+      saveFutoshiki();
+      if (ftGrid.every(Boolean)) later(checkFutoshiki, 300);
+    },
+    count: () => { ftHints++; saveFutoshiki(); },
+    render: () => renderFutoshiki(),
+  });
 }
 function checkFutoshiki() {
   if (ftDone) return;
@@ -252,6 +332,7 @@ LQ.register({
     "Les signes entre deux cases doivent être respectés : < et > en ligne, ∧ et ∨ en colonne. La pointe du signe montre la case la plus petite.",
     "Touchez une case puis un chiffre. Le <b>crayon</b> note les chiffres possibles. Les conflits s’affichent en rouge.",
     "Chaque grille n’a qu’une seule solution.",
+    "<b>Indice</b> montre d’abord la prochaine case à déduire ; touchez-le encore pour l’explication, puis une troisième fois pour le chiffre.",
   ],
   screen: `
     <div class="chips lvl-hide">
@@ -261,6 +342,7 @@ LQ.register({
     </div>
     <div class="board-wrap">
       <div class="ft-board" id="ft-board"></div>
+      <p class="hint-explain" id="ft-explain" aria-live="polite"></p>
       <div class="keypad" id="ft-keys"></div>
       <div class="toolbar">
         <button class="btn ghost small" id="ft-note-btn" onclick="toggleFutoshikiNotes()">${ICONS.pencil} Crayon</button>
